@@ -1151,6 +1151,13 @@ document.addEventListener('DOMContentLoaded',function(){
 (function(){
   var overlay=document.getElementById('opc-quiz-overlay');
   var currentId=null, selectedOpt=null, answered=false;
+  var shownKey='opc_quiz_shown_v2_{{ request.user.pk }}_{{ request.user.pincode|escapejs }}';
+  function wasShown(){
+    try{return sessionStorage.getItem(shownKey)==='1';}catch(e){return false;}
+  }
+  function markShown(){
+    try{sessionStorage.setItem(shownKey,'1');}catch(e){}
+  }
 
   function getCsrf(){
     var m=document.cookie.match(/csrftoken=([^;]+)/);
@@ -1159,7 +1166,7 @@ document.addEventListener('DOMContentLoaded',function(){
 
   function loadQuestion(){
     fetch('/quiz/api/next/')
-      .then(r=>r.json())
+      .then(function(r){if(!r.ok)throw new Error('Quiz request failed');return r.json();})
       .then(data=>{
         if(data.done){overlay.style.display='none';return;}
         currentId=data.id;
@@ -1200,6 +1207,7 @@ document.addEventListener('DOMContentLoaded',function(){
         document.getElementById('opc-quiz-skip').style.display='block';
         document.getElementById('opc-quiz-skip').textContent='Skip';
         overlay.style.display='flex';
+        markShown();
       }).catch(function(){});
   }
 
@@ -1253,8 +1261,7 @@ document.addEventListener('DOMContentLoaded',function(){
   window.opcQuizNext=function(){loadQuestion();};
 
   // Show quiz 3 seconds after page load (once per session)
-  if(!sessionStorage.getItem('opc_quiz_shown')){
-    sessionStorage.setItem('opc_quiz_shown','1');
+  if(!wasShown()){
     setTimeout(loadQuestion, 3000);
   }
 })();
