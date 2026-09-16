@@ -28,7 +28,7 @@
 
   <!-- Year toggle -->
   <div style="display:flex;gap:8px;justify-content:center;margin-bottom:14px;flex-wrap:wrap">
-    {% for y in "2026 2025 2024 2023"|split:" " %}
+    {% for y in year_choices %}
     <a href="?year={{ y }}" style="padding:6px 16px;border-radius:20px;font-size:12px;font-weight:700;text-decoration:none;background:{% if y|add:'0' == year %}#4f46e5{% else %}#f1f5f9{% endif %};color:{% if y|add:'0' == year %}#fff{% else %}#374151{% endif %}">{{ y }}</a>
     {% endfor %}
   </div>

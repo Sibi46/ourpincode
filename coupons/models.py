@@ -1,6 +1,7 @@
 from django.db import models
 from django.conf import settings
 from django.db import transaction
+from django.utils import timezone
 
 User = settings.AUTH_USER_MODEL
 
@@ -128,6 +129,11 @@ class SpinWheelSlot(models.Model):
 
 
 class Reward(models.Model):
+    redemption_shop = models.ForeignKey(
+        'jobs.ShopProfile', null=True, blank=True, on_delete=models.SET_NULL,
+        related_name='opc_rewards',
+        help_text='Only this shop account may verify and fulfil this reward.',
+    )
     name = models.CharField(max_length=200)
     business_name = models.CharField(max_length=200)
     description = models.TextField(blank=True)
@@ -142,6 +148,8 @@ class Reward(models.Model):
         return f'{self.name} — {self.business_name}'
 
     def is_available(self):
+        if self.expiry and self.expiry < timezone.localdate():
+            return False
         if not self.is_active:
             return False
         if self.quantity_limit and self.quantity_redeemed >= self.quantity_limit:

@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings
+from django.core.validators import RegexValidator
 
 User = settings.AUTH_USER_MODEL
 
@@ -9,6 +10,10 @@ CORRECT_CHOICES = [('A', 'A'), ('B', 'B'), ('C', 'C'), ('D', 'D')]
 class Quiz(models.Model):
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='quizzes')
     title = models.CharField(max_length=200)
+    pincode = models.CharField(
+        max_length=6, default='',
+        validators=[RegexValidator(r'^[1-9][0-9]{5}$', 'Enter a valid six-digit pincode.')],
+    )
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 

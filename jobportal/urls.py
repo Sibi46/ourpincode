@@ -91,7 +91,7 @@ urlpatterns = [
     path('advertiser/payment/<int:ad_id>/',   views.ad_payment,               name='ad_payment'),
     path('advertiser/payment/<int:ad_id>/success/', views.ad_payment_success, name='ad_payment_success'),
     path('advertiser/performance/<int:ad_id>/', views.ad_performance,         name='ad_performance'),
-    path('advertiser/renew/<int:ad_id>/',     views.renew_ad,                 name='renew_ad'),
+    path('advertiser/renew/<int:ad_id>/',     views.advertiser_renew_ad,      name='advertiser_renew_ad'),
     path('ads/click/<int:ad_id>/',            views.ad_click_track,           name='ad_click_track'),
     path('ads/adpost-click/<int:ad_id>/',     views.adpost_click_track,       name='adpost_click_track'),
 

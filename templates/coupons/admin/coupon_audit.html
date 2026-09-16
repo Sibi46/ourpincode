@@ -57,15 +57,15 @@
     </div>
     {% endif %}
 
-    {% if coupon._redemption %}
+    {% if coupon.audit_redemption %}
     <div style="background:#d1fae5;border-radius:12px;padding:14px">
       <div style="font-size:11px;font-weight:700;color:#059669;margin-bottom:8px">REDEMPTION</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-        <div><div class="opc-label">Redemption Code</div><div style="font-family:monospace;font-weight:900;color:#059669">{{ coupon._redemption.code }}</div></div>
-        <div><div class="opc-label">Reward</div><div style="font-weight:700">{{ coupon._redemption.reward.name }}</div></div>
-        <div><div class="opc-label">Points Used</div><div style="font-weight:700">{{ coupon._redemption.points_used }}</div></div>
+        <div><div class="opc-label">Redemption Code</div><div style="font-family:monospace;font-weight:900;color:#059669">{{ coupon.audit_redemption.code }}</div></div>
+        <div><div class="opc-label">Reward</div><div style="font-weight:700">{{ coupon.audit_redemption.reward.name }}</div></div>
+        <div><div class="opc-label">Points Used</div><div style="font-weight:700">{{ coupon.audit_redemption.points_used }}</div></div>
         <div><div class="opc-label">Status</div>
-          {% if coupon._redemption.status == 'redeemed' %}<span class="opc-badge opc-badge-green">Redeemed</span>
+          {% if coupon.audit_redemption.status == 'redeemed' %}<span class="opc-badge opc-badge-green">Redeemed</span>
           {% else %}<span class="opc-badge opc-badge-gold">Pending</span>{% endif %}
         </div>
       </div>
@@ -73,7 +73,7 @@
     {% endif %}
 
     <div style="margin-top:16px;font-size:11px;color:#94a3b8">
-      Complete chain: Admin → {{ coupon.salesman }} → {{ coupon.shop.name }} → {{ coupon.code }}{% if coupon.activated_by %} → {{ coupon.activated_by.get_full_name|default:coupon.activated_by.username }}{% if coupon._redemption %} → {{ coupon._redemption.code }}{% endif %}{% endif %}
+      Complete chain: Admin → {{ coupon.salesman }} → {{ coupon.shop.name }} → {{ coupon.code }}{% if coupon.activated_by %} → {{ coupon.activated_by.get_full_name|default:coupon.activated_by.username }}{% if coupon.audit_redemption %} → {{ coupon.audit_redemption.code }}{% endif %}{% endif %}
     </div>
   </div>
   {% endif %}

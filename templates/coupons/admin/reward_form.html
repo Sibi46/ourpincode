@@ -18,6 +18,15 @@
         <input class="opc-input" name="business_name" placeholder="Sri Restaurant" value="{{ reward.business_name|default:'' }}" required>
       </div>
       <div class="opc-field">
+        <label class="opc-label">Authorized Redemption Shop</label>
+        <select class="opc-input" name="redemption_shop">
+          <option value="">Unassigned (redemption blocked)</option>
+          {% for shop in shops %}
+          <option value="{{ shop.pk }}" {% if reward.redemption_shop_id == shop.pk %}selected{% endif %}>{{ shop.shop_name }} ({{ shop.user.username }})</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="opc-field">
         <label class="opc-label">Points Required</label>
         <input class="opc-input" type="number" name="points_required" min="1" value="{{ reward.points_required|default:'' }}" required>
       </div>

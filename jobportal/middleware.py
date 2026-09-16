@@ -2,7 +2,6 @@ from django.shortcuts import redirect
 
 # Pages anyone can visit without logging in
 PUBLIC_PREFIXES = [
-    '/',                          # home (exact)
     '/login/',
     '/logout/',
     '/register/',
@@ -41,7 +40,6 @@ PUBLIC_PREFIXES = [
     '/campus/',       # campus public pages
     '/coupons/salesman/login/',
     '/coupons/salesman/logout/',
-    '/coupons/verify/',           # shop redemption verify (no login)
     '/api/send-register-otp/',
     '/api/verify-register-otp/',
 ]

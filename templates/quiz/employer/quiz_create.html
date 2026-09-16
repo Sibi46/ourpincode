@@ -15,8 +15,13 @@
     <form method="post">
       {% csrf_token %}
       <div style="margin-bottom:20px">
+        <label for="quiz-pincode" style="display:block;font-size:13px;font-weight:700;color:#374151;margin-bottom:7px">Pincode</label>
+        <input id="quiz-pincode" name="pincode" required inputmode="numeric" pattern="[1-9][0-9]{5}" maxlength="6" value="{{ pincode|default:'' }}" placeholder="Enter six-digit pincode"
+          style="width:100%;padding:12px 14px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:14px;box-sizing:border-box">
+      </div>
+      <div style="margin-bottom:20px">
         <label style="display:block;font-size:13px;font-weight:700;color:#374151;margin-bottom:7px">Quiz Title</label>
-        <input name="title" required maxlength="200" placeholder="e.g. General Knowledge Quiz"
+        <input name="title" required maxlength="200" value="{{ title|default:'' }}" placeholder="e.g. General Knowledge Quiz"
           style="width:100%;padding:12px 14px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:14px;font-weight:600;box-sizing:border-box;outline:none"
           oninput="this.value=this.value.replace(/\b\w/g,c=>c.toUpperCase())">
       </div>

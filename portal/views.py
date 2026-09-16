@@ -2518,6 +2518,7 @@ def community_impact_page(request, slug):
     ctx = {
         'community': community,
         'year': year,
+        'year_choices': (2026, 2025, 2024, 2023),
         'member_count': member_count,
         'events_count': events_count,
         'activities_count': activities_count,

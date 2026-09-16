@@ -1,4 +1,5 @@
 import json
+import re
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
@@ -32,7 +33,13 @@ def employer_quiz_create(request):
         if not title:
             messages.error(request, 'Quiz title is required.')
             return redirect('quiz_create')
-        quiz = Quiz.objects.create(created_by=request.user, title=title)
+        pincode = request.POST.get('pincode', '').strip()
+        if not re.fullmatch(r'[1-9][0-9]{5}', pincode):
+            messages.error(request, 'Enter a valid six-digit pincode.')
+            return render(request, 'quiz/employer/quiz_create.html', {
+                'title': title, 'pincode': pincode,
+            }, status=400)
+        quiz = Quiz.objects.create(created_by=request.user, title=title, pincode=pincode)
         messages.success(request, f'Quiz "{title}" created. Now add questions.')
         return redirect('quiz_manage', pk=quiz.pk)
     return render(request, 'quiz/employer/quiz_create.html')
@@ -156,8 +163,11 @@ def quiz_next_question(request):
         user=request.user
     ).values_list('question_id', flat=True)
 
+    if not re.fullmatch(r'[1-9][0-9]{5}', request.user.pincode or ''):
+        return JsonResponse({'done': True})
+
     question = QuizQuestion.objects.filter(
-        quiz__is_active=True
+        quiz__is_active=True, quiz__pincode=request.user.pincode
     ).exclude(
         pk__in=answered_ids
     ).select_related('quiz').order_by('quiz__pk', 'order', 'pk').first()
@@ -194,7 +204,12 @@ def quiz_submit_answer(request):
     question_id = data.get('question_id')
     answer = data.get('answer', '').strip().upper()  # empty string = skip
 
-    question = get_object_or_404(QuizQuestion, pk=question_id, quiz__is_active=True)
+    if not re.fullmatch(r'[1-9][0-9]{5}', request.user.pincode or ''):
+        return JsonResponse({'error': 'A valid profile pincode is required.'}, status=403)
+    question = get_object_or_404(
+        QuizQuestion, pk=question_id, quiz__is_active=True,
+        quiz__pincode=request.user.pincode,
+    )
 
     # Idempotent — don't double-record
     if UserQuizAnswer.objects.filter(user=request.user, question=question).exists():

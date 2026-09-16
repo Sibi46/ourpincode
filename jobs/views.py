@@ -2109,7 +2109,7 @@ def ad_performance(request, ad_id):
 
 
 @login_required
-def renew_ad(request, ad_id):
+def advertiser_renew_ad(request, ad_id):
     ad = get_object_or_404(Advertisement, pk=ad_id, advertiser__user=request.user)
     if request.method == 'POST':
         import decimal

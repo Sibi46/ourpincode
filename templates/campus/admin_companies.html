@@ -9,9 +9,9 @@
 <div class="cp-body">
   <div style="font-size:18px;font-weight:800;color:#0F172A;margin-bottom:16px">Companies</div>
   <div style="display:flex;gap:8px;margin-bottom:16px;overflow-x:auto">
-    <a href="?filter=all" class="cp-btn {% if not request.GET.filter or request.GET.filter == 'all' %}cp-btn-primary{% else %}cp-btn-ghost{% endif %}" style="font-size:11px;padding:6px 14px;white-space:nowrap">All</a>
-    <a href="?filter=pending" class="cp-btn {% if request.GET.filter == 'pending' %}cp-btn-primary{% else %}cp-btn-ghost{% endif %}" style="font-size:11px;padding:6px 14px;white-space:nowrap">Pending</a>
-    <a href="?filter=verified" class="cp-btn {% if request.GET.filter == 'verified' %}cp-btn-primary{% else %}cp-btn-ghost{% endif %}" style="font-size:11px;padding:6px 14px;white-space:nowrap">Verified</a>
+    <a href="?status=" class="cp-btn {% if not status_filter %}cp-btn-primary{% else %}cp-btn-ghost{% endif %}" style="font-size:11px;padding:6px 14px;white-space:nowrap">All</a>
+    <a href="?status=pending" class="cp-btn {% if status_filter == 'pending' %}cp-btn-primary{% else %}cp-btn-ghost{% endif %}" style="font-size:11px;padding:6px 14px;white-space:nowrap">Pending</a>
+    <a href="?status=verified" class="cp-btn {% if status_filter == 'verified' %}cp-btn-primary{% else %}cp-btn-ghost{% endif %}" style="font-size:11px;padding:6px 14px;white-space:nowrap">Verified</a>
   </div>
   {% if companies %}
   <div class="cp-card">

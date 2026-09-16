@@ -4,8 +4,8 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.http import JsonResponse
-from django.views.decorators.http import require_POST
+from django.http import JsonResponse, HttpResponseForbidden
+from django.views.decorators.http import require_POST, require_http_methods
 from django.db import transaction
 from django.db.models import Sum, Count, Q
 from django.utils import timezone
@@ -16,6 +16,8 @@ from .models import (
     SpinWheelSlot, Reward, PointsWallet, PointsTransaction,
     RedemptionCounter, Redemption,
 )
+
+from jobs.models import ShopProfile
 
 User = get_user_model()
 
@@ -206,7 +208,7 @@ def admin_coupon_audit(request):
             'batch__shop__salesman__user', 'activated_by'
         ).first()
         if coupon:
-            coupon._redemption = Redemption.objects.filter(
+            coupon.audit_redemption = Redemption.objects.filter(
                 transactions__coupon=coupon
             ).select_related('reward', 'user').first()
     return render(request, 'coupons/admin/coupon_audit.html', {'coupon': coupon, 'q': q})
@@ -220,6 +222,7 @@ def admin_rewards(request):
 
 @opc_admin_required
 def admin_reward_create(request):
+    shops = ShopProfile.objects.filter(user__is_active=True, user__user_type='shop').select_related('user')
     if request.method == 'POST':
         name = request.POST.get('name', '').strip()
         business = request.POST.get('business_name', '').strip()
@@ -227,7 +230,10 @@ def admin_reward_create(request):
         description = request.POST.get('description', '').strip()
         qty = request.POST.get('quantity_limit', '').strip()
         expiry = request.POST.get('expiry', '').strip() or None
+        shop_id = request.POST.get('redemption_shop', '').strip()
+        shop = get_object_or_404(shops, pk=shop_id) if shop_id else None
         Reward.objects.create(
+            redemption_shop=shop,
             name=name, business_name=business, points_required=points,
             description=description,
             quantity_limit=int(qty) if qty else None,
@@ -235,17 +241,20 @@ def admin_reward_create(request):
         )
         messages.success(request, f'Reward "{name}" created.')
         return redirect('opc_admin_rewards')
-    return render(request, 'coupons/admin/reward_form.html', {'action': 'Create'})
+    return render(request, 'coupons/admin/reward_form.html', {'action': 'Create', 'shops': shops})
 
 
 @opc_admin_required
 def admin_reward_edit(request, pk):
+    shops = ShopProfile.objects.filter(user__is_active=True, user__user_type='shop').select_related('user')
     reward = get_object_or_404(Reward, pk=pk)
     if request.method == 'POST':
         if request.POST.get('action') == 'delete':
             reward.delete()
             messages.success(request, 'Reward deleted.')
             return redirect('opc_admin_rewards')
+        shop_id = request.POST.get('redemption_shop', '').strip()
+        reward.redemption_shop = get_object_or_404(shops, pk=shop_id) if shop_id else None
         reward.name = request.POST.get('name', reward.name).strip()
         reward.business_name = request.POST.get('business_name', reward.business_name).strip()
         reward.points_required = int(request.POST.get('points_required', reward.points_required))
@@ -258,7 +267,7 @@ def admin_reward_edit(request, pk):
         reward.save()
         messages.success(request, 'Reward updated.')
         return redirect('opc_admin_rewards')
-    return render(request, 'coupons/admin/reward_form.html', {'action': 'Edit', 'reward': reward})
+    return render(request, 'coupons/admin/reward_form.html', {'action': 'Edit', 'reward': reward, 'shops': shops})
 
 
 @opc_admin_required
@@ -646,7 +655,9 @@ def customer_my_points(request):
 @login_required
 def customer_rewards(request):
     wallet = PointsWallet.get_or_create_for(request.user)
-    rewards = Reward.objects.filter(is_active=True).order_by('points_required')
+    rewards = Reward.objects.filter(is_active=True).filter(
+        Q(expiry__isnull=True) | Q(expiry__gte=timezone.localdate())
+    ).order_by('points_required')
     return render(request, 'coupons/customer/rewards.html', {
         'rewards': rewards, 'wallet': wallet
     })
@@ -655,13 +666,13 @@ def customer_rewards(request):
 @login_required
 def customer_redeem(request, pk):
     reward = get_object_or_404(Reward, pk=pk, is_active=True)
+    if not reward.is_available():
+        messages.error(request, 'Reward no longer available.')
+        return redirect('opc_rewards')
     wallet = PointsWallet.get_or_create_for(request.user)
     if request.method == 'POST':
         if wallet.balance < reward.points_required:
             messages.error(request, 'Insufficient points.')
-            return redirect('opc_rewards')
-        if not reward.is_available():
-            messages.error(request, 'Reward no longer available.')
             return redirect('opc_rewards')
         with transaction.atomic():
             num = RedemptionCounter.next_number()
@@ -702,30 +713,40 @@ def customer_my_redemptions(request):
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# SHOP VERIFY VIEW (no login required — uses code)
+# SHOP VERIFY VIEW (authenticated, assigned shop only)
 # ═══════════════════════════════════════════════════════════════════════════════
 
+@login_required
+@require_http_methods(['GET', 'POST'])
 def shop_verify_redemption(request):
+    if not request.user.is_active or request.user.user_type != 'shop':
+        return HttpResponseForbidden('Shop access required.')
+    if not ShopProfile.objects.filter(user=request.user).exists():
+        return HttpResponseForbidden('Shop access required.')
+
+    redemptions = Redemption.objects.filter(reward__redemption_shop__user=request.user).filter(
+        Q(reward__expiry__isnull=True) | Q(reward__expiry__gte=timezone.localdate())
+    )
     redemption = None
     q = request.GET.get('q', '').strip().upper()
     error = None
     if request.method == 'POST':
         code = request.POST.get('code', '').strip().upper()
         action = request.POST.get('action', '')
-        redemption = Redemption.objects.filter(code=code).select_related('user', 'reward').first()
+        redemption = redemptions.filter(code=code).select_related('user', 'reward').first()
         if not redemption:
             error = 'Redemption code not found.'
         elif action == 'mark_redeemed':
-            if redemption.status == 'pending':
-                redemption.status = 'redeemed'
-                redemption.verified_by_shop = True
-                redemption.redeemed_at = timezone.now()
-                redemption.save()
-                messages.success(request, '✓ Redemption completed successfully.')
-            elif redemption.status == 'redeemed':
-                error = 'This code has already been redeemed.'
+            updated = Redemption.objects.filter(pk=redemption.pk, status='pending').update(
+                status='redeemed', verified_by_shop=True, redeemed_at=timezone.now(),
+            )
+            redemption.refresh_from_db()
+            if updated:
+                messages.success(request, 'Redemption completed successfully.')
+            else:
+                error = 'This code is no longer pending.'
     elif q:
-        redemption = Redemption.objects.filter(code=q).select_related('user', 'reward').first()
+        redemption = redemptions.filter(code=q).select_related('user', 'reward').first()
         if not redemption:
             error = 'Redemption code not found.'
     return render(request, 'coupons/shop/verify_redemption.html', {
