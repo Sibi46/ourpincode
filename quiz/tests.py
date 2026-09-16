@@ -2,6 +2,8 @@ import re
 
 from django.contrib.auth import get_user_model
 from django.test import TestCase, override_settings
+from django.template.loader import get_template
+from django.template.loader_tags import IncludeNode
 
 from .models import Quiz, QuizQuestion, UserQuizAnswer
 
@@ -89,3 +91,24 @@ class QuizPincodeTests(TestCase):
         self.quiz.save()
         self.login(self.customer)
         self.assertTrue(self.client.get('/quiz/api/next/').json()['done'])
+
+    def test_logged_in_homepage_contains_quiz_popup(self):
+        self.login(self.customer)
+        response = self.client.get('/')
+        self.assertContains(response, 'id="opc-quiz-overlay"', count=1)
+        self.assertContains(response, 'setTimeout(loadQuestion, 3000)')
+        self.assertIn('csrftoken', response.cookies)
+
+    def test_anonymous_homepage_has_no_quiz_popup(self):
+        response = self.client.get('/')
+        self.assertNotContains(response, 'id="opc-quiz-overlay"')
+
+    def test_main_layouts_include_the_shared_popup_once(self):
+        for name in ('base.html', 'index.html', 'jobseeker_dashboard.html',
+                     'employer_dashboard.html', 'job_list.html', 'portal/base_portal.html'):
+            with self.subTest(template=name):
+                template = get_template(name).template
+                includes = template.nodelist.get_nodes_by_type(IncludeNode)
+                popup_includes = [node for node in includes
+                                  if node.template.token.strip('\"\'') == 'includes/quiz_popup.html']
+                self.assertEqual(len(popup_includes), 1)

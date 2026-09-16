@@ -1,0 +1,157 @@
+<!-- ── QUIZ POPUP ── -->
+{% if request.user.is_authenticated %}
+{% csrf_token %}
+<div id="opc-quiz-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:99990;align-items:center;justify-content:center;padding:16px">
+  <div id="opc-quiz-card" style="background:#fff;border-radius:20px;max-width:420px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.25);overflow:hidden;position:relative">
+    <!-- Header -->
+    <div style="background:linear-gradient(135deg,#4f46e5,#7c3aed);padding:16px 20px;display:flex;align-items:center;justify-content:space-between">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:22px">🧠</span>
+        <div>
+          <div style="font-size:15px;font-weight:900;color:#fff">Quick Quiz</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.75)">Test your knowledge!</div>
+        </div>
+      </div>
+      <button onclick="opcQuizSkip()" style="background:rgba(255,255,255,.2);border:none;color:#fff;width:32px;height:32px;border-radius:50%;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center" title="Skip">✕</button>
+    </div>
+    <!-- Body -->
+    <div id="opc-quiz-body" style="padding:20px">
+      <!-- Question text -->
+      <div id="opc-qtext" style="font-size:15px;font-weight:700;color:#0f172a;margin-bottom:12px;line-height:1.5"></div>
+      <div id="opc-qimg-wrap" style="display:none;margin-bottom:12px">
+        <img id="opc-qimg" src="" style="max-width:100%;border-radius:10px;max-height:160px;object-fit:cover">
+      </div>
+      <!-- Options -->
+      <div id="opc-opts" style="display:flex;flex-direction:column;gap:8px"></div>
+      <!-- Result -->
+      <div id="opc-result" style="display:none;margin-top:14px;padding:12px 16px;border-radius:10px;font-size:14px;font-weight:700;text-align:center"></div>
+      <!-- Buttons -->
+      <div style="display:flex;gap:10px;margin-top:16px">
+        <button id="opc-quiz-submit" onclick="opcQuizSubmit()" style="flex:1;background:#4f46e5;color:#fff;border:none;padding:12px;border-radius:10px;font-size:14px;font-weight:800;cursor:pointer">Submit</button>
+        <button id="opc-quiz-next" onclick="opcQuizNext()" style="display:none;flex:1;background:#059669;color:#fff;border:none;padding:12px;border-radius:10px;font-size:14px;font-weight:800;cursor:pointer">Next →</button>
+        <button id="opc-quiz-skip" onclick="opcQuizSkip()" style="background:#f1f5f9;color:#64748b;border:none;padding:12px 16px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer">Skip</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var overlay=document.getElementById('opc-quiz-overlay');
+  var currentId=null, selectedOpt=null, answered=false;
+  var shownKey='opc_quiz_shown_v2_{{ request.user.pk }}_{{ request.user.pincode|escapejs }}';
+  function wasShown(){
+    try{return sessionStorage.getItem(shownKey)==='1';}catch(e){return false;}
+  }
+  function markShown(){
+    try{sessionStorage.setItem(shownKey,'1');}catch(e){}
+  }
+
+  function getCsrf(){
+    var m=document.cookie.match(/csrftoken=([^;]+)/);
+    return m?m[1]:'';
+  }
+
+  function loadQuestion(){
+    fetch('/quiz/api/next/')
+      .then(function(r){if(!r.ok)throw new Error('Quiz request failed');return r.json();})
+      .then(data=>{
+        if(data.done){overlay.style.display='none';return;}
+        currentId=data.id;
+        selectedOpt=null;
+        answered=false;
+        document.getElementById('opc-qtext').textContent=data.question;
+        var qiw=document.getElementById('opc-qimg-wrap');
+        var qi=document.getElementById('opc-qimg');
+        if(data.question_image){qi.src=data.question_image;qiw.style.display='block';}
+        else{qiw.style.display='none';}
+        var optsEl=document.getElementById('opc-opts');
+        optsEl.innerHTML='';
+        ['A','B','C','D'].forEach(function(k){
+          var opt=data.options[k];
+          if(!opt.text&&!opt.image)return;
+          var btn=document.createElement('button');
+          btn.dataset.opt=k;
+          btn.style.cssText='display:flex;align-items:center;gap:10px;width:100%;padding:10px 14px;border:2px solid #e2e8f0;border-radius:10px;background:#f8fafc;cursor:pointer;text-align:left;font-size:13px;font-weight:600;color:#0f172a;transition:all .15s';
+          var inner='<span style="width:26px;height:26px;border-radius:50%;background:#e2e8f0;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;flex-shrink:0">'+k+'</span>';
+          if(opt.image)inner+='<img src="'+opt.image+'" style="height:36px;border-radius:6px;flex-shrink:0">';
+          inner+='<span>'+opt.text+'</span>';
+          btn.innerHTML=inner;
+          btn.addEventListener('click',function(){
+            if(answered)return;
+            optsEl.querySelectorAll('button').forEach(function(b){
+              b.style.borderColor='#e2e8f0';b.style.background='#f8fafc';
+              b.querySelector('span').style.background='#e2e8f0';b.querySelector('span').style.color='#374151';
+            });
+            selectedOpt=k;
+            btn.style.borderColor='#4f46e5';btn.style.background='#eef2ff';
+            btn.querySelector('span').style.background='#4f46e5';btn.querySelector('span').style.color='#fff';
+          });
+          optsEl.appendChild(btn);
+        });
+        document.getElementById('opc-result').style.display='none';
+        document.getElementById('opc-quiz-submit').style.display='block';
+        document.getElementById('opc-quiz-next').style.display='none';
+        document.getElementById('opc-quiz-skip').style.display='block';
+        document.getElementById('opc-quiz-skip').textContent='Skip';
+        overlay.style.display='flex';
+        markShown();
+      }).catch(function(){});
+  }
+
+  window.opcQuizSubmit=function(){
+    if(answered)return;
+    answered=true;
+    var answer=selectedOpt||'';
+    fetch('/quiz/api/answer/',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','X-CSRFToken':getCsrf()},
+      body:JSON.stringify({question_id:currentId,answer:answer})
+    }).then(r=>r.json()).then(function(res){
+      var resultEl=document.getElementById('opc-result');
+      resultEl.style.display='block';
+      if(answer===''){
+        resultEl.style.background='#f1f5f9';resultEl.style.color='#374151';
+        resultEl.innerHTML='⏭ Question skipped';
+      } else if(res.correct){
+        resultEl.style.background='#dcfce7';resultEl.style.color='#166534';
+        resultEl.innerHTML='✅ Correct Answer!';
+      } else {
+        resultEl.style.background='#fee2e2';resultEl.style.color='#dc2626';
+        resultEl.innerHTML='❌ Wrong Answer<br><span style="font-size:12px;font-weight:600">Correct Answer: <strong>'+res.correct_text+'</strong></span>';
+      }
+      // Highlight correct/wrong options
+      document.getElementById('opc-opts').querySelectorAll('button').forEach(function(b){
+        var k=b.dataset.opt;
+        if(k===res.correct_answer){b.style.borderColor='#059669';b.style.background='#dcfce7';}
+        else if(k===answer&&!res.correct){b.style.borderColor='#dc2626';b.style.background='#fee2e2';}
+      });
+      document.getElementById('opc-quiz-submit').style.display='none';
+      document.getElementById('opc-quiz-next').style.display='block';
+      document.getElementById('opc-quiz-skip').style.display='none';
+    }).catch(function(){});
+  };
+
+  window.opcQuizSkip=function(){
+    if(!currentId){overlay.style.display='none';return;}
+    if(!answered){
+      answered=true;
+      fetch('/quiz/api/answer/',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','X-CSRFToken':getCsrf()},
+        body:JSON.stringify({question_id:currentId,answer:''})
+      }).then(function(){loadQuestion();}).catch(function(){overlay.style.display='none';});
+    } else {
+      overlay.style.display='none';
+    }
+  };
+
+  window.opcQuizNext=function(){loadQuestion();};
+
+  // Show quiz 3 seconds after page load (once per session)
+  if(!wasShown()){
+    setTimeout(loadQuestion, 3000);
+  }
+})();
+</script>
+{% endif %}
