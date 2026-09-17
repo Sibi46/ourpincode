@@ -2387,12 +2387,21 @@ def create_badge(request, slug):
     if request.method == 'POST':
         action = request.POST.get('action')
         if action == 'create':
+            from .forms import BadgeArtworkForm
+            artwork = BadgeArtworkForm(request.POST, request.FILES)
+            if not artwork.is_valid():
+                for errors in artwork.errors.values():
+                    for error in errors:
+                        messages.error(request, error)
+                return redirect('create_badge', slug=slug)
             name = request.POST.get('name', '').strip()
             if name:
                 Badge.objects.create(
                     community=community,
                     name=name,
                     description=request.POST.get('description', ''),
+                    icon_image=artwork.cleaned_data.get('icon_image'),
+                    image=artwork.cleaned_data.get('image'),
                     icon=request.POST.get('icon', '🏅'),
                     criteria_type=request.POST.get('criteria_type', 'manual'),
                     criteria_value=int(request.POST.get('criteria_value', 0) or 0),

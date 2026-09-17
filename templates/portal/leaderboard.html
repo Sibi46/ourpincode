@@ -121,7 +121,7 @@
         </div>
         {% with mp.user.badges.all as ubadges %}
         {% if ubadges %}
-        <div class="lb-badges">{% for ub in ubadges|slice:":4" %}{{ ub.badge.icon }}{% endfor %}</div>
+        <div class="lb-badges">{% for ub in ubadges|slice:":4" %}{% include "portal/badge_artwork.html" with badge=ub.badge %}{% endfor %}</div>
         {% endif %}
         {% endwith %}
       </div>

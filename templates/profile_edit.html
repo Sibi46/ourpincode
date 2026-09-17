@@ -300,15 +300,15 @@
 
         <!-- Resume for Blue Collar -->
         <div class="dsec-card" style="border-color:#fde68a;background:#fffbeb">
-          <div class="dsec-card-title" style="color:#b45309"><i class="fas fa-file-alt"></i> Resume / Experience Certificate <span style="font-size:11px;background:#dc2626;color:#fff;padding:2px 8px;border-radius:6px;margin-left:6px">Required</span></div>
+          <div class="dsec-card-title" style="color:#b45309"><i class="fas fa-file-alt"></i> Resume / Experience Certificate <span style="font-size:11px;background:#dc2626;color:#fff;padding:2px 8px;border-radius:6px;margin-left:6px">Optional</span></div>
           {% if seeker.resume %}
           <div style="font-size:12px;color:#059669;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:8px">
             <i class="fas fa-check-circle"></i> Resume on file — <a href="{{ seeker.resume.url }}" target="_blank" style="color:#0a66c2">View</a>
           </div>
           {% else %}
-          <div style="font-size:12px;color:#92400e;font-weight:600;margin-bottom:10px">🦺 Upload your resume or any work experience certificate to apply for jobs.</div>
+          <div style="font-size:12px;color:#92400e;font-weight:600;margin-bottom:10px">🦺 You may upload a resume or work experience certificate (optional).</div>
           {% endif %}
-          <input type="file" name="resume" accept=".pdf,.doc,.docx" class="pe-input" style="padding:6px" {% if not seeker.resume %}required{% endif %}>
+          <input type="file" name="resume" accept=".pdf,.doc,.docx" class="pe-input" style="padding:6px" >
           <span class="pe-note">PDF, DOC, DOCX — max 5MB</span>
         </div>
       </div>
@@ -415,10 +415,16 @@ function pickCollar(type) {
   document.getElementById('optWhite').className = 'collar-opt' + (type === 'white' ? ' selected-white' : '');
   document.getElementById('blueSection').style.display = type === 'blue' ? 'block' : 'none';
   document.getElementById('whiteSection').style.display = type === 'white' ? 'block' : 'none';
+  ['blue','white'].forEach(function(collar){
+    document.querySelectorAll('#'+collar+'Section input, #'+collar+'Section select, #'+collar+'Section textarea').forEach(function(field){
+      field.disabled=collar!==type;
+      if(field.name==='resume') field.required=collar===type && type==='white' && /^\/jobs\/[0-9]+\/apply\/$/.test('{{ request.GET.next|escapejs }}') && {% if seeker.resume %}false{% else %}true{% endif %};
+    });
+  });
 }
 (function(){
   if (currentCollar === 'blue') pickCollar('blue');
-  else if (currentCollar === 'white') pickCollar('white');
+  else pickCollar(currentCollar);
 })();
 
 /* ── photo crop ── */
@@ -574,5 +580,24 @@ function lookupPincode(pin) {
     </div>
   </div>
 </div>
+
+{{ application_missing|json_script:"application-missing" }}
+<style>.pe-input.application-missing{border:2px solid #dc2626!important;background:#fff1f2}.application-error{color:#b91c1c;font-size:12px;font-weight:600}</style>
+<script>
+(function(){
+  var missing=JSON.parse(document.getElementById('application-missing').textContent||'[]');
+  missing.forEach(function(name){
+    document.querySelectorAll('#profileForm [name="'+name+'"]').forEach(function(field){
+      if(field.disabled)return;
+      field.classList.add('application-missing');field.setAttribute('aria-invalid','true');
+      var message=document.createElement('div');message.className='application-error';message.textContent='Required to apply for this job';
+      field.insertAdjacentElement('afterend',message);
+      function clear(){if(field.value){field.classList.remove('application-missing');field.removeAttribute('aria-invalid');message.remove();}}
+      field.addEventListener('input',clear);field.addEventListener('change',clear);
+    });
+  });
+})();
+</script>
+
 </body>
 </html>

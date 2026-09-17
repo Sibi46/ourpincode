@@ -76,7 +76,7 @@
     <div class="badge-grid">
       {% for mb in badges %}
       <div class="badge-chip">
-        <div class="badge-icon">{{ mb.badge.icon }}</div>
+        <div class="badge-icon">{% include "portal/badge_artwork.html" with badge=mb.badge %}</div>
         <div>
           <div class="badge-name">{{ mb.badge.name }}</div>
           <div style="font-size:10px;color:#b45309">{{ mb.awarded_at|date:"M j, Y" }}</div>

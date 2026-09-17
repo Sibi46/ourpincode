@@ -47,8 +47,29 @@
       {% endif %}
     </div>
 
-    <form method="POST" action="/jobs/{{ job.pk }}/apply/">
+    <form method="POST" enctype="multipart/form-data" action="/jobs/{{ job.pk }}/apply/">
       {% csrf_token %}
+      <fieldset style="margin-bottom:16px">
+        <legend>Which type of work are you applying for?</legend>
+        <label><input type="radio" name="job_category" value="blue" required> Blue Collar</label>
+        <label><input type="radio" name="job_category" value="white" required> White Collar</label>
+      </fieldset>
+      <div id="apply-resume" hidden style="margin-bottom:16px">
+        <label>Resume <span id="resume-requirement"></span>
+          <input type="file" name="application_resume" id="application-resume" accept=".pdf,.doc,.docx">
+        </label>
+        <p>PDF, DOC or DOCX, up to 5 MB.{% if seeker.resume %} Your saved resume will be used unless you upload a replacement.{% endif %}</p>
+      </div>
+      <script>
+      document.querySelectorAll('input[name="job_category"]').forEach(function(input){
+        input.addEventListener('change', function(){
+          document.getElementById('apply-resume').hidden=false;
+          var required=this.value==='white';
+          document.getElementById('application-resume').required=required && {% if seeker.resume %}false{% else %}true{% endif %};
+          document.getElementById('resume-requirement').textContent=required?'(required)':'(optional)';
+        });
+      });
+      </script>
       <!-- carry profile data directly -->
       <input type="hidden" name="quick_apply" value="1">
       <textarea name="cover_note" rows="3" placeholder="Add a short note to the employer (optional)"

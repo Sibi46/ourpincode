@@ -569,6 +569,8 @@ class MemberPoints(models.Model):
 
 
 class Badge(models.Model):
+    icon_image = models.ImageField(upload_to="badges/icons/", blank=True)
+    image = models.ImageField(upload_to="badges/images/", blank=True)
     CRITERIA_CHOICES = [
         ('points','Points Threshold'),('events','Events Attended'),
         ('organised','Events Organised'),('volunteer','Volunteer Activities'),

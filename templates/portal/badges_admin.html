@@ -12,9 +12,19 @@
   <!-- Create Badge -->
   <div style="background:#fff;border-radius:16px;border:1.5px solid #e5e7eb;margin-bottom:14px;overflow:hidden">
     <div style="padding:12px 16px;border-bottom:1px solid #f1f5f9;font-size:14px;font-weight:800;color:#0f172a">➕ Create New Badge</div>
-    <form method="post" style="padding:16px">
+    <form method="post" enctype="multipart/form-data" style="padding:16px">
       {% csrf_token %}
       <input type="hidden" name="action" value="create">
+      <label>Sample badges
+        <select onchange="if(this.value){this.form.elements.icon.value=this.value;this.form.elements.name.value=this.options[this.selectedIndex].text}">
+          <option value="">Choose a sample (optional)</option>
+          <option value="??">Event Champion</option><option value="?">Star Contributor</option>
+          <option value="??">Community Helper</option><option value="??">Green Hero</option>
+        </select>
+      </label>
+      <p><label>Upload icon <input type="file" name="icon_image" accept="image/png,image/jpeg,image/webp,image/gif"></label></p>
+      <p><label>Badge image <input type="file" name="image" accept="image/png,image/jpeg,image/webp,image/gif"></label></p>
+      <p>Optional images, up to 2 MB each. Your selected icon is used when no icon is uploaded.</p>
       <div style="display:grid;grid-template-columns:60px 1fr;gap:10px;margin-bottom:10px">
         <div>
           <label style="font-size:12px;font-weight:700;color:#374151;display:block;margin-bottom:4px">Icon</label>
@@ -84,7 +94,7 @@
     <div style="padding:12px 16px;border-bottom:1px solid #f1f5f9;font-size:14px;font-weight:800;color:#0f172a">📋 All Badges ({{ badges|length }})</div>
     {% for b in badges %}
     <div style="display:flex;gap:12px;align-items:center;padding:12px 16px;border-bottom:1px solid #f8fafc">
-      <div style="font-size:28px">{{ b.icon }}</div>
+      <div style="font-size:28px">{% include "portal/badge_artwork.html" with badge=b %}</div>
       <div style="flex:1">
         <div style="font-size:13px;font-weight:700;color:#0f172a">{{ b.name }}</div>
         <div style="font-size:11px;color:#64748b;margin-top:2px">{{ b.get_criteria_type_display }}{% if b.criteria_type != 'manual' %}: {{ b.criteria_value }}{% endif %}</div>

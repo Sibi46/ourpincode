@@ -547,6 +547,26 @@ def job_detail(request, pk):
     })
 
 
+def _application_missing_fields(seeker):
+    if not seeker:
+        return ['job_category', 'experience', 'qualification', 'primary_skill']
+    missing = []
+    if seeker.job_category not in ('blue', 'white'):
+        missing.append('job_category')
+    if not seeker.experience:
+        missing.append('experience')
+    if seeker.job_category != 'blue' and not seeker.education:
+        missing.append('qualification')
+    if seeker.job_category == 'blue':
+        if not seeker.blue_collar_type:
+            missing.append('blue_collar_type')
+    elif not (seeker.primary_skill or seeker.skills):
+        missing.append('primary_skill')
+    if seeker.job_category == 'white' and not seeker.resume:
+        missing.append('resume')
+    return missing
+
+
 @login_required
 def apply_job(request, pk):
     job = get_object_or_404(Job, pk=pk, status='active', is_approved=True, job_plan__in=['free', 'paid'])
@@ -564,20 +584,27 @@ def apply_job(request, pk):
         seeker = None
 
     if request.method == 'GET':
-        # If profile already filled, show quick-confirm page instead of full form
-        profile_complete = bool(
-            seeker and
-            seeker.experience and
-            seeker.education and
-            (seeker.primary_skill or seeker.skills)
-        )
-        if profile_complete and not request.GET.get('full'):
-            return render(request, 'job_apply_confirm.html', {'job': job, 'seeker': seeker, 'user': request.user})
-        # Profile incomplete — send to profile edit, come back after saving
-        return redirect(f'/profile/edit/?next=/jobs/{pk}/apply/')
+        return render(request, 'job_apply_confirm.html', {'job': job, 'seeker': seeker, 'user': request.user})
 
     if request.method == 'POST':
         p = request.POST
+        category = p.get('job_category', '')
+        if category not in ('blue', 'white'):
+            messages.error(request, 'Choose Blue Collar or White Collar.')
+            return redirect('apply_job', pk=pk)
+        seeker, _ = JobSeekerProfile.objects.get_or_create(user=request.user)
+        resume = request.FILES.get('application_resume')
+        if resume:
+            from pathlib import Path
+            if Path(resume.name).suffix.lower() not in ('.pdf', '.doc', '.docx') or resume.size > 5 * 1024 * 1024:
+                messages.error(request, 'Upload a PDF, DOC or DOCX resume smaller than 5 MB.')
+                return redirect('apply_job', pk=pk)
+            seeker.resume = resume
+        seeker.job_category = category
+        seeker.save()
+        if _application_missing_fields(seeker):
+            messages.error(request, 'Complete the fields highlighted in red before applying.')
+            return redirect(f'/profile/edit/?next=/jobs/{pk}/apply/')
         if p.get('quick_apply') == '1' and seeker:
             # Quick apply: use saved profile data
             app = JobApplication(
@@ -604,8 +631,8 @@ def apply_job(request, pk):
                 how_heard=p.get('how_heard', '').strip(),
                 declared=bool(p.get('declared')),
             )
-            if 'application_resume' in request.FILES:
-                app.application_resume = request.FILES['application_resume']
+            if seeker.resume:
+                app.application_resume = seeker.resume
             if 'cover_letter_file' in request.FILES:
                 app.cover_letter_file = request.FILES['cover_letter_file']
             app.save()
@@ -3846,6 +3873,7 @@ def my_accounts(request):
 
 @login_required
 def profile_edit(request):
+    import re
     user = request.user
     company = getattr(user, 'company', None)
 
@@ -3904,8 +3932,13 @@ def profile_edit(request):
                 seeker.resume = f['resume']
             seeker.save()
 
-        messages.success(request, 'Profile updated successfully.')
         next_url = request.POST.get('next') or request.GET.get('next') or ''
+        missing = _application_missing_fields(seeker)
+        if re.fullmatch(r'/jobs/[0-9]+/apply/', next_url) and missing:
+            return render(request, 'profile_edit.html', {
+                'seeker': seeker, 'company': company, 'application_missing': missing,
+            }, status=400)
+        messages.success(request, 'Profile updated successfully.')
         if next_url.startswith('/'):
             return redirect(next_url)
         return redirect('profile_edit')
@@ -3913,6 +3946,7 @@ def profile_edit(request):
     return render(request, 'profile_edit.html', {
         'seeker': seeker,
         'company': company,
+        'application_missing': _application_missing_fields(seeker) if re.fullmatch(r'/jobs/[0-9]+/apply/', request.GET.get('next', '')) else [],
     })
 
 

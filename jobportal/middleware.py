@@ -12,6 +12,7 @@ PUBLIC_PREFIXES = [
     '/api/quick-register/',
     '/api/phone-login/',
     '/api/check-phone/',
+    '/api/pincode/',
     '/api/reset-password/',
     '/flicks/',                   # browse flicks
     '/health/',                   # browse health

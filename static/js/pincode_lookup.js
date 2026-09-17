@@ -65,13 +65,16 @@
 
     function run() {
       var pin = input.value.replace(/\D/g, '');
-      if (pin.length !== 6 || pin === lastPin) return;
+      if (pin.length !== 6) { lastPin = ''; hint.textContent = ''; return; }
+      if (pin === lastPin) return;
       lastPin = pin;
       hint.style.color = '#aaa';
       hint.textContent = '🔍 Looking up…';
 
       lookup(pin, function (res) {
+        if (input.value.replace(/\D/g, '') !== pin) return;
         if (!res) {
+          lastPin = '';
           hint.style.color = '#e65100';
           hint.textContent = '⚠️ PIN code not found';
           return;
