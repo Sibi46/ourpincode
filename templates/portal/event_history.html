@@ -1,0 +1,16 @@
+{% extends 'portal/base_portal.html' %}
+{% block title %}My Event History{% endblock %}
+{% block content %}
+<div class="pcontent">
+  <div class="psec-header"><h1 class="psec-title">Event history</h1><a class="pbtn pbtn-outline" href="{% url 'portal_my_events' %}">My events</a></div>
+  <p style="color:#64748b;font-size:13px;margin-bottom:20px">Past events you created or registered for. Open an event to see its details and participation.</p>
+  {% for event in history %}
+  <a class="pcard" href="{{ event.url }}" style="display:flex;gap:16px;padding:18px;margin-bottom:12px;align-items:center;text-decoration:none">
+    <div style="background:#eff6ff;color:#1d4ed8;border-radius:12px;padding:12px;text-align:center;min-width:58px"><strong style="font-size:23px;display:block">{{ event.date|date:'d' }}</strong><span style="font-size:11px">{{ event.date|date:'M Y' }}</span></div>
+    <div style="flex:1;min-width:0"><h2 style="font-size:16px;color:#0f172a;margin:0 0 5px;overflow-wrap:anywhere">{{ event.name }}</h2><p style="font-size:12px;color:#64748b;margin:0 0 8px">{{ event.community }} · {{ event.location }}</p><span class="pbadge pbadge-blue">{% if event.created %}Organised by you{% else %}Registered{% endif %}</span></div>
+    <i class="fas fa-chevron-right" aria-hidden="true"></i>
+  </a>
+  {% empty %}<div class="pempty"><i class="fas fa-calendar-check pempty-icon" aria-hidden="true"></i><h2 class="pempty-text">No past events yet</h2><a class="pbtn pbtn-primary" href="{% url 'portal_events' %}">Explore events</a></div>{% endfor %}
+  {% if history.has_other_pages %}<nav style="display:flex;justify-content:center;gap:16px;padding:20px" aria-label="History pages">{% if history.has_previous %}<a href="?page={{ history.previous_page_number }}">Previous</a>{% endif %}<span>{{ history.number }} / {{ history.paginator.num_pages }}</span>{% if history.has_next %}<a href="?page={{ history.next_page_number }}">Next</a>{% endif %}</nav>{% endif %}
+</div>
+{% endblock %}

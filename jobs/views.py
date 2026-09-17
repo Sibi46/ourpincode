@@ -1074,6 +1074,8 @@ def employer_dashboard(request):
     coupon_page = Paginator(business_coupons, 25).get_page(request.GET.get('coupon_page'))
 
     return render(request, 'employer_dashboard.html', {
+        'registered_businesses': CompanyProfile.objects.filter(user__is_active=True).exclude(
+            company_name='').select_related('user').order_by('-pk')[:20],
         'business_coupons': coupon_page,
         'coupon_total': business_coupons.count(),
         'coupon_used': business_coupons.filter(status=Coupon.STATUS_ACTIVATED).count(),

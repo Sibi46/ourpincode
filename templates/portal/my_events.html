@@ -2,7 +2,7 @@
 {% block title %}My Events{% endblock %}
 {% block content %}
 <div class="pcontent">
-  <div class="psec-header"><div class="psec-title">📅 My Events</div></div>
+  <div class="psec-header"><div class="psec-title">📅 My Events</div><a class="pbtn pbtn-outline" href="{% url 'portal_event_history' %}"><i class="fas fa-history"></i> History</a></div>
   <div style="display:flex;flex-direction:column;gap:12px">
     {% for r in registrations %}
     <a href="/portal/event/{{ r.event.pk }}/" class="pcard" style="display:grid;grid-template-columns:70px 1fr;gap:0">

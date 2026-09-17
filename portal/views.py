@@ -1585,7 +1585,35 @@ def my_communities(request):
 @login_required
 def my_events(request):
     registrations = EventParticipant.objects.filter(user=request.user).select_related('event__community').order_by('-registered_at')
-    return render(request, 'portal/my_events.html', {'registrations': registrations})
+    return render(request, 'portal/my_events.html', {'registrations': registrations, 'today': timezone.localdate()})
+
+
+@login_required
+def event_history(request):
+    from django.core.paginator import Paginator
+    from django.db.models.functions import Coalesce
+    from community.models import CommunityEvent
+    today = timezone.localdate()
+    portal_events = Event.objects.filter(
+        Q(created_by=request.user) | Q(participants__user=request.user)
+    ).annotate(last_day=Coalesce('end_date', 'date')).filter(
+        Q(last_day__lt=today) | Q(status='completed')
+    ).filter(is_active=True).distinct().select_related('community')
+    local_events = CommunityEvent.objects.filter(
+        Q(posted_by=request.user) | Q(rsvps__user=request.user),
+        event_date__lt=today, is_active=True, deleted_at__isnull=True,
+    ).distinct()
+    history = [dict(name=e.name, date=e.date, location=e.location,
+                    community=e.community.name if e.community else 'Event',
+                    url=f'/portal/event/{e.pk}/', created=e.created_by_id == request.user.pk)
+               for e in portal_events]
+    history += [dict(name=e.title, date=e.event_date, location=e.venue,
+                     community='Community event', url=f'/community/events/{e.pk}/',
+                     created=e.posted_by_id == request.user.pk) for e in local_events]
+    history.sort(key=lambda item: item['date'], reverse=True)
+    return render(request, 'portal/event_history.html', {
+        'history': Paginator(history, 20).get_page(request.GET.get('page')),
+    })
 
 
 @login_required

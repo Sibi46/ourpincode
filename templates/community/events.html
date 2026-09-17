@@ -47,6 +47,7 @@
 
 <div class="ev-hero">
   <h1>📅 Community Events</h1>
+  {% if request.user.is_authenticated %}<a href="{% url 'portal_event_history' %}" class="ev-cat"><i class="fas fa-history"></i> My event history</a>{% endif %}
   <p>Local gatherings, festivals & announcements near you</p>
 </div>
 

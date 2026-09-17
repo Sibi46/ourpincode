@@ -76,8 +76,6 @@
 {% endblock %}
 
 {% block content %}
-<button type="button" onclick="shareCommunity()">Share community</button>
-<span id="community-share-status" role="status"></span>
 <script>
 async function shareCommunity() {
   const url = window.location.origin + '{% url "portal_community" community.page_id %}';
@@ -142,6 +140,8 @@ async function shareCommunity() {
 
       <!-- ACTION BUTTONS -->
       <div class="cpage-actions">
+        <button type="button" class="pbtn pbtn-outline" onclick="shareCommunity()" aria-label="Share community"><i class="fas fa-share-alt" aria-hidden="true"></i> Share</button>
+        <span id="community-share-status" role="status" style="align-self:center;font-size:12px;color:#059669"></span>
         {% if not user.is_authenticated %}
           <a href="/login/?next=/portal/c/{{ community.page_id }}/join/" class="pbtn pbtn-primary"><i class="fas fa-sign-in-alt"></i> Join</a>
           <a href="/portal/c/{{ community.page_id }}/volunteer/" class="pbtn pbtn-green">Volunteer</a>

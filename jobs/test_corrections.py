@@ -1,4 +1,4 @@
-from datetime import date, time
+from datetime import date, time, timedelta
 
 from django.test import TestCase, override_settings
 from django.urls import reverse
@@ -124,3 +124,37 @@ class CorrectionTests(TestCase):
         self.client.post(reverse('my_offers'), {'offer_id': offer.pk})
         offer.refresh_from_db()
         self.assertFalse(offer.is_active)
+
+    def test_event_history_scopes_both_event_types_and_excludes_upcoming(self):
+        past = date.today() - timedelta(days=5)
+        future = date.today() + timedelta(days=5)
+        own = Event.objects.create(created_by=self.owner, name='My past event', date=past,
+                                    time=time(12), location='Chennai')
+        joined = Event.objects.create(created_by=self.other, name='Joined past event', date=past,
+                                       time=time(12), location='Chennai')
+        EventParticipant.objects.create(event=joined, user=self.owner, status='approved')
+        Event.objects.create(created_by=self.other, name='Unrelated past event', date=past,
+                             time=time(12), location='Chennai')
+        Event.objects.create(created_by=self.owner, name='Upcoming event', date=future,
+                             time=time(12), location='Chennai')
+        Event.objects.create(created_by=self.owner, name='Still ongoing event', date=past,
+                             end_date=future, time=time(12), location='Chennai')
+        local = CommunityEvent.objects.create(posted_by=self.other, title='Local past event',
+                                               event_date=past, venue='Chennai')
+        EventRSVP.objects.create(event=local, user=self.owner, status='going')
+        self.login(self.owner)
+        response = self.client.get(reverse('portal_event_history'))
+        for name in ('My past event', 'Joined past event', 'Local past event'):
+            self.assertContains(response, name)
+        for name in ('Unrelated past event', 'Upcoming event', 'Still ongoing event'):
+            self.assertNotContains(response, name)
+        self.assertEqual(response.context['history'].paginator.count, 3)
+        self.client.logout()
+        self.assertEqual(self.client.get(reverse('portal_event_history')).status_code, 302)
+
+    def test_dashboard_business_logos_link_to_full_profiles(self):
+        self.login(self.owner)
+        response = self.client.get(reverse('employer_dashboard'))
+        self.assertContains(response, 'Registered businesses')
+        self.assertContains(response, reverse('business_profile', args=[self.profile.company_id]))
+        self.assertContains(response, reverse('portal_event_history'))

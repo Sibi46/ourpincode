@@ -1,16 +1,47 @@
 {% extends 'base.html' %}
 {% block title %}Businesses Near You{% endblock %}
+{% block extra_css %}
+<style>
+body{background:#f5f7fb}.biz-directory{max-width:1100px;margin:auto;padding:32px 20px 80px;color:#16243b}
+.biz-hero{padding:32px;border-radius:24px;background:linear-gradient(120deg,#eaf3ff,#f0eeff);margin-bottom:24px}
+.biz-eyebrow{font-size:12px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:#0a66c2}
+.biz-hero h1{font-size:clamp(26px,4vw,38px);line-height:1.2;margin:10px 0}.biz-hero p{color:#53647c;margin:0 0 24px}
+.biz-search{display:grid;grid-template-columns:2fr 1fr auto;gap:12px;align-items:end}.biz-search label{font-size:12px;font-weight:700;display:block}
+.biz-search input{display:block;width:100%;box-sizing:border-box;margin-top:6px;border:1px solid #cad5e4;border-radius:12px;padding:13px;background:white;font:inherit;font-size:15px;min-width:0}
+.biz-search button,.biz-page a{background:#0a66c2;color:white;border:0;border-radius:12px;padding:14px 22px;font-weight:700;cursor:pointer;text-decoration:none}
+.biz-summary{display:flex;justify-content:space-between;align-items:center;margin:24px 0 16px;font-size:14px}.biz-summary a{color:#0a66c2}
+.biz-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}.biz-card{display:block;background:white;border:1px solid #e1e7ef;border-radius:18px;overflow:hidden;text-decoration:none;color:inherit;transition:transform .15s,box-shadow .15s}
+.biz-card:hover{transform:translateY(-3px);box-shadow:0 10px 28px #16243b12}.biz-card:focus-visible{outline:3px solid #0a66c2;outline-offset:3px}
+.biz-cover{height:104px;background:linear-gradient(120deg,#dbeafe,#e8e3ff)}.biz-cover img{width:100%;height:100%;object-fit:cover}
+.biz-card-body{padding:0 20px 20px}.biz-avatar{position:relative;margin-top:-30px;width:64px;height:64px;border:4px solid white;border-radius:16px;background:#edf4ff;display:flex;align-items:center;justify-content:center;color:#0a66c2;font-size:25px;font-weight:800;overflow:hidden}.biz-avatar img{width:100%;height:100%;object-fit:contain}
+.biz-card h2{font-size:18px;line-height:1.4;margin:12px 0 5px;overflow-wrap:anywhere}.biz-industry{color:#63748b;font-size:13px;min-height:20px}.biz-location{display:flex;gap:7px;color:#63748b;font-size:13px;margin:16px 0}.biz-card-footer{border-top:1px solid #eef1f5;padding-top:14px;display:flex;justify-content:space-between;align-items:center;color:#0a66c2;font-weight:700;font-size:13px}
+.biz-empty{grid-column:1/-1;padding:48px 20px;text-align:center;border:1px dashed #cbd5e1;border-radius:18px;background:white}.biz-empty p{color:#63748b}.biz-page{display:flex;align-items:center;justify-content:center;gap:20px;margin-top:32px;font-size:13px}
+@media(max-width:800px){.biz-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:520px){.biz-directory{padding:20px 14px 70px}.biz-hero{padding:22px 18px}.biz-search{grid-template-columns:1fr}.biz-grid{grid-template-columns:1fr}.biz-page{gap:10px}.biz-page a{padding:12px}}
+</style>
+{% endblock %}
 {% block content %}
-<main style="max-width:900px;margin:24px auto;padding:16px">
-<h1>Businesses Near You</h1>
-<form method="get"><label>Business <input name="q" value="{{ query }}"></label>
-<label>Pincode <input name="pincode" value="{{ pincode }}" pattern="[0-9]{6}" maxlength="6"></label><button>Search</button></form>
+<main class="biz-directory">
+<header class="biz-hero"><span class="biz-eyebrow">Discover your neighbourhood</span>
+<h1>Businesses near you</h1><p>Find local shops, services and the people behind them.</p>
+<form method="get" class="biz-search" role="search">
+<label for="business-query">Business name<input id="business-query" name="q" value="{{ query }}" placeholder="Search shops, companies and more"></label>
+<label for="business-pincode">Pincode<input id="business-pincode" name="pincode" value="{{ pincode }}" placeholder="e.g. 600073" inputmode="numeric" pattern="[0-9]{6}" maxlength="6"></label>
+<button type="submit"><i class="fas fa-search" aria-hidden="true"></i> Find businesses</button></form></header>
+<div class="biz-summary"><strong>{{ businesses.paginator.count }} business{{ businesses.paginator.count|pluralize:"es" }}{% if pincode %} in {{ pincode }}{% endif %}</strong>{% if query or pincode %}<a href="{% url 'business_list' %}">Clear filters</a>{% endif %}</div>
+<div class="biz-grid">
 {% for biz in businesses %}
-<article style="padding:16px;border-bottom:1px solid #ddd"><a href="{% url 'business_profile' biz.company_id %}">
-{% if biz.logo %}<img src="{{ biz.logo.url }}" alt="{{ biz.company_name }}" width="64">{% endif %}
-{{ biz.company_name }}</a><p>{{ biz.user.city }} {{ biz.user.pincode }}</p></article>
-{% empty %}<p>No businesses found.</p>{% endfor %}
+<a class="biz-card" href="{% url 'business_profile' biz.company_id %}">
+<div class="biz-cover">{% if biz.banner_image %}<img src="{{ biz.banner_image.url }}" alt="" loading="lazy">{% endif %}</div>
+<div class="biz-card-body"><div class="biz-avatar">{% if biz.logo %}<img src="{{ biz.logo.url }}" alt="{{ biz.company_name }} logo" loading="lazy">{% else %}{{ biz.company_name|first|upper }}{% endif %}</div>
+<h2>{{ biz.company_name }}</h2><div class="biz-industry">{{ biz.industry|default:biz.user.get_user_type_display }}</div>
+<p class="biz-location"><i class="fas fa-map-marker-alt" aria-hidden="true"></i> {% if biz.user.city or biz.user.pincode %}{{ biz.user.city }} {{ biz.user.pincode }}{% else %}Location not added{% endif %}</p>
+<div class="biz-card-footer"><span>View business</span><i class="fas fa-arrow-right" aria-hidden="true"></i></div></div></a>
+{% empty %}<div class="biz-empty"><i class="fas fa-store" aria-hidden="true"></i><h2>No businesses found</h2><p>Try a different name or pincode.</p><a href="{% url 'business_list' %}">View all businesses</a></div>{% endfor %}
+</div>
+{% if businesses.has_other_pages %}<nav class="biz-page" aria-label="Business pages">
 {% if businesses.has_previous %}<a href="?page={{ businesses.previous_page_number }}&amp;q={{ query|urlencode }}&amp;pincode={{ pincode|urlencode }}">Previous</a>{% endif %}
-{% if businesses.has_next %}<a href="?page={{ businesses.next_page_number }}&amp;q={{ query|urlencode }}&amp;pincode={{ pincode|urlencode }}">Next</a>{% endif %}
+<span>Page {{ businesses.number }} of {{ businesses.paginator.num_pages }}</span>
+{% if businesses.has_next %}<a href="?page={{ businesses.next_page_number }}&amp;q={{ query|urlencode }}&amp;pincode={{ pincode|urlencode }}">Next</a>{% endif %}</nav>{% endif %}
 </main>
 {% endblock %}
