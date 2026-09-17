@@ -1111,11 +1111,11 @@ def employer_profile_save(request):
         return redirect('employer_dashboard')
     user = request.user
     p = request.POST
-    user.city    = p.get('city', '').strip()
-    user.address = p.get('address', '').strip()
-    user.pincode = p.get('pincode', '').strip()
-    user.email   = p.get('email', '').strip()
-    user.whatsapp = p.get('whatsapp', '').strip()
+    user.city    = p.get('city', user.city).strip()
+    user.address = p.get('address', user.address).strip()
+    user.pincode = p.get('pincode', user.pincode).strip()
+    user.email   = p.get('email', user.email).strip()
+    user.whatsapp = p.get('whatsapp', user.whatsapp).strip()
     biz_phone = p.get('business_phone', '').strip()
     if biz_phone:
         # Make sure no other user has this business phone
@@ -1133,9 +1133,9 @@ def employer_profile_save(request):
     except Exception:
         prof = None
     if prof:
-        prof.industry     = p.get('industry', '').strip()
-        prof.company_size = p.get('company_size', '').strip()
-        prof.website      = p.get('website', '').strip()
+        prof.industry     = p.get('industry', prof.industry).strip()
+        prof.company_size = p.get('company_size', prof.company_size).strip()
+        prof.website      = p.get('website', prof.website).strip()
         if request.FILES.get('logo'):
             prof.logo = request.FILES['logo']
         if request.FILES.get('banner_image'):

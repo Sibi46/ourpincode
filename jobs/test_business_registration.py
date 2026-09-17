@@ -56,3 +56,38 @@ class BusinessRegistrationTests(TestCase):
             response = self.client.get('/employer/dashboard/')
             self.assertContains(response, business.company.logo.url)
             self.assertContains(response, business.company.banner_image.url)
+
+    def test_edit_images_preserves_profile_and_unselected_image(self):
+        def image(name):
+            stream = BytesIO()
+            Image.new('RGB', (12, 12), 'green').save(stream, format='PNG')
+            return SimpleUploadedFile(name, stream.getvalue(), content_type='image/png')
+
+        with TemporaryDirectory() as media, override_settings(MEDIA_ROOT=media):
+            owner = User.objects.create_user('image-owner', user_type='company',
+                city='Chennai', address='Main Road', pincode='600073',
+                email='owner@example.com', whatsapp='9000000001')
+            profile = CompanyProfile.objects.create(user=owner, company_name='Business',
+                industry='Retail', company_size='10', website='https://example.com',
+                logo=image('old-logo.png'), banner_image=image('old-banner.png'))
+            self.client.force_login(owner, backend='django.contrib.auth.backends.ModelBackend')
+            old_banner = profile.banner_image.name
+            response = self.client.post('/employer/profile/save/', {'logo': image('new-logo.png')})
+            self.assertEqual(response.status_code, 302)
+            profile.refresh_from_db()
+            self.assertIn('new-logo', profile.logo.name)
+            self.assertEqual(profile.banner_image.name, old_banner)
+            new_logo = profile.logo.name
+            self.client.post('/employer/profile/save/', {'banner_image': image('new-banner.png')})
+            profile.refresh_from_db()
+            owner.refresh_from_db()
+            self.assertIn('new-banner', profile.banner_image.name)
+            self.assertEqual(profile.logo.name, new_logo)
+            self.assertEqual((owner.city, owner.address, owner.pincode, owner.email, owner.whatsapp),
+                ('Chennai', 'Main Road', '600073', 'owner@example.com', '9000000001'))
+            self.assertEqual((profile.industry, profile.company_size, profile.website),
+                ('Retail', '10', 'https://example.com'))
+            response = self.client.get('/employer/dashboard/')
+            self.assertContains(response, 'Edit Logo &amp; Banner')
+            self.assertContains(response, profile.logo.url)
+            self.assertContains(response, profile.banner_image.url)
