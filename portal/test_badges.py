@@ -41,6 +41,43 @@ class BadgeArtworkTests(TestCase):
         self.assertIn(badge.icon_image.url, html)
         self.assertIn(badge.image.url, html)
 
+    def test_super_admin_can_create_and_update_badge_images(self):
+        self.user.admin_role = 'super_admin'
+        self.user.save(update_fields=['admin_role'])
+        data = {'community': self.community.pk, 'name': 'Admin badge',
+                'description': 'Achievement', 'icon': '*',
+                'criteria_type': 'manual', 'criteria_value': 0,
+                'icon_image': self.image('admin-icon.png'), 'image': self.image('admin-badge.png')}
+        response = self.client.post('/super-admin/badges/', data)
+        self.assertRedirects(response, '/super-admin/badges/')
+        badge = Badge.objects.get()
+        old_icon = badge.icon_image.name
+        self.assertTrue(badge.image)
+        data.pop('icon_image')
+        data['image'] = self.image('replacement.png')
+        response = self.client.post(f'/super-admin/badges/?edit={badge.pk}', data)
+        self.assertEqual(response.status_code, 302)
+        badge.refresh_from_db()
+        self.assertEqual(badge.icon_image.name, old_icon)
+        self.assertIn('replacement', badge.image.name)
+
+    def test_non_super_admin_cannot_manage_badge_images(self):
+        response = self.client.post('/super-admin/badges/', {'name': 'Unauthorized'})
+        self.assertEqual(response.status_code, 302)
+        self.assertFalse(Badge.objects.exists())
+
+    def test_super_admin_invalid_image_is_rejected(self):
+        self.user.admin_role = 'super_admin'
+        self.user.save(update_fields=['admin_role'])
+        response = self.client.post('/super-admin/badges/', {
+            'name': 'Invalid', 'description': 'Bad image', 'icon': '*',
+            'criteria_type': 'manual', 'criteria_value': 0,
+            'image': SimpleUploadedFile('bad.png', b'not an image'),
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('image', response.context['form'].errors)
+        self.assertFalse(Badge.objects.exists())
+
     def test_sample_icon_without_upload_still_works(self):
         self.client.post(self.url, {'action': 'create', 'name': 'Star Contributor', 'icon': '⭐'})
         badge = Badge.objects.get()

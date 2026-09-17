@@ -274,22 +274,13 @@ def register_process(request):
         if not password:
             return err('Password is required.')
 
-        existing_user = User.objects.filter(username=username).first() or \
-                        User.objects.filter(phone=phone).first() if phone else None
-        if existing_user:
-            if user_type in User.EMPLOYER_TYPES:
-                user = existing_user
-                if password: user.set_password(password)
-                user.user_type = user_type
-                if first_name: user.first_name = first_name
-                if pincode: user.pincode = pincode
-                try:
-                    user.save()
-                except Exception:
-                    logger.exception('register_process: user.save() failed (existing employer) user=%s', user.pk)
-                    return err('Registration failed. Please try again.')
-            else:
-                return err('An account already exists with this phone. Please login instead.')
+        existing_accounts = Q(username__iexact=username)
+        if phone:
+            existing_accounts |= Q(phone=phone) | Q(business_phone=phone)
+        if email:
+            existing_accounts |= Q(email__iexact=email)
+        if User.objects.filter(existing_accounts).exists():
+            return err('An account already exists with these details. Please login before registering a business.')
         else:
             try:
                 from .utils import generate_referral_code
@@ -1039,7 +1030,17 @@ def employer_dashboard(request):
         business_name__iexact=profile.company_name if profile else '', is_active=True
     ).order_by('-created_at')[:30] if profile else []
 
+    from coupons.models import Coupon
+    from django.core.paginator import Paginator
+    business_coupons = Coupon.objects.filter(batch__shop__business=user).select_related(
+        'batch__salesman__user').order_by('-number')
+    coupon_page = Paginator(business_coupons, 25).get_page(request.GET.get('coupon_page'))
+
     return render(request, 'employer_dashboard.html', {
+        'business_coupons': coupon_page,
+        'coupon_total': business_coupons.count(),
+        'coupon_used': business_coupons.filter(status=Coupon.STATUS_ACTIVATED).count(),
+        'coupon_available': business_coupons.filter(status=Coupon.STATUS_AVAILABLE).count(),
         'active_jobs':        active_jobs,
         'my_ad_posts':        my_ad_posts,
         'my_offers':          my_offers,
@@ -2633,6 +2634,23 @@ def super_admin_required(view_func):
             return redirect('login')
         return view_func(request, *args, **kwargs)
     return wrapper
+
+
+@super_admin_required
+def super_admin_badges(request):
+    from portal.forms import BadgeManagementForm
+    from portal.models import Badge
+    badge_id = request.GET.get('edit')
+    badge = get_object_or_404(Badge, pk=badge_id) if badge_id else None
+    form = BadgeManagementForm(request.POST or None, request.FILES or None, instance=badge)
+    if request.method == 'POST' and form.is_valid():
+        form.save()
+        messages.success(request, 'Badge saved successfully.')
+        return redirect('super_admin_badges')
+    return render(request, 'super_admin_badges.html', {
+        'form': form, 'editing_badge': badge,
+        'badges': Badge.objects.select_related('community').order_by('-created_at'),
+    })
 
 def state_admin_required(view_func):
     @wraps(view_func)

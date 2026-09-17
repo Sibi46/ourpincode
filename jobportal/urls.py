@@ -115,6 +115,7 @@ urlpatterns = [
     path('super-admin/users/',                          views.super_admin_users,     name='super_admin_users'),
     path('super-admin/users/<int:user_id>/delete/',     views.super_admin_delete_user, name='super_admin_delete_user'),
     path('super-admin/',                               views.super_admin_dashboard, name='super_admin_dashboard'),
+    path('super-admin/badges/',                        views.super_admin_badges, name='super_admin_badges'),
     path('super-admin/states/',                        views.manage_states,         name='manage_states'),
     path('super-admin/states/<int:pk>/toggle/',        views.toggle_state,          name='toggle_state'),
     path('super-admin/states/<int:state_id>/districts/', views.manage_districts,    name='manage_districts'),

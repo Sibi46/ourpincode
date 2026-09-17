@@ -29,7 +29,8 @@ def _is_opc_admin(user):
 
 
 def _is_salesman(user):
-    return user.is_authenticated and hasattr(user, 'salesman_profile')
+    return (user.is_authenticated and user.is_active
+            and hasattr(user, 'salesman_profile') and user.salesman_profile.is_active)
 
 
 def opc_admin_required(view_fn):
@@ -322,7 +323,7 @@ def salesman_login(request):
         username = request.POST.get('username', '').strip()
         password = request.POST.get('password', '').strip()
         user = authenticate(request, username=username, password=password)
-        if user and hasattr(user, 'salesman_profile'):
+        if user and user.is_active and hasattr(user, 'salesman_profile'):
             if not user.salesman_profile.is_active:
                 messages.error(request, 'Your account is deactivated.')
             else:
@@ -350,7 +351,7 @@ def salesman_dashboard(request):
     biz_error = None
     biz_query = request.GET.get('biz', '').strip().upper()
     if biz_query:
-        biz_user = User.objects.filter(salesman_biz_id=biz_query).first()
+        biz_user = User.objects.filter(salesman_biz_id=biz_query, is_active=True, user_type__in=User.EMPLOYER_TYPES).first()
         if biz_user:
             # Collect business name from company profile or shop profile
             biz_name = ''
@@ -504,7 +505,7 @@ def salesman_add_shop_from_biz(request):
         return redirect('opc_salesman_dashboard')
 
     biz_id = request.POST.get('biz_id', '').strip().upper()
-    biz_user = User.objects.filter(salesman_biz_id=biz_id).first()
+    biz_user = User.objects.filter(salesman_biz_id=biz_id, is_active=True, user_type__in=User.EMPLOYER_TYPES).first()
     if not biz_user:
         messages.error(request, f'Business "{biz_id}" not found.')
         return redirect('opc_salesman_dashboard')
@@ -538,19 +539,18 @@ def salesman_add_shop_from_biz(request):
 
     pincode = getattr(biz_user, 'pincode', '') or ''
 
-    # Check if this salesman already has a shop with this name + pincode
-    existing = Shop.objects.filter(salesman=sm, name=biz_name, pincode=pincode).first()
-    if existing:
-        messages.success(request, f'✓ {biz_name} is already in your shops list.')
-        return redirect('opc_salesman_give_coupons') if request.POST.get('goto_coupons') else redirect('opc_salesman_dashboard')
-
-    shop = Shop.objects.create(
-        salesman=sm,
-        name=biz_name,
-        pincode=pincode,
-        address=address,
-        phone=phone,
+    # Preserve the registered identity; names and pincodes are not unique.
+    shop, created = Shop.objects.get_or_create(
+        salesman=sm, business=biz_user,
+        defaults={'name': biz_name, 'pincode': pincode, 'address': address, 'phone': phone},
     )
+    if not shop.is_active:
+        messages.error(request, 'This shop is inactive. Contact an administrator.')
+        return redirect('opc_salesman_dashboard')
+    if not created:
+        messages.info(request, 'This business is already in your shops list.')
+        return redirect(f'/coupons/salesman/give-coupons/?shop={shop.pk}')
+
     messages.success(request, f'✓ {biz_name} added to your shops. Now give coupons!')
     return redirect(f'/coupons/salesman/give-coupons/?shop={shop.pk}')
 

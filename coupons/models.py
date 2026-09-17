@@ -25,6 +25,13 @@ class Salesman(models.Model):
 
 
 class Shop(models.Model):
+    business = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL,
+                                 related_name='coupon_shops')
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['salesman', 'business'],
+                                                name='unique_salesman_business_shop')]
+
     salesman = models.ForeignKey(Salesman, on_delete=models.CASCADE, related_name='shops')
     name = models.CharField(max_length=200)
     pincode = models.CharField(max_length=10)

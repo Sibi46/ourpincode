@@ -391,6 +391,14 @@
                             <label><i class="fas fa-map-marker-alt"></i> Pincode *</label>
                             <input type="text" id="emp-pincode-input" name="emp_pincode" data-pinlookup placeholder="Enter 6-digit area pincode" maxlength="6" inputmode="numeric" pattern="\d{6}" required>
                         </div>
+                        <div class="form-group full">
+                            <label for="emp-logo-upload">Business logo</label>
+                            <input type="file" id="emp-logo-upload" name="logo" accept="image/*">
+                        </div>
+                        <div class="form-group full">
+                            <label for="emp-banner-upload">Business banner</label>
+                            <input type="file" id="emp-banner-upload" name="banner_image" accept="image/*">
+                        </div>
                         <div class="form-row">
                             <div class="form-group">
                                 <label><i class="fas fa-lock"></i> Password *</label>
@@ -966,5 +974,4 @@ document.addEventListener('DOMContentLoaded', function() {
 {% include "includes/email_autofill.html" %}
 </body>
 </html>
-
 

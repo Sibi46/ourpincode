@@ -226,6 +226,7 @@
 
   <!-- TABS -->
   <div class="ig-tabs" id="igTabs">
+    <div class="ig-tab" onclick="showSection('coupons',this)" data-sec="coupons"><i class="fas fa-ticket-alt"></i>Coupons</div>
     <div class="ig-tab" onclick="window.location.href='/offers/post/'"><i class="fas fa-tag" style="color:#FF5722"></i>Offer</div>
     <div class="ig-tab" onclick="window.location.href='/vouchers/business/register/'"><i class="fas fa-gift" style="color:#7c3aed"></i>Voucher</div>
     <div class="ig-tab" onclick="window.location.href='/advertiser/dashboard/'"><i class="fas fa-bullhorn"></i>Ads</div>
@@ -247,6 +248,24 @@
   <!-- CONTENT AREA -->
   <div class="ig-content">
   <div id="igToast" class="ig-toast"></div>
+    <section class="dash-section" data-sec="coupons">
+      <h2>Business coupons</h2>
+      <p>Share your Salesman Support ID with your salesman to receive coupons. Give the printed coupons to customers; they enter the code and spin to receive points.</p>
+      <p>Total: {{ coupon_total }} · Available: {{ coupon_available }} · Used: {{ coupon_used }}</p>
+      {% if request.user.user_type == 'shop' %}
+      <p><a href="{% url 'opc_verify_redemption' %}">Verify and redeem customer rewards</a></p>
+      {% endif %}
+      <div style="overflow-x:auto">
+        <table style="width:100%;text-align:left">
+          <thead><tr><th>Coupon</th><th>Salesman</th><th>Status</th><th>Used on</th><th>Points</th></tr></thead>
+          <tbody>{% for coupon in business_coupons %}
+            <tr><td>{{ coupon.code }}</td><td>{{ coupon.batch.salesman }}</td><td>{{ coupon.get_status_display }}</td><td>{{ coupon.activated_at|date:'d M Y H:i'|default:'—' }}</td><td>{{ coupon.points_awarded|default_if_none:'—' }}</td></tr>
+          {% empty %}<tr><td colspan="5">No coupons assigned to your business yet.</td></tr>{% endfor %}</tbody>
+        </table>
+      </div>
+      {% if business_coupons.has_previous %}<a href="?coupon_page={{ business_coupons.previous_page_number }}#coupons">Previous</a>{% endif %}
+      {% if business_coupons.has_next %}<a href="?coupon_page={{ business_coupons.next_page_number }}#coupons">Next</a>{% endif %}
+    </section>
 
 
 
