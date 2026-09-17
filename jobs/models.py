@@ -1199,6 +1199,8 @@ class BusinessGalleryImage(models.Model):
 
 
 class LocalOffer(models.Model):
+    owner = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL,
+                              related_name='local_offers')
     CATEGORY_CHOICES = [
         ('food',     'Food & Drinks'),
         ('salon',    'Salon & Beauty'),

@@ -2,6 +2,8 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
+    path('family/profile/<int:user_id>/', views.family_profile, name='family_profile'),
+    path('family/visibility/', views.family_visibility, name='family_visibility'),
     path('',                               views.hub,                   name='community_hub'),
 
     # Grouped hubs

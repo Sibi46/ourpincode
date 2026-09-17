@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block title %}Businesses Near You{% endblock %}
+{% block content %}
+<main style="max-width:900px;margin:24px auto;padding:16px">
+<h1>Businesses Near You</h1>
+<form method="get"><label>Business <input name="q" value="{{ query }}"></label>
+<label>Pincode <input name="pincode" value="{{ pincode }}" pattern="[0-9]{6}" maxlength="6"></label><button>Search</button></form>
+{% for biz in businesses %}
+<article style="padding:16px;border-bottom:1px solid #ddd"><a href="{% url 'business_profile' biz.company_id %}">
+{% if biz.logo %}<img src="{{ biz.logo.url }}" alt="{{ biz.company_name }}" width="64">{% endif %}
+{{ biz.company_name }}</a><p>{{ biz.user.city }} {{ biz.user.pincode }}</p></article>
+{% empty %}<p>No businesses found.</p>{% endfor %}
+{% if businesses.has_previous %}<a href="?page={{ businesses.previous_page_number }}&amp;q={{ query|urlencode }}&amp;pincode={{ pincode|urlencode }}">Previous</a>{% endif %}
+{% if businesses.has_next %}<a href="?page={{ businesses.next_page_number }}&amp;q={{ query|urlencode }}&amp;pincode={{ pincode|urlencode }}">Next</a>{% endif %}
+</main>
+{% endblock %}

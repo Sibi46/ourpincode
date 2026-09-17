@@ -68,6 +68,14 @@
 
       <button type="submit" style="width:100%;background:#059669;color:#fff;border:none;padding:13px;border-radius:12px;font-size:14px;font-weight:800;cursor:pointer">Record & Award Points</button>
     </form>
+    <h2>Participation records</h2>
+    {% regroup records by user as member_records %}
+    {% for group in member_records %}
+      <h3>{{ group.grouper.get_full_name|default:group.grouper.username }}</h3>
+      {% for record in group.list %}
+      <p>{% if record.event %}{{ record.event.name }}{% elif record.activity %}{{ record.activity.name }}{% elif record.cause %}{{ record.cause.name }}{% else %}Participation{% endif %} — {{ record.get_role_display }} — {{ record.get_status_display }} — {{ record.points_awarded }} points · {{ record.created_at|date:'d M Y' }}</p>
+      {% endfor %}
+    {% empty %}<p>No participation records yet.</p>{% endfor %}
   </div>
 
 </div>

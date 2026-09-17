@@ -833,10 +833,45 @@ def edit_job(request, pk):
     return render(request, 'edit_job.html', {'job': job, 'industries': industries})
 
 
+def business_list(request):
+    from django.core.paginator import Paginator
+    businesses = CompanyProfile.objects.filter(user__is_active=True).exclude(company_name='').select_related('user')
+    pincode = request.GET.get('pincode', '').strip()
+    query = request.GET.get('q', '').strip()
+    if pincode:
+        businesses = businesses.filter(user__pincode=pincode)
+    if query:
+        businesses = businesses.filter(company_name__icontains=query)
+    return render(request, 'business_list.html', {
+        'businesses': Paginator(businesses.order_by('company_name'), 30).get_page(request.GET.get('page')),
+        'pincode': pincode, 'query': query,
+    })
+
+
+@login_required
+def my_offers(request):
+    if request.method == 'POST':
+        offer = get_object_or_404(LocalOffer, pk=request.POST.get('offer_id'), owner=request.user)
+        offer.is_active = False
+        offer.save(update_fields=['is_active'])
+        messages.success(request, 'Offer withdrawn.')
+        return redirect('my_offers')
+    return render(request, 'my_offers.html', {
+        'offers': LocalOffer.objects.filter(owner=request.user).order_by('-created_at'),
+    })
+
+
 def business_profile(request, company_id):
     from .models import CompanyProfile, Flick, LocalOffer, AdPost
     profile = get_object_or_404(CompanyProfile, company_id=company_id)
     owner = profile.user
+    from community.models import FamilySetup
+    from portal.models import Community
+    public_family = FamilySetup.objects.filter(user=owner, setup_done=True, is_public=True).first()
+    joined_communities = Community.objects.filter(
+        memberships__user=owner, memberships__status='approved', is_active=True).distinct()
+    if request.user != owner:
+        joined_communities = joined_communities.exclude(join_mode='private')
     user_type = owner.user_type
 
     # Offers by this business
@@ -889,6 +924,8 @@ def business_profile(request, company_id):
         pass
 
     return render(request, 'business_profile.html', {
+        'public_family': public_family,
+        'joined_communities': joined_communities,
         'profile': profile,
         'owner': owner,
         'user_type': user_type,
@@ -1930,6 +1967,7 @@ def offer_post(request):
         # Build WhatsApp link from phone number
         wa_url = f"https://wa.me/91{phone}" if phone else ''
         obj = LocalOffer(
+            owner=user,
             business_name = request.POST.get('business_name', '').strip(),
             title         = request.POST.get('title', '').strip(),
             discount_text = request.POST.get('discount_text', '').strip(),

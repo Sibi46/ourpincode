@@ -8,6 +8,7 @@ from django.db.models import Q, Count, Sum, F, ExpressionWrapper, IntegerField, 
 from django.utils import timezone
 from django.core.mail import send_mail
 from django.conf import settings
+from django.db import transaction
 
 from .models import (
     Category, Community, CommunityLeader, CommunityMember,
@@ -1241,7 +1242,11 @@ def event_rate(request, pk):
     if not attended:
         messages.error(request, 'Only attendees can rate this event.')
         return redirect('portal_event_detail', pk=pk)
-    rating_val = int(request.POST.get('rating', 0))
+    try:
+        rating_val = int(request.POST.get('rating', 0))
+    except (TypeError, ValueError):
+        messages.error(request, 'Select a valid rating from 1 to 5.')
+        return redirect('portal_event_detail', pk=pk)
     review = request.POST.get('review', '').strip()
     if 1 <= rating_val <= 5:
         EventRating.objects.update_or_create(
@@ -1253,6 +1258,7 @@ def event_rate(request, pk):
 
 
 @login_required
+@transaction.atomic
 def event_attendee_ratings(request, pk):
     """Show all attendees of a completed event with their average received ratings."""
     from .models import AttendeeRating
@@ -1280,6 +1286,9 @@ def event_attendee_ratings(request, pk):
             messages.info(request, 'You have already submitted your ratings for this event.')
             return redirect('portal_event_detail', pk=pk)
         community = event.community
+        if request.user not in attendee_users:
+            messages.error(request, 'Only attendees can rate others.')
+            return redirect('portal_event_detail', pk=pk)
 
         def _save_and_award(ratee, rating_val):
             obj, created = AttendeeRating.objects.get_or_create(
@@ -1288,12 +1297,17 @@ def event_attendee_ratings(request, pk):
             )
             if created and community:
                 award_points(ratee, community, rating_val,
-                             f'Peer rating at event: {event.name} ({rating_val}⭐ from {request.user.get_full_name or request.user.username})')
+                             f'Peer rating at event: {event.name} ({rating_val}⭐ from {request.user.get_full_name() or request.user.username})')
 
         # Single-rating POST (from separate ratings page)
         ratee_id = request.POST.get('ratee_id')
         if ratee_id:
-            rating_val = int(request.POST.get('rating', 0))
+            try:
+                ratee_id = int(ratee_id)
+                rating_val = int(request.POST.get('rating', 0))
+            except (TypeError, ValueError):
+                messages.error(request, 'Select a valid rating from 1 to 5.')
+                return redirect('portal_event_detail', pk=pk)
             if 1 <= rating_val <= 5:
                 ratee = get_object_or_404(User, pk=ratee_id)
                 if ratee in attendee_users and ratee != request.user:
@@ -1782,6 +1796,9 @@ def member_profile(request, user_id):
     return render(request, 'portal/member_profile.html', {
         'target': target,
         'profile': profile,
+        'participation_records': Participation.objects.filter(user=target,
+            community_id__in=[c.pk for c in Community.objects.filter(participations__user=target).distinct()
+                              if c.is_admin(request.user)]).select_related('community', 'event', 'activity', 'cause').order_by('-created_at'),
     })
 
 
@@ -2350,6 +2367,8 @@ def record_participation(request, slug):
         'activities': activities,
         'causes': causes,
         'roles': Participation.ROLES,
+        'records': Participation.objects.filter(community=community).select_related(
+            'user', 'event', 'activity', 'cause').order_by('user_id', '-pk'),
     }
     return render(request, 'portal/record_participation.html', ctx)
 

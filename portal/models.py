@@ -641,7 +641,7 @@ def award_points(user, community, points, action_note, done_by=None):
     mp.total_points += points
     mp.save()
     PointAuditLog.objects.create(
-        community=community, user=user, action=action_note,
+        community=community, user=user, action=action_note[:100],
         points_before=before, points_after=mp.total_points, done_by=done_by,
     )
     check_auto_badges(user, community)

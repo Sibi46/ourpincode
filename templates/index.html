@@ -584,7 +584,7 @@ var heroAd2Cur = 0;
 <div style="max-width:640px;margin:18px auto 0;padding:0 16px">
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
     <div style="font-size:13px;font-weight:800;color:#111">🏪 Businesses Near You</div>
-    <a href="/jobs/" style="font-size:11px;color:#0a66c2;font-weight:700">See All</a>
+    <a href="{% url 'business_list' %}" style="font-size:11px;color:#0a66c2;font-weight:700">See All</a>
   </div>
   <div style="display:flex;gap:14px;overflow-x:auto;padding-bottom:6px;scrollbar-width:none">
     {% for biz in business_logos %}

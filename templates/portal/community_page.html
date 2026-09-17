@@ -76,6 +76,22 @@
 {% endblock %}
 
 {% block content %}
+<button type="button" onclick="shareCommunity()">Share community</button>
+<span id="community-share-status" role="status"></span>
+<script>
+async function shareCommunity() {
+  const url = window.location.origin + '{% url "portal_community" community.page_id %}';
+  try {
+    if (navigator.share) await navigator.share({title: '{{ community.name|escapejs }}', url});
+    else if (navigator.clipboard) {
+      await navigator.clipboard.writeText(url);
+      document.getElementById('community-share-status').textContent = 'Link copied';
+    } else window.prompt('Copy community link', url);
+  } catch (error) {
+    if (error.name !== 'AbortError') window.prompt('Copy community link', url);
+  }
+}
+</script>
 <div class="cpage-wrap">
 
   {% if is_admin and not community.logo or is_admin and not community.cover %}

@@ -3,6 +3,8 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.http import JsonResponse
 from django.contrib import messages
+from django.db import transaction
+from django.http import Http404
 import base64
 from django.core.files.base import ContentFile
 from .models import (FamilyStory, FamilyStoryLike, FamilyStoryComment,
@@ -790,7 +792,39 @@ def family_quick_add(request):
 @login_required
 def family_member_detail(request, pk):
     member = get_object_or_404(FamilyMember, pk=pk)
+    setup = get_object_or_404(FamilySetup, user=member.creator)
+    if not _can_view_family(request.user, setup):
+        raise Http404
     return render(request, 'community/family_member_detail.html', {'member': member})
+
+
+def _can_view_family(user, setup):
+    return setup.is_public or (user.is_authenticated and (
+        user.pk == setup.user_id or FamilyMember.objects.filter(
+            creator_id=setup.user_id, child_linked_user=user).exists()))
+
+
+@login_required
+@require_POST
+def family_visibility(request):
+    setup = get_object_or_404(FamilySetup, user=request.user)
+    visibility = request.POST.get('visibility')
+    if visibility not in ('public', 'private'):
+        return JsonResponse({'error': 'Invalid visibility'}, status=400)
+    setup.is_public = visibility == 'public'
+    setup.save(update_fields=['is_public'])
+    messages.success(request, 'Family profile visibility saved.')
+    return redirect('family_hub')
+
+
+@login_required
+def family_profile(request, user_id):
+    setup = get_object_or_404(FamilySetup, user_id=user_id, setup_done=True)
+    if not _can_view_family(request.user, setup):
+        raise Http404
+    return render(request, 'community/family_profile.html', {
+        'setup': setup, 'members': FamilyMember.objects.filter(creator_id=user_id),
+    })
 
 
 @login_required
@@ -1981,6 +2015,7 @@ def event_rsvp(request, pk):
 
 
 @login_required
+@transaction.atomic
 def event_rate_user(request, pk):
     """Submit user-to-user ratings for a community event."""
     from .models import CommunityEventUserRating
@@ -1993,13 +2028,14 @@ def event_rate_user(request, pk):
     if CommunityEventUserRating.objects.filter(event=event, rater=request.user).exists():
         messages.info(request, 'You have already submitted your ratings for this event.')
         return redirect(f'/community/events/{pk}/')
-    from django.contrib.auth.models import User as AuthUser
+    from django.contrib.auth import get_user_model
+    AuthUser = get_user_model()
     from portal.models import Community, MemberPoints
     from portal.views import award_points
 
     # Find a shared community for points awarding
     rater_community_ids = set(
-        Community.objects.filter(members__user=request.user, members__status='approved').values_list('id', flat=True)
+        Community.objects.filter(memberships__user=request.user, memberships__status='approved').values_list('id', flat=True)
     )
 
     for key, val in request.POST.items():
@@ -2021,7 +2057,7 @@ def event_rate_user(request, pk):
                 if created:
                     # Award points in shared community if any
                     ratee_community_ids = set(
-                        Community.objects.filter(members__user=ratee, members__status='approved').values_list('id', flat=True)
+                        Community.objects.filter(memberships__user=ratee, memberships__status='approved').values_list('id', flat=True)
                     )
                     shared = rater_community_ids & ratee_community_ids
                     if shared:

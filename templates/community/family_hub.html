@@ -152,6 +152,15 @@ body{background:#F0F2FF;font-family:'Inter',system-ui,sans-serif;color:#0F172A;m
 </style>
 
 <!-- TOP BAR -->
+{% if setup and setup.user_id == request.user.pk %}
+<form method="post" action="{% url 'family_visibility' %}" style="padding:12px;background:#fff">
+  {% csrf_token %}<label for="family-visibility">Family profile visibility</label>
+  <select name="visibility" id="family-visibility">
+    <option value="private" {% if not setup.is_public %}selected{% endif %}>Private — family only</option>
+    <option value="public" {% if setup.is_public %}selected{% endif %}>Public — other users can view</option>
+  </select><button type="submit">Save privacy</button>
+</form>
+{% endif %}
 <div class="fh-topbar">
   <a href="/" style="flex-shrink:0;display:flex;align-items:center"><img src="/static/images/ourpincod.jpeg" alt="OUR PINCODE" style="height:34px;width:auto;max-width:110px;object-fit:contain;border-radius:6px"></a>
   <div class="fh-topbar-title">Family <span>Circle</span></div>
@@ -166,7 +175,8 @@ body{background:#F0F2FF;font-family:'Inter',system-ui,sans-serif;color:#0F172A;m
 
 <script>
 function shareFamily(){
-  var url = window.location.origin + '/community/family/';
+  {% if not setup.is_public %}alert('Your family profile is private. Change it to Public before sharing.'); return;{% endif %}
+  var url = window.location.origin + '/community/family/profile/{{ setup.user_id }}/';
   var name = '{% if setup %}{{ setup.house_name|default:setup.self_full_name|default:"Our Family" }}{% else %}Our Family{% endif %}';
   var text = name + ' — Family Circle on OUR PINCODE';
   if(navigator.share){

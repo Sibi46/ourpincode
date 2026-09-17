@@ -85,4 +85,10 @@
     </div>
   </div>
 </div>
+<section style="max-width:480px;padding:20px">
+  <h2>Participation records</h2>
+  {% for record in participation_records %}
+  <p>{{ record.community.name }} — {% if record.event %}{{ record.event.name }}{% else %}{{ record.get_role_display }}{% endif %} — {{ record.get_status_display }} — {{ record.points_awarded }} points</p>
+  {% empty %}<p>No participation records to show.</p>{% endfor %}
+</section>
 {% endblock %}

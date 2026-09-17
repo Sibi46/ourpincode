@@ -813,6 +813,7 @@ class Notification(models.Model):
 
 
 class FamilySetup(models.Model):
+    is_public = models.BooleanField(default=False)
     GENDER_CHOICES = [('male', 'Male'), ('female', 'Female')]
     MARITAL_CHOICES = [('married', 'Married'), ('unmarried', 'Unmarried')]
 

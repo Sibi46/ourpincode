@@ -2,6 +2,8 @@ from django.shortcuts import redirect
 
 # Pages anyone can visit without logging in
 PUBLIC_PREFIXES = [
+    '/businesses/',
+    '/business/',
     '/login/',
     '/logout/',
     '/register/',
