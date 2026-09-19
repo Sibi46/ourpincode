@@ -383,8 +383,8 @@ def create_community(request):
 
 def _notify_leader(leader, email, phone='', temp_password=''):
     try:
-        accept_url = f"https://www.mypincod.com/portal/leader/accept/{leader.token}/"
-        login_url  = f"https://www.mypincod.com/login/"
+        accept_url = f"{settings.SITE_URL}/portal/leader/accept/{leader.token}/"
+        login_url  = f"{settings.SITE_URL}/login/"
         community  = leader.community
         role_label = leader.get_role_display()
         msg = (
@@ -398,7 +398,7 @@ def _notify_leader(leader, email, phone='', temp_password=''):
         if temp_password:
             msg += (
                 f"\nYour login credentials:\n"
-                f"  Website  : https://www.mypincod.com\n"
+                f"  Website  : {settings.SITE_URL}\n"
                 f"  Email    : {email}\n"
                 f"  Password : {temp_password}\n"
                 f"  (Please change your password after first login)\n"
@@ -753,7 +753,7 @@ def add_leader(request, page_id):
                 + (f"\nPhone     : {phone}" if phone else "") +
                 f"\n{'─'*40}\n\n"
                 f"Login to OUR PINCODE:\n"
-                f"  Website  : https://www.mypincod.com\n"
+                f"  Website  : {settings.SITE_URL}\n"
                 f"  Email    : {email}\n"
             )
             if is_new:
@@ -768,7 +768,7 @@ def add_leader(request, page_id):
                 f"  ✓ Post updates and announcements\n"
                 f"  ✓ Manage community members\n"
                 f"  ✓ Create causes and activities\n\n"
-                f"Community page: https://www.mypincod.com/portal/c/{community.page_id}/\n\n"
+                f"Community page: {settings.SITE_URL}/portal/c/{community.page_id}/\n\n"
                 f"Thank you,\nOUR PINCODE Team"
             )
             send_mail(
