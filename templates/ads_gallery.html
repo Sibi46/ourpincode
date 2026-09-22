@@ -326,7 +326,7 @@ function openOffer(pk) {
 }
 function closeOffer(){ document.getElementById('offerModal').style.display='none'; }
 function shareOffer(name, title, discount, phone, pk) {
-  var link = 'https://www.mypincod.com/advertise/' + (pk ? '?offer=' + pk : '');
+  var link = '{{ SITE_URL|escapejs }}/advertise/' + (pk ? '?offer=' + pk : '');
   var text = '🔥 ' + discount + ' at ' + name + '\n' + title + (phone ? '\n📞 Call/WhatsApp: +91' + phone : '') + '\n\n👉 View offer: ' + link;
   if (navigator.share) {
     navigator.share({title: name + ' – ' + discount, text: text, url: link});

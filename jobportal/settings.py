@@ -11,7 +11,11 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 import os
+from importlib import import_module
 from pathlib import Path
+from urllib.parse import urlsplit
+
+from django.core.exceptions import ImproperlyConfigured
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -23,37 +27,88 @@ try:
 except ImportError:
     pass
 
-SITE_NAME    = 'MY PINCOD'
+def env_bool(name, default):
+    value = os.environ.get(name, str(default)).strip().lower()
+    if value in {'true', '1', 'yes', 'on'}:
+        return True
+    if value in {'false', '0', 'no', 'off'}:
+        return False
+    raise ImproperlyConfigured(f'{name} must be a boolean.')
+
+
+def env_list(name, default):
+    return [item.strip() for item in os.environ.get(name, default).split(',') if item.strip()]
+
+
+def env_int(name, default, minimum=0):
+    try:
+        value = int(os.environ.get(name, str(default)))
+    except ValueError as exc:
+        raise ImproperlyConfigured(f'{name} must be an integer.') from exc
+    if value < minimum:
+        raise ImproperlyConfigured(f'{name} must be at least {minimum}.')
+    return value
+
+
+def env_path(name, default):
+    value = os.environ.get(name, str(default)).strip()
+    if not value:
+        raise ImproperlyConfigured(f'{name} must be a non-empty filesystem path.')
+    try:
+        path = Path(value).expanduser()
+        return (path if path.is_absolute() else BASE_DIR / path).resolve()
+    except (OSError, RuntimeError, ValueError) as exc:
+        raise ImproperlyConfigured(f'{name} must be a valid filesystem path.') from exc
+
+
+def paths_overlap(first, second):
+    return first == second or first in second.parents or second in first.parents
+
+
+SITE_NAME = 'OUR PINCODE'
 SITE_TAGLINE = 'Find Jobs Near You. Hire People Near You.'
+SITE_URL = os.environ.get('SITE_URL', 'https://ourpincode.com').strip().rstrip('/')
+try:
+    _site_url = urlsplit(SITE_URL)
+    _site_port = _site_url.port  # Access validates numeric ports and their range.
+except ValueError as exc:
+    raise ImproperlyConfigured('SITE_URL must contain a valid hostname and port.') from exc
+if (_site_url.scheme not in {'http', 'https'} or not _site_url.hostname
+        or _site_url.username or _site_url.password
+        or _site_url.path or _site_url.query or _site_url.fragment
+        or _site_url.netloc.endswith(':') or _site_port == 0):
+    raise ImproperlyConfigured('SITE_URL must be an HTTP(S) origin without credentials or a path.')
 
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', '')
+if not SECRET_KEY.strip():
+    raise ImproperlyConfigured('DJANGO_SECRET_KEY is required.')
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-!22xkr*k3tn!jmif%n$@^1e+jzm5yl1d7!d(80u4*$#h$1-k!')
+DEBUG = env_bool('DJANGO_DEBUG', False)
+ALLOWED_HOSTS = env_list('DJANGO_ALLOWED_HOSTS', 'ourpincode.com,www.ourpincode.com')
+CSRF_TRUSTED_ORIGINS = env_list(
+    'DJANGO_CSRF_TRUSTED_ORIGINS',
+    'https://ourpincode.com,https://www.ourpincode.com',
+)
 
 ANTHROPIC_API_KEY = os.environ.get('ANTHROPIC_API_KEY', '')
-
-# Load from environment — do NOT hardcode here
+GROQ_API_KEY = os.environ.get('GROQ_API_KEY', '')
+GOOGLE_MAPS_KEY = os.environ.get('GOOGLE_MAPS_KEY', '')
 TWO_FACTOR_API_KEY = os.environ.get('TWO_FACTOR_API_KEY', '')
-TWO_FACTOR_OTP_TEMPLATE = 'OTP1'
+TWO_FACTOR_OTP_TEMPLATE = os.environ.get('TWO_FACTOR_OTP_TEMPLATE', 'OTP1')
 
-DEBUG = False
-
-ALLOWED_HOSTS = ['mypincod.com', 'www.mypincod.com']
-CSRF_TRUSTED_ORIGINS = ['https://mypincod.com', 'https://www.mypincod.com']
-
-# ── Security headers ─────────────────────────────────────────────────────────
-SECURE_SSL_REDIRECT          = True
-SECURE_HSTS_SECONDS          = 31536000   # 1 year
-SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-SECURE_CONTENT_TYPE_NOSNIFF  = True
-SESSION_COOKIE_SECURE        = True
-SESSION_COOKIE_HTTPONLY      = True
-CSRF_COOKIE_SECURE           = True
-CSRF_COOKIE_HTTPONLY         = False   # must be False — JS needs to read it for AJAX
-X_FRAME_OPTIONS              = 'DENY'
+# Only a trusted reverse proxy may reach the application. It must overwrite
+# X-Forwarded-Proto rather than trusting a client-supplied value.
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SECURE_SSL_REDIRECT = env_bool('DJANGO_SECURE_SSL_REDIRECT', True)
+# Enable HSTS only after the HTTPS deployment has been verified.
+SECURE_HSTS_SECONDS = env_int('DJANGO_SECURE_HSTS_SECONDS', 0)
+SECURE_HSTS_INCLUDE_SUBDOMAINS = False
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SESSION_COOKIE_SECURE = env_bool('DJANGO_SESSION_COOKIE_SECURE', True)
+SESSION_COOKIE_HTTPONLY = True
+CSRF_COOKIE_SECURE = env_bool('DJANGO_CSRF_COOKIE_SECURE', True)
+CSRF_COOKIE_HTTPONLY = False  # JavaScript reads the token for AJAX.
+X_FRAME_OPTIONS = 'DENY'
 
 
 # Application definition
@@ -114,6 +169,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'jobs.context_processors.site_ads',
+                'jobportal.context_processors.site_branding',
             ],
         },
     },
@@ -128,8 +184,8 @@ WSGI_APPLICATION = 'jobportal.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE':   'django.db.backends.mysql',
-        'NAME':     os.environ.get('DB_NAME', 'localjobs_db'),
-        'USER':     os.environ.get('DB_USER', 'root'),
+        'NAME':     os.environ.get('DB_NAME', 'ourpincode_db'),
+        'USER':     os.environ.get('DB_USER', 'ourpincode_app'),
         'PASSWORD': os.environ.get('DB_PASSWORD', ''),
         'HOST':     os.environ.get('DB_HOST', 'localhost'),
         'PORT':     os.environ.get('DB_PORT', '3306'),
@@ -175,26 +231,36 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+_storage_base = BASE_DIR.parent / f'{BASE_DIR.name}-data'
+STATIC_ROOT = env_path('STATIC_ROOT', _storage_base / 'staticfiles')
 STATICFILES_DIRS = [BASE_DIR / 'static']
 
 MEDIA_URL  = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_ROOT = env_path('MEDIA_ROOT', _storage_base / 'media')
+for _name, _path in (('STATIC_ROOT', STATIC_ROOT), ('MEDIA_ROOT', MEDIA_ROOT)):
+    if paths_overlap(_path, BASE_DIR):
+        raise ImproperlyConfigured(f'{_name} must not overlap the project checkout.')
+if paths_overlap(STATIC_ROOT, MEDIA_ROOT):
+    raise ImproperlyConfigured('STATIC_ROOT and MEDIA_ROOT must not overlap.')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# ── Email (Gmail SMTP) ───────────────────────────────────────────────────────
-EMAIL_BACKEND      = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST         = 'smtp.gmail.com'
-EMAIL_PORT         = 465
-EMAIL_USE_TLS      = False
-EMAIL_USE_SSL      = True
-EMAIL_HOST_USER    = os.environ.get('EMAIL_HOST_USER', '')
+# ── Email (configure a verified delivery provider) ───────────────────────────────────────────────────────
+EMAIL_BACKEND = os.environ.get('EMAIL_BACKEND', 'django.core.mail.backends.smtp.EmailBackend')
+EMAIL_HOST = os.environ.get('EMAIL_HOST', '')
+EMAIL_PORT = env_int('EMAIL_PORT', 587, minimum=1)
+EMAIL_USE_TLS = env_bool('EMAIL_USE_TLS', True)
+EMAIL_USE_SSL = env_bool('EMAIL_USE_SSL', False)
+if EMAIL_USE_TLS and EMAIL_USE_SSL:
+    raise ImproperlyConfigured('EMAIL_USE_TLS and EMAIL_USE_SSL cannot both be enabled.')
+EMAIL_TIMEOUT = env_int('EMAIL_TIMEOUT', 10, minimum=1)
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
-DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', f'OUR PINCODE <{EMAIL_HOST_USER}>')
+DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'OUR PINCODE <noreply@ourpincode.com>')
 
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/dashboard/'
@@ -203,15 +269,14 @@ LOGIN_REDIRECT_URL = '/dashboard/'
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
-        'LOCATION': '/tmp/django_cache_mypincod',
+        'LOCATION': str(env_path('CACHE_LOCATION', BASE_DIR / '.cache')),
         'TIMEOUT': 300,
     }
 }
 
 # ── Logging ───────────────────────────────────────────────────────────────────
-# Production: Gunicorn captures stderr → systemd journal (service: mypincod).
-# Read logs with: sudo journalctl -u mypincod -f
-# Development: DEBUG=True causes the console handler to activate automatically.
+# Production: Daphne writes stderr to the systemd journal (service: ourpincode).
+# Read logs with: sudo journalctl -u ourpincode -f
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -282,10 +347,17 @@ LOGGING = {
     },
 }
 
-try:
-    from .local_settings import *
-except ImportError:
-    pass
+# Legacy overrides are development-only, explicitly enabled by DJANGO_DEBUG.
+# Production always retains the environment-derived, validated configuration.
+if DEBUG:
+    try:
+        _local_settings = import_module('jobportal.local_settings')
+    except ModuleNotFoundError as exc:
+        if exc.name != 'jobportal.local_settings':
+            raise
+    else:
+        globals().update({name: value for name, value in vars(_local_settings).items()
+                          if name.isupper()})
 
 # ── Sentry error monitoring ───────────────────────────────────────────────────
 # Activated only when SENTRY_DSN env var is set (production/staging).
@@ -314,11 +386,12 @@ if _SENTRY_DSN:
 
 # Channels
 ASGI_APPLICATION = 'jobportal.asgi.application'
+REDIS_URL = os.environ.get('REDIS_URL', 'redis://127.0.0.1:6379/0')
 CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'CONFIG': {
-            'hosts': [('127.0.0.1', 6379)],
+            'hosts': [REDIS_URL],
         },
     },
 }
