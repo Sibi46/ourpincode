@@ -19,6 +19,7 @@ from .models import (
 )
 
 from jobs.models import ShopProfile
+from .forms import CouponActivationForm
 
 User = get_user_model()
 
@@ -635,10 +636,23 @@ def salesman_coupon_history(request):
 
 @login_required
 def customer_activate_coupon(request):
+    activation_form = CouponActivationForm()
     if request.method == 'POST':
-        code = request.POST.get('code', '').strip().upper()
         request.session.pop('pending_coupon', None)
-        coupon = Coupon.objects.filter(code__iexact=code).select_related('batch__shop').first()
+        if 'category' in request.POST or 'number' in request.POST:
+            activation_form = CouponActivationForm(request.POST)
+            if not activation_form.is_valid():
+                return render(request, 'coupons/customer/activate_coupon.html', {
+                    'activation_form': activation_form,
+                })
+            coupon = Coupon.objects.filter(
+                number=activation_form.cleaned_data['number'],
+                batch__category=activation_form.cleaned_data['category'],
+            ).select_related('batch__shop').first()
+        else:
+            # Keep accepting previously printed full codes without changing them.
+            code = request.POST.get('code', '').strip()
+            coupon = Coupon.objects.filter(code__iexact=code).select_related('batch__shop').first()
         if not coupon:
             messages.error(request, '❌ Coupon not found. Check the number and try again.')
             return redirect('opc_activate_coupon')
@@ -651,7 +665,7 @@ def customer_activate_coupon(request):
         # Valid — store in session and redirect to spin
         request.session['pending_coupon'] = coupon.pk
         return redirect('opc_spin_wheel')
-    return render(request, 'coupons/customer/activate_coupon.html')
+    return render(request, 'coupons/customer/activate_coupon.html', {'activation_form': activation_form})
 
 
 @login_required

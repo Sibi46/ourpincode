@@ -6,6 +6,16 @@
 .opc-ccard{background:#fff;border:1.5px solid #e2e8f0;border-radius:20px;padding:28px 24px;margin-bottom:16px}
 .opc-input{width:100%;box-sizing:border-box;border:2px solid #e2e8f0;border-radius:12px;padding:14px 16px;font-size:16px;font-family:monospace;font-weight:700;text-transform:uppercase;letter-spacing:.08em;outline:none;text-align:center}
 .opc-input:focus{border-color:#4f46e5}
+#couponCategory{text-transform:none;font-family:inherit;text-align:left;font-size:15px;letter-spacing:normal}
+.coupon-field-label{font-size:12px;font-weight:700;color:#64748b;display:block;margin-bottom:8px}
+.coupon-number-group{display:flex;align-items:center;border:2px solid #e2e8f0;border-radius:12px;overflow:hidden}
+.coupon-number-group:focus-within{border-color:#4f46e5}
+.coupon-prefix{padding:14px 0 14px 16px;color:#4f46e5;font-family:monospace;font-size:18px;font-weight:800;background:#f6f3ff;align-self:stretch;display:flex;align-items:center;padding-right:12px}
+.coupon-number-group .opc-input{min-width:0;border:0;border-radius:0;text-align:left;letter-spacing:.06em}
+.coupon-help{font-size:12px;color:#64748b;line-height:1.6;margin-top:9px}
+.coupon-errors{font-size:12px;color:#b91c1c;list-style:none;margin-top:6px;padding:0}
+.legacy-coupon{margin-top:20px;border-top:1px solid #e2e8f0;padding-top:16px;font-size:12px;color:#64748b}
+.legacy-coupon summary{cursor:pointer}.legacy-coupon form{margin-top:12px}
 .opc-cbtn{width:100%;background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;border:none;border-radius:12px;padding:14px;font-size:15px;font-weight:700;cursor:pointer;margin-top:12px}
 .nav-row{display:flex;gap:8px;margin-bottom:20px;overflow-x:auto}
 .nav-row a{padding:8px 14px;border-radius:20px;font-size:12px;font-weight:700;color:#64748b;text-decoration:none;white-space:nowrap;background:#f1f5f9}
@@ -34,19 +44,53 @@
   {% endif %}
 
   <div class="opc-ccard">
-    <form method="post">
+    <form method="post" id="categoryCouponForm">
       {% csrf_token %}
       <div style="margin-bottom:16px">
-        <label style="font-size:12px;font-weight:700;color:#64748b;display:block;margin-bottom:8px;text-align:center;text-transform:uppercase;letter-spacing:.04em">Coupon Number</label>
-        <input class="opc-input" name="code" placeholder="OPC-000001" autofocus required>
-        <p style="font-size:12px;color:#64748b;text-align:center">Enter the full printed code, for example Gopc000001, Sopc000001 or OPC-000001.</p>
+        <label class="coupon-field-label" for="couponCategory">Coupon category</label>
+        {{ activation_form.category }}
+        {% for error in activation_form.category.errors %}<p class="coupon-errors" role="alert">{{ error }}</p>{% endfor %}
+      </div>
+      <div style="margin-bottom:16px">
+        <label class="coupon-field-label" for="couponNumber">Coupon number</label>
+        <div class="coupon-number-group">
+          <span class="coupon-prefix" id="couponPrefix" aria-live="polite">opc{{ activation_form.category.value|default:'S'|lower }}</span>
+          {{ activation_form.number }}
+        </div>
+        {% for error in activation_form.number.errors %}<p class="coupon-errors" role="alert">{{ error }}</p>{% endfor %}
+        <p class="coupon-help" id="couponNumberHelp">Enter only the number. The category prefix is added automatically.</p>
+        <p class="coupon-help">Coupon: <output id="couponPreview" for="couponCategory couponNumber">opc{{ activation_form.category.value|default:'S'|lower }}000001</output></p>
       </div>
       <button type="submit" class="opc-cbtn">ACTIVATE COUPON</button>
     </form>
+    <details class="legacy-coupon">
+      <summary>Have an older printed coupon?</summary>
+      <form method="post">
+        {% csrf_token %}
+        <label class="coupon-field-label" for="legacyCouponCode">Enter its full printed code</label>
+        <input class="opc-input" id="legacyCouponCode" name="code" placeholder="OPC-000001" maxlength="20" required>
+        <button type="submit" class="opc-cbtn">ACTIVATE COUPON</button>
+      </form>
+    </details>
   </div>
 
   <div style="background:#f8fafc;border-radius:14px;padding:16px;font-size:13px;color:#64748b;text-align:center">
     💡 Get a coupon from participating shops. Enter the coupon number above, spin the wheel, and win OURPINCODE Points!
   </div>
 </div>
+<script>
+(() => {
+  const category=document.getElementById('couponCategory');
+  const number=document.getElementById('couponNumber');
+  function updateCoupon(){
+    const prefix='opc'+category.value.toLowerCase();
+    document.getElementById('couponPrefix').textContent=prefix;
+    const digits=number.value.trim();
+    document.getElementById('couponPreview').textContent=prefix+(/^[0-9]{1,10}$/.test(digits)?digits.padStart(6,'0'):'000001');
+  }
+  category.addEventListener('change',updateCoupon);
+  number.addEventListener('input',updateCoupon);
+  updateCoupon();
+})();
+</script>
 {% endblock %}

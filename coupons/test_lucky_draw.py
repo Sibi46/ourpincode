@@ -46,9 +46,9 @@ class LuckyDrawTests(TestCase):
             self.assertEqual(batch.coupons.count(), 2)
             for coupon in batch.coupons.all():
                 self.assertEqual(coupon.category, category)
-                self.assertEqual(coupon.code, f'{category}opc{coupon.number:06d}')
-            self.assertEqual(batch.start_code(), f'{category}opc{number * 10:06d}')
-            self.assertEqual(batch.end_code(), f'{category}opc{number * 10 + 1:06d}')
+                self.assertEqual(coupon.code, f'opc{category.lower()}{coupon.number:06d}')
+            self.assertEqual(batch.start_code(), f'opc{category.lower()}{number * 10:06d}')
+            self.assertEqual(batch.end_code(), f'opc{category.lower()}{number * 10 + 1:06d}')
         before = Coupon.objects.count()
         for category, start in [('X', 200), ('G', 1), ('P', 100)]:
             self.client.post('/coupons/salesman/give-coupons/', {

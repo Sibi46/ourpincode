@@ -2,7 +2,14 @@
 
 Apply migrations with `python manage.py migrate`. Existing OPC codes and the
 salesman → business assignment flow are preserved. New assignments select S, G,
-P or C and produce codes such as `Gopc000001`. Numbers remain globally unique,
+P or C and produce codes such as `opcg000001` (Silver: `opcs`, Gold: `opcg`,
+Points: `opcp`, Complimentary: `opcc`, followed by a six-digit number, without a hyphen).
+Customers select the category and enter only the number; shorter numbers are
+zero-padded in the preview. Category and number are checked together on the server.
+Previously printed category-first codes such as `Gopc000001` remain valid and
+retain their original display in batch history. The older full-code entry is
+available under "Have an older printed coupon?" for legacy `OPC-` coupons.
+Numbers remain globally unique,
 as before; categories do not allow reassignment of an existing number range.
 Legacy batches retain a blank category (Standard) and their original codes.
 The stored `activated` status remains the used status for compatibility with reports.

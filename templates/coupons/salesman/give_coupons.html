@@ -84,7 +84,7 @@ function calcQty(){
   var prev=document.getElementById('rangePreview');
   if(s>0 && e>=s){
     var qty=e-s+1;
-    var prefix=document.getElementById('category').value+'opc';
+    var prefix='opc'+document.getElementById('category').value.toLowerCase();
     document.getElementById('rangeLabel').textContent=prefix+String(s).padStart(6,'0')+' - '+prefix+String(e).padStart(6,'0');
     document.getElementById('qtyLabel').textContent=qty.toLocaleString();
     prev.style.display='block';

@@ -9,7 +9,7 @@ CATEGORY_CHOICES = [('S', 'Silver'), ('G', 'Gold'), ('P', 'Points'), ('C', 'Comp
 
 
 def coupon_code(number, category=''):
-    return f'{category}opc{number:06d}' if category else f'OPC-{number:06d}'
+    return f'opc{category.lower()}{number:06d}' if category else f'OPC-{number:06d}'
 
 
 class Salesman(models.Model):
@@ -84,10 +84,18 @@ class CouponBatch(models.Model):
         return f'{self.start_code()} → {self.end_code()}'
 
     def start_code(self):
-        return coupon_code(self.start_number, self.category)
+        return self._printed_code(self.start_number)
 
     def end_code(self):
-        return coupon_code(self.end_number, self.category)
+        return self._printed_code(self.end_number)
+
+    def _printed_code(self, number):
+        # Previously printed batches keep their original format in history.
+        if self.pk:
+            code = self.coupons.filter(number=number).values_list('code', flat=True).first()
+            if code:
+                return code
+        return coupon_code(number, self.category)
 
 
 class Coupon(models.Model):
