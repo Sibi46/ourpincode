@@ -26,6 +26,7 @@
     <div class="nav-container">
         <a href="/" class="nav-logo"><img src="/static/images/ourpincod.jpeg" alt="OUR PINCODE" style="height:40px;width:auto;max-width:140px;object-fit:contain;display:block;"></a>
         <div class="nav-links">
+            <a href="{% url 'network_feed' %}"><i class="fas fa-user-friends"></i> Network</a>
             {% if '/vouchers' in request.path %}
             {# ── VOUCHER SECTION NAV ── #}
             {# hidden until launch — footer icon still active #}
@@ -195,6 +196,7 @@
         <div class="hamburger" onclick="toggleMenu()"><i class="fas fa-bars"></i></div>
     </div>
     <div class="mobile-menu" id="mobileMenu">
+        <a href="{% url 'network_feed' %}"><i class="fas fa-user-friends"></i> Network</a>
         {% if '/advertise' in request.path %}
         {# ── ADVERTISER PAGES: minimal menu ── #}
         {% if request.user.is_authenticated %}
@@ -744,6 +746,7 @@ if(document.addEventListener)document.addEventListener('keydown',function(e){if(
 {% block site_bottom_nav %}
 <nav class="bottom-nav">
   <div class="bottom-nav-inner">
+    <a href="{% url 'network_feed' %}" class="bn-item {% if '/network/' in request.path %}active{% endif %}"><i class="fas fa-user-friends"></i><span>Network</span></a>
     <a href="/" class="bn-item {% if request.path == '/' %}active{% endif %}">
       <i class="fas fa-home"></i><span>Home</span>
     </a>

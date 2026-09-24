@@ -1,4 +1,25 @@
 from django.contrib import admin
+from .models import NetworkPost, NetworkConnection
+
+
+@admin.register(NetworkPost)
+class NetworkPostAdmin(admin.ModelAdmin):
+    list_display = ['id', 'author', 'pincode', 'activity', 'is_open', 'created_at']
+    list_filter = ['is_open', 'activity', 'pincode']
+    search_fields = ['text', 'pincode', 'author__first_name', 'author__last_name']
+    readonly_fields = ['author', 'pincode', 'activity', 'created_at', 'closed_at']
+
+    def has_add_permission(self, request):
+        return False
+
+
+@admin.register(NetworkConnection)
+class NetworkConnectionAdmin(admin.ModelAdmin):
+    list_display = ['post', 'user', 'created_at']
+    readonly_fields = ['post', 'user', 'conversation', 'created_at']
+
+    def has_add_permission(self, request):
+        return False
 from .models import (
     Category, Community, CommunityLeader, CommunityMember,
     Cause, CauseSupport, Event, EventParticipant,
