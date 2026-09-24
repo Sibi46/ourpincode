@@ -28,7 +28,7 @@
       <tbody>
       {% for c in coupons %}
       <tr>
-        <td><span style="font-family:monospace;font-weight:700;color:#4f46e5">{{ c.code }}</span></td>
+        <td><span style="font-family:monospace;font-weight:700;color:#4f46e5">{{ c.code }}</span><br>{{ c.get_category_display }}</td>
         <td>{{ c.batch.shop.name }}</td>
         <td>{{ c.batch.salesman }}</td>
         <td>

@@ -5,6 +5,12 @@ from django.utils import timezone
 
 User = settings.AUTH_USER_MODEL
 
+CATEGORY_CHOICES = [('S', 'Silver'), ('G', 'Gold'), ('P', 'Points'), ('C', 'Complimentary')]
+
+
+def coupon_code(number, category=''):
+    return f'{category}opc{number:06d}' if category else f'OPC-{number:06d}'
+
 
 class Salesman(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='salesman_profile')
@@ -68,29 +74,31 @@ class CouponBatch(models.Model):
     shop = models.ForeignKey(Shop, on_delete=models.CASCADE, related_name='batches')
     salesman = models.ForeignKey(Salesman, on_delete=models.CASCADE, related_name='batches')
     quantity = models.PositiveIntegerField()
+    category = models.CharField(max_length=1, choices=CATEGORY_CHOICES, blank=True, default='')
     start_number = models.PositiveIntegerField()
     end_number = models.PositiveIntegerField()
     distributed_date = models.DateField(null=True, blank=True, help_text='Date coupons were physically distributed')
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f'OPC-{self.start_number:06d} → OPC-{self.end_number:06d}'
+        return f'{self.start_code()} → {self.end_code()}'
 
     def start_code(self):
-        return f'OPC-{self.start_number:06d}'
+        return coupon_code(self.start_number, self.category)
 
     def end_code(self):
-        return f'OPC-{self.end_number:06d}'
+        return coupon_code(self.end_number, self.category)
 
 
 class Coupon(models.Model):
     STATUS_AVAILABLE = 'available'
     STATUS_ACTIVATED = 'activated'
+    STATUS_USED = STATUS_ACTIVATED  # Preserve existing reports and stored statuses.
     STATUS_EXPIRED = 'expired'
     STATUS_CANCELLED = 'cancelled'
     STATUS_CHOICES = [
         (STATUS_AVAILABLE, 'Available'),
-        (STATUS_ACTIVATED, 'Activated'),
+        (STATUS_ACTIVATED, 'Used'),
         (STATUS_EXPIRED, 'Expired'),
         (STATUS_CANCELLED, 'Cancelled'),
     ]
@@ -117,8 +125,41 @@ class Coupon(models.Model):
     def salesman(self):
         return self.batch.salesman
 
+    @property
+    def category(self):
+        return self.batch.category
+
+    def get_category_display(self):
+        return self.batch.get_category_display() or 'Standard'
+
+
+class MonthlyDraw(models.Model):
+    month = models.DateField(unique=True, help_text='First day of the draw month.')
+    prize = models.CharField(max_length=200, blank=True)
+    winner = models.OneToOneField('LuckyDrawEntry', null=True, blank=True,
+                                 on_delete=models.PROTECT, related_name='won_draw')
+    selected_at = models.DateTimeField(null=True, blank=True)
+    awarded_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ['-month']
+        constraints = [models.CheckConstraint(condition=models.Q(month__day=1),
+                                              name='draw_month_first_day')]
+
+    def __str__(self):
+        return self.month.strftime('%B %Y')
+
+
+class LuckyDrawEntry(models.Model):
+    draw = models.ForeignKey(MonthlyDraw, on_delete=models.PROTECT, related_name='entries')
+    coupon = models.OneToOneField(Coupon, on_delete=models.PROTECT, related_name='draw_entry')
+    customer = models.ForeignKey(User, on_delete=models.PROTECT, related_name='lucky_draw_entries')
+    created_at = models.DateTimeField(auto_now_add=True)
+
 
 class SpinWheelSlot(models.Model):
+    category = models.CharField(max_length=1, choices=CATEGORY_CHOICES, blank=True, default='',
+                                help_text='Blank slots are the default for categories without their own slots.')
     label = models.CharField(max_length=100)
     points = models.PositiveIntegerField(default=0)
     is_surprise = models.BooleanField(default=False)

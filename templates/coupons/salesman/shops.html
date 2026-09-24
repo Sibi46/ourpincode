@@ -20,7 +20,7 @@
   <div style="background:#f8fafc;border-radius:8px;padding:8px 12px;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between">
     <div style="font-size:12px;color:#64748b">{{ b.created_at|date:"d M Y" }}</div>
     <div style="font-size:12px;font-weight:700">{{ b.quantity }} coupons</div>
-    <div style="font-size:12px;font-family:monospace;color:#4f46e5">{{ b.start_code }} → {{ b.end_code }}</div>
+    <div style="font-size:12px;font-family:monospace;color:#4f46e5">{{ b.start_code }} → {{ b.end_code }} / {{ b.get_category_display|default:"Standard" }}</div>
   </div>
   {% endfor %}
   <div style="margin-top:10px;display:flex;gap:8px">

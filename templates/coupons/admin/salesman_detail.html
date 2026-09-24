@@ -63,7 +63,7 @@
         <td><span class="opc-badge opc-badge-gold">{{ shop.total_coupons }} coupons</span></td>
         <td>
           {% for b in shop.batches.all %}
-          <div style="font-size:11px;font-family:monospace;color:#4f46e5">{{ b.start_code }} → {{ b.end_code }}</div>
+          <div style="font-size:11px;font-family:monospace;color:#4f46e5">{{ b.start_code }} → {{ b.end_code }} / {{ b.get_category_display|default:"Standard" }}</div>
           {% endfor %}
         </td>
       </tr>

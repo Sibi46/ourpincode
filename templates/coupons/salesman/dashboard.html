@@ -79,7 +79,7 @@
       <td><span class="sm-badge-gold">{{ shop.coupon_count|default:0 }} coupons</span></td>
       <td>
         {% for b in shop.batches.all|slice:":2" %}
-        <div style="font-size:11px;font-family:monospace;color:#4f46e5">{{ b.start_code }} → {{ b.end_code }}</div>
+        <div style="font-size:11px;font-family:monospace;color:#4f46e5">{{ b.start_code }} → {{ b.end_code }} / {{ b.get_category_display|default:"Standard" }}</div>
         {% endfor %}
       </td>
       <td>
@@ -105,7 +105,7 @@
     </div>
     <div style="text-align:right">
       <div style="font-size:13px;font-weight:700;color:#4f46e5">{{ b.quantity }} coupons</div>
-      <div style="font-size:11px;font-family:monospace;color:#64748b">{{ b.start_code }} → {{ b.end_code }}</div>
+      <div style="font-size:11px;font-family:monospace;color:#64748b">{{ b.start_code }} → {{ b.end_code }} / {{ b.get_category_display|default:"Standard" }}</div>
     </div>
   </div>
   {% endfor %}

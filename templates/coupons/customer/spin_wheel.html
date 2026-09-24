@@ -38,6 +38,18 @@ body{background:#100d27;min-height:100vh}
 .result-action{display:inline-block;margin-top:20px;background:#f8d785;color:#302014;border-radius:100px;padding:13px 26px;font-size:13px;font-weight:800;text-decoration:none}
 @media(max-width:380px){.spin-page{padding:28px 24px 40px}.wheel-wrap{padding:12px}.wheel-hub{border-width:3px}}
 </style>
+<style>
+.draw-scene{height:150px;position:relative;overflow:hidden;margin-top:20px}
+.draw-ticket{position:absolute;left:calc(50% - 35px);top:0;background:#ffdc83;color:#302014;border:2px dashed #865621;border-radius:6px;padding:8px;font-weight:bold;animation:ticket-drop 1s ease-in forwards}
+.draw-box{position:absolute;left:calc(50% - 65px);bottom:0;width:130px;height:70px;background:#7547bc;border:3px solid #ffdc83;border-radius:8px;padding-top:24px;font-weight:bold;animation:box-shake .6s 1s}
+.draw-box:before{content:'';position:absolute;top:-8px;left:-6px;width:136px;height:12px;background:#ffdc83;transform-origin:left;animation:box-open .5s 1.6s forwards}
+.draw-confetti{position:absolute;left:50%;top:65px;color:#ffdc83;font-size:30px;opacity:0;animation:draw-confetti .8s 1.7s forwards}
+@keyframes ticket-drop{to{transform:translateY(95px) rotate(12deg) scale(.4);opacity:0}}
+@keyframes box-shake{25%,75%{transform:rotate(-7deg)}50%{transform:rotate(7deg)}}
+@keyframes box-open{to{transform:rotate(-25deg)}}
+@keyframes draw-confetti{20%{opacity:1}to{transform:translate(-40px,-50px) scale(2);opacity:0}}
+@media(prefers-reduced-motion:reduce){.draw-scene{display:none}}
+</style>
 {% endblock %}
 {% block content %}
 <div class="spin-page">
@@ -47,7 +59,7 @@ body{background:#100d27;min-height:100vh}
   <p class="spin-sub">Your next surprise is one spin away.<br>Ready to reveal your reward?</p>
   <div class="coupon-badge">
     <span class="coupon-icon" aria-hidden="true">✦</span>
-    <div class="coupon-info"><div class="coupon-badge-code">{{ coupon.code }}</div><div class="coupon-badge-shop">{{ coupon.shop.name }}</div></div>
+    <div class="coupon-info"><div class="coupon-badge-code">{{ coupon.code }} - {{ coupon.get_category_display }}</div><div class="coupon-badge-shop">{{ coupon.shop.name }}</div></div>
   </div>
   <div class="wheel-stage">
     <div class="wheel-wrap">
@@ -66,6 +78,10 @@ body{background:#100d27;min-height:100vh}
     <div class="result-pts" id="resultPts"></div>
     <div class="result-caption">OURPINCODE Points</div>
     <p class="result-caption" id="giftName" hidden></p>
+    <div id="luckyDraw" hidden>
+      <div class="draw-scene" aria-hidden="true"><span class="draw-ticket">COUPON</span><div class="draw-box">Lucky Draw</div><span class="draw-confetti">✦ · ✧ · ✦</span></div>
+      <p id="drawMessage" hidden role="status">🎉 Congratulations!<br>You are eligible for this month's Lucky Draw!<br>Your coupon has been added to the draw.<br>Good Luck! 🍀</p>
+    </div>
     <a href="{% url 'opc_my_points' %}" class="result-action">VIEW MY POINTS →</a>
   </div>
 </div>
@@ -127,6 +143,10 @@ button.addEventListener('click',async () => {
       document.getElementById('resultPts').textContent=data.points;
       if(data.is_surprise && data.surprise_gift_name){const gift=document.getElementById('giftName');gift.textContent=data.surprise_gift_name;gift.hidden=false;}
       document.getElementById('resultBox').hidden=false;
+      if(data.lucky_draw_entry_id){
+        document.getElementById('luckyDraw').hidden=false;
+        setTimeout(()=>{document.getElementById('drawMessage').hidden=false;},duration?2500:0);
+      }
       button.textContent='REWARD REVEALED';status.textContent='Your points have been added to your wallet.';
       document.getElementById('resultBox').scrollIntoView({behavior:duration?'smooth':'auto',block:'nearest'});
     }

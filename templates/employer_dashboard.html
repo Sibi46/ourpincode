@@ -275,7 +275,7 @@
         <table style="width:100%;text-align:left">
           <thead><tr><th>Coupon</th><th>Salesman</th><th>Status</th><th>Used on</th><th>Points</th></tr></thead>
           <tbody>{% for coupon in business_coupons %}
-            <tr><td>{{ coupon.code }}</td><td>{{ coupon.batch.salesman }}</td><td>{{ coupon.get_status_display }}</td><td>{{ coupon.activated_at|date:'d M Y H:i'|default:'—' }}</td><td>{{ coupon.points_awarded|default_if_none:'—' }}</td></tr>
+            <tr><td>{{ coupon.code }} - {{ coupon.get_category_display }}</td><td>{{ coupon.batch.salesman }}</td><td>{{ coupon.get_status_display }}</td><td>{{ coupon.activated_at|date:'d M Y H:i'|default:'—' }}</td><td>{{ coupon.points_awarded|default_if_none:'—' }}</td></tr>
           {% empty %}<tr><td colspan="5">No coupons assigned to your business yet.</td></tr>{% endfor %}</tbody>
         </table>
       </div>

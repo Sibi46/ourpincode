@@ -1,0 +1,36 @@
+{% extends "coupons/base.html" %}
+{% block title %}Monthly Lucky Draws{% endblock %}
+{% block opc_content %}
+<div class="opc-page">
+  <h1 class="opc-page-title">Monthly Lucky Draws</h1>
+  <a href="{% url 'opc_admin_dashboard' %}">Coupon dashboard</a>
+  {% for message in messages %}<p role="status">{{ message }}</p>{% endfor %}
+  <form method="post" class="opc-card">
+    {% csrf_token %}<input type="hidden" name="action" value="configure">
+    <label class="opc-label" for="month">Month</label><input class="opc-input" id="month" name="month" type="month" required>
+    <label class="opc-label" for="prize">Prize / gift</label><input class="opc-input" id="prize" name="prize" maxlength="200" required>
+    <button class="opc-btn opc-btn-primary">Save monthly prize</button>
+  </form>
+  <p>Each successfully used coupon is one entry. Winners can be selected after the month ends.</p>
+  <div style="overflow-x:auto"><table class="opc-table">
+    <thead><tr><th>Month</th><th>Prize</th><th>Total entries</th><th>Winner</th><th>Actions</th></tr></thead>
+    <tbody>{% for draw in draws %}<tr>
+      <td>{{ draw }}</td><td>{{ draw.prize|default:'Awaiting configuration' }}</td>
+      <td><a href="?draw={{ draw.pk }}">{{ draw.total_entries }} — view eligible customers</a></td>
+      <td>{% if draw.winner %}{{ draw.winner.customer.get_full_name|default:draw.winner.customer.username }} ({{ draw.winner.coupon.code }})<br>{{ draw.selected_at }}{% else %}Pending{% endif %}</td>
+      <td>{% if draw.awarded_at %}Awarded / claimed: {{ draw.awarded_at }}{% else %}
+        <form method="post">{% csrf_token %}<input type="hidden" name="draw_id" value="{{ draw.pk }}">
+          {% if draw.winner %}<button name="action" value="award" class="opc-btn">Mark awarded / claimed</button>
+          {% else %}<button name="action" value="select" class="opc-btn">Select random winner</button>{% endif %}
+        </form>{% endif %}</td>
+    </tr>{% empty %}<tr><td colspan="5">No monthly draws yet.</td></tr>{% endfor %}</tbody>
+  </table></div>
+  {% if selected %}<h2>Eligible entries — {{ selected }}</h2>
+  <table class="opc-table"><thead><tr><th>Customer</th><th>Coupon</th><th>Category</th><th>Entered</th></tr></thead>
+    <tbody>{% for entry in entries %}<tr><td>{{ entry.customer.get_full_name|default:entry.customer.username }}</td><td>{{ entry.coupon.code }}</td><td>{{ entry.coupon.get_category_display }}</td><td>{{ entry.created_at }}</td></tr>{% empty %}<tr><td colspan="4">No eligible entries.</td></tr>{% endfor %}</tbody>
+  </table>
+  {% if entries.has_previous %}<a href="?draw={{ selected.pk }}&page={{ entries.previous_page_number }}">Previous</a>{% endif %}
+  {% if entries.has_next %}<a href="?draw={{ selected.pk }}&page={{ entries.next_page_number }}">Next</a>{% endif %}
+  {% endif %}
+</div>
+{% endblock %}

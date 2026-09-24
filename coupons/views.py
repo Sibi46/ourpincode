@@ -1,5 +1,6 @@
 import random
 import decimal
+from datetime import datetime
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
@@ -14,7 +15,7 @@ from django.contrib.auth import get_user_model
 from .models import (
     Salesman, Shop, CouponBatch, Coupon, CouponCounter,
     SpinWheelSlot, Reward, PointsWallet, PointsTransaction,
-    RedemptionCounter, Redemption,
+    RedemptionCounter, Redemption, CATEGORY_CHOICES, coupon_code, MonthlyDraw, LuckyDrawEntry,
 )
 
 from jobs.models import ShopProfile
@@ -56,6 +57,52 @@ def salesman_required(view_fn):
     return _wrap
 
 
+@opc_admin_required
+@require_http_methods(['GET', 'POST'])
+def admin_lucky_draws(request):
+    from .lucky_draw import eligible_entries, select_winner
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        try:
+            if action == 'configure':
+                month = datetime.strptime(request.POST.get('month', ''), '%Y-%m').date()
+                prize = request.POST.get('prize', '').strip()
+                if not prize or len(prize) > 200:
+                    raise ValueError('Enter a prize of up to 200 characters.')
+                with transaction.atomic():
+                    draw, _ = MonthlyDraw.objects.get_or_create(month=month)
+                    draw = MonthlyDraw.objects.select_for_update().get(pk=draw.pk)
+                    if draw.winner_id:
+                        raise ValueError('The prize cannot change after winner selection.')
+                    draw.prize = prize
+                    draw.save(update_fields=['prize'])
+            elif action == 'select':
+                select_winner(int(request.POST.get('draw_id', '')))
+            elif action == 'award':
+                with transaction.atomic():
+                    draw = MonthlyDraw.objects.select_for_update().get(pk=int(request.POST.get('draw_id', '')))
+                    if not draw.winner_id:
+                        raise ValueError('Select a winner before marking the prize awarded.')
+                    if not draw.awarded_at:
+                        draw.awarded_at = timezone.now()
+                        draw.save(update_fields=['awarded_at'])
+            else:
+                raise ValueError('Unknown action.')
+        except (ValueError, MonthlyDraw.DoesNotExist) as exc:
+            messages.error(request, str(exc))
+        else:
+            messages.success(request, 'Monthly draw updated.')
+        return redirect('opc_admin_lucky_draws')
+    draws = MonthlyDraw.objects.select_related('winner__customer', 'winner__coupon').annotate(total_entries=Count('entries'))
+    selected = None
+    entries = []
+    if request.GET.get('draw', '').isdigit():
+        selected = get_object_or_404(MonthlyDraw, pk=request.GET['draw'])
+        from django.core.paginator import Paginator
+        entries = Paginator(eligible_entries(selected).select_related('customer', 'coupon').order_by('pk'), 100).get_page(request.GET.get('page'))
+    return render(request, 'coupons/admin/lucky_draws.html', {'draws': draws, 'selected': selected, 'entries': entries})
+
+
 def _notify_user(user, notif_type, message, url=''):
     """Send a notification via portal's _notify helper if available."""
     try:
@@ -65,9 +112,15 @@ def _notify_user(user, notif_type, message, url=''):
         pass
 
 
-def _spin_result():
+def _spin_slots(category=''):
+    slots = SpinWheelSlot.objects.filter(is_active=True, probability__gt=0)
+    specific = slots.filter(category=category)
+    return specific if category and specific.exists() else slots.filter(category='')
+
+
+def _spin_result(category=''):
     """Pick a spin result based on configured probabilities."""
-    slots = list(SpinWheelSlot.objects.filter(is_active=True))
+    slots = list(_spin_slots(category))
     if not slots:
         return {'points': 10, 'label': '10 Points', 'is_surprise': False}
     total = sum(float(s.probability) for s in slots)
@@ -205,7 +258,7 @@ def admin_coupon_audit(request):
     coupon = None
     q = request.GET.get('q', '').strip().upper()
     if q:
-        coupon = Coupon.objects.filter(code=q).select_related(
+        coupon = Coupon.objects.filter(code__iexact=q).select_related(
             'batch__shop__salesman__user', 'activated_by'
         ).first()
         if coupon:
@@ -277,6 +330,9 @@ def admin_spinwheel(request):
     if request.method == 'POST':
         action = request.POST.get('action')
         if action == 'add':
+            category = request.POST.get('category', '')
+            if category not in dict(CATEGORY_CHOICES) and category != '':
+                return HttpResponseForbidden('Invalid category')
             label = request.POST.get('label', '').strip()
             points = int(request.POST.get('points', 0))
             prob = request.POST.get('probability', '0').strip()
@@ -284,7 +340,7 @@ def admin_spinwheel(request):
             surprise_name = request.POST.get('surprise_gift_name', '').strip()
             color = request.POST.get('color', '#6366f1').strip()
             SpinWheelSlot.objects.create(
-                label=label, points=points, probability=prob,
+                label=label, points=points, probability=prob, category=category,
                 is_surprise=is_surprise, surprise_gift_name=surprise_name,
                 color=color,
             )
@@ -442,6 +498,10 @@ def salesman_give_coupons(request):
         dist_date = request.POST.get('distributed_date') or None
         start_raw = request.POST.get('start_number', '').strip()
         end_raw = request.POST.get('end_number', '').strip()
+        category = request.POST.get('category', '')
+        if category not in dict(CATEGORY_CHOICES) and category != '':
+            messages.error(request, 'Please select a valid coupon category.')
+            return redirect('opc_salesman_give_coupons')
 
         shop = get_object_or_404(Shop, pk=shop_id, is_active=True)
 
@@ -476,18 +536,23 @@ def salesman_give_coupons(request):
                     counter.last_number = end
                     counter.save(update_fields=['last_number'])
 
+            if Coupon.objects.filter(number__gte=start, number__lte=end).exists():
+                messages.error(request, 'This coupon range has already been assigned.')
+                return redirect('opc_salesman_give_coupons')
+
             batch = CouponBatch.objects.create(
                 shop=shop, salesman=sm, quantity=quantity,
                 start_number=start, end_number=end,
                 distributed_date=dist_date or None,
+                category=category,
             )
             coupons = [
-                Coupon(code=f'OPC-{n:06d}', number=n, batch=batch)
+                Coupon(code=coupon_code(n, category), number=n, batch=batch)
                 for n in range(start, end + 1)
             ]
             Coupon.objects.bulk_create(coupons)
         messages.success(request, f'✓ {quantity} coupons given to {shop.name} '
-                                   f'(OPC-{start:06d} → OPC-{end:06d})')
+                                   f'({batch.start_code()} → {batch.end_code()})')
         return redirect('opc_salesman_coupon_history')
     pre_shop = request.GET.get('shop')
     return render(request, 'coupons/salesman/give_coupons.html', {
@@ -572,7 +637,8 @@ def salesman_coupon_history(request):
 def customer_activate_coupon(request):
     if request.method == 'POST':
         code = request.POST.get('code', '').strip().upper()
-        coupon = Coupon.objects.filter(code=code).select_related('batch__shop').first()
+        request.session.pop('pending_coupon', None)
+        coupon = Coupon.objects.filter(code__iexact=code).select_related('batch__shop').first()
         if not coupon:
             messages.error(request, '❌ Coupon not found. Check the number and try again.')
             return redirect('opc_activate_coupon')
@@ -598,7 +664,7 @@ def customer_spin_wheel(request):
         del request.session['pending_coupon']
         messages.error(request, 'Coupon already used.')
         return redirect('opc_activate_coupon')
-    slots = SpinWheelSlot.objects.filter(is_active=True).order_by('order')
+    slots = _spin_slots(coupon.category).order_by('order')
     return render(request, 'coupons/customer/spin_wheel.html', {
         'coupon': coupon, 'slots': slots
     })
@@ -616,17 +682,24 @@ def customer_spin_api(request):
         ).first()
         if not coupon:
             return JsonResponse({'error': 'Coupon no longer available'}, status=400)
-        result = _spin_result()
+        activated_at = timezone.now()
+        month = timezone.localdate(activated_at).replace(day=1)
+        draw, _ = MonthlyDraw.objects.get_or_create(month=month)
+        draw = MonthlyDraw.objects.select_for_update().get(pk=draw.pk)
+        if draw.winner_id:
+            return JsonResponse({'error': 'The month has just closed. Please spin again.'}, status=409)
+        result = _spin_result(coupon.category)
         pts = result['points']
         coupon.status = 'activated'
         coupon.activated_by = request.user
-        coupon.activated_at = timezone.now()
+        coupon.activated_at = activated_at
         coupon.points_awarded = pts
         coupon.is_surprise_gift = result.get('is_surprise', False)
         coupon.surprise_gift_name = result.get('surprise_gift_name', '')
         coupon.save()
         wallet = PointsWallet.get_or_create_for(request.user)
         wallet.credit(pts, f'Gift Coupon {coupon.code}', coupon=coupon)
+        entry = LuckyDrawEntry.objects.create(draw=draw, coupon=coupon, customer=request.user)
     del request.session['pending_coupon']
     # Notifications
     _notify_user(request.user, 'points',
@@ -640,6 +713,8 @@ def customer_spin_api(request):
         'shop_name': coupon.batch.shop.name,
         'coupon_code': coupon.code,
         'balance': wallet.balance,
+        'lucky_draw_entry_id': entry.pk,
+        'lucky_draw_month': draw.month.isoformat(),
     })
 
 

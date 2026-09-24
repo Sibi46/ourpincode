@@ -12,7 +12,7 @@
     </div>
     <div style="text-align:right">
       <div style="font-size:14px;font-weight:700;color:#4f46e5">{{ b.quantity }} coupons</div>
-      <div style="font-size:12px;font-family:monospace;color:#64748b">{{ b.start_code }} → {{ b.end_code }}</div>
+      <div style="font-size:12px;font-family:monospace;color:#64748b">{{ b.start_code }} → {{ b.end_code }} / {{ b.get_category_display|default:"Standard" }}</div>
     </div>
   </div>
 </div>
