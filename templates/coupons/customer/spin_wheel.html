@@ -2,138 +2,136 @@
 {% block title %}Spin & Win — OURPINCODE{% endblock %}
 {% block extra_css %}
 <style>
-body{background:#100d27;min-height:100vh}
-.spin-page{max-width:560px;margin:0 auto;padding:36px 20px 56px;text-align:center;color:#fff;background:radial-gradient(ellipse at 50% 45%,#55309055,transparent 65%)}
-.spin-page *{box-sizing:border-box}
-.spin-brand{font-size:11px;font-weight:800;color:#d6bbff;letter-spacing:.22em;margin-bottom:14px}
-.spin-eyebrow{display:inline-block;border:1px solid #ffffff26;border-radius:30px;background:#ffffff09;padding:7px 14px;color:#eedfff;font-size:11px;letter-spacing:.12em;font-weight:700}
-.spin-title{font-size:clamp(34px,8vw,48px);font-weight:900;letter-spacing:-.04em;line-height:1.15;margin:15px 0 10px;color:#fff}
-.spin-title span{color:#ffd77b}
-.spin-sub{font-size:14px;color:#c1b7d7;line-height:1.6;margin:0 auto 20px;max-width:300px}
-.coupon-badge{display:inline-flex;align-items:center;gap:12px;border:1px dashed #a28cb366;border-radius:12px;padding:10px 16px;background:#ffffff06;margin-bottom:30px;max-width:100%}
-.coupon-icon{color:#ffd77b;font-size:24px}
-.coupon-info{text-align:left;min-width:0}
-.coupon-badge-code{font-size:14px;font-family:monospace;font-weight:800;color:#f5eaff;letter-spacing:.08em}
-.coupon-badge-shop{font-size:11px;color:#bcb0ce;margin-top:3px;overflow-wrap:anywhere}
-.wheel-stage{position:relative;margin:8px auto 30px;max-width:380px}
-.wheel-stage:before{content:"";position:absolute;inset:-16px;border:1px solid #b79ae326;border-radius:50%}
-.wheel-wrap{position:relative;width:100%;aspect-ratio:1;border-radius:50%;padding:15px;background:linear-gradient(145deg,#fff0ac,#d49a30 40%,#ffdc7c 65%,#ad651d);box-shadow:0 0 0 5px #372049,0 0 0 7px #e8bd6740,0 20px 65px #0008,0 0 65px #aa64ff33}
-.wheel-wrap:after{content:"";position:absolute;inset:5px;border:4px dotted #fff4cb;border-radius:50%;pointer-events:none}
-#wheelCanvas{display:block;width:100%;height:100%;aspect-ratio:1;border-radius:50%;box-shadow:0 0 0 3px #784921}
-.wheel-pointer{position:absolute;z-index:3;top:-16px;left:50%;transform:translateX(-50%);width:32px;height:45px;background:linear-gradient(90deg,#e6a735,#fff0ad,#e6a735);clip-path:polygon(0 0,100% 0,100% 40%,50% 100%,0 40%);filter:drop-shadow(0 4px 3px #0008)}
-.wheel-hub{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:23%;aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;border:5px solid #ffe3a0;border-radius:50%;background:linear-gradient(145deg,#382352,#180e30);box-shadow:0 4px 14px #0007;color:#ffe7a4;font-size:clamp(12px,3vw,17px);font-weight:900;letter-spacing:.08em;pointer-events:none}
-.wheel-hub span{font-size:22px;line-height:1.2;margin-bottom:3px}
-.spin-btn{width:min(100%,340px);background:linear-gradient(110deg,#ffcf62,#ffe8a6,#ffc453);color:#362008;border:1px solid #fff0ba;border-radius:100px;padding:17px 24px;font-size:16px;font-weight:900;cursor:pointer;box-shadow:0 5px 0 #a76726,0 10px 28px #ffbd4926;letter-spacing:.09em;transition:transform .2s,box-shadow .2s}
-.spin-btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 7px 0 #a76726,0 12px 35px #ffbd4940}
-.spin-btn:focus-visible,.result-action:focus-visible{outline:3px solid #fff;outline-offset:6px}
-.spin-btn:disabled{opacity:.65;cursor:default}
-.spin-note{font-size:11px;color:#bcb0ce;margin:17px 0 0}
-.spin-status{font-size:13px;color:#ffe0a3;line-height:1.6}
-#resultBox{background:linear-gradient(135deg,#342044,#211633);border:1px solid #ddbb7355;border-radius:24px;padding:26px 20px;margin-top:24px}
-#resultBox[hidden]{display:none}
-.result-label{font-size:11px;letter-spacing:.1em;color:#d9c8eb;overflow-wrap:anywhere}
-.result-heading{font-size:22px;font-weight:800;color:#fff;margin-top:12px}
-.result-pts{font-size:54px;font-weight:900;color:#ffdc83;margin:6px 0}
-.result-caption{font-size:13px;color:#d9c8eb}
-.result-action{display:inline-block;margin-top:20px;background:#f8d785;color:#302014;border-radius:100px;padding:13px 26px;font-size:13px;font-weight:800;text-decoration:none}
-@media(max-width:380px){.spin-page{padding:28px 24px 40px}.wheel-wrap{padding:12px}.wheel-hub{border-width:3px}}
-</style>
-<style>
-.draw-scene{height:150px;position:relative;overflow:hidden;margin-top:20px}
-.draw-ticket{position:absolute;left:calc(50% - 35px);top:0;background:#ffdc83;color:#302014;border:2px dashed #865621;border-radius:6px;padding:8px;font-weight:bold;animation:ticket-drop 1s ease-in forwards}
-.draw-box{position:absolute;left:calc(50% - 65px);bottom:0;width:130px;height:70px;background:#7547bc;border:3px solid #ffdc83;border-radius:8px;padding-top:24px;font-weight:bold;animation:box-shake .6s 1s}
-.draw-box:before{content:'';position:absolute;top:-8px;left:-6px;width:136px;height:12px;background:#ffdc83;transform-origin:left;animation:box-open .5s 1.6s forwards}
-.draw-confetti{position:absolute;left:50%;top:65px;color:#ffdc83;font-size:30px;opacity:0;animation:draw-confetti .8s 1.7s forwards}
-@keyframes ticket-drop{to{transform:translateY(95px) rotate(12deg) scale(.4);opacity:0}}
-@keyframes box-shake{25%,75%{transform:rotate(-7deg)}50%{transform:rotate(7deg)}}
-@keyframes box-open{to{transform:rotate(-25deg)}}
-@keyframes draw-confetti{20%{opacity:1}to{transform:translate(-40px,-50px) scale(2);opacity:0}}
-@media(prefers-reduced-motion:reduce){.draw-scene{display:none}}
+body{background:#fffaf3}
+.spin-page{--ink:#29234b;--purple:#6545d8;max-width:1100px;margin:0 auto;padding:28px 28px 72px;color:var(--ink)}
+.spin-page *{box-sizing:border-box}.spin-page [hidden]{display:none!important}
+.spin-topbar{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:28px;font-size:12px;font-weight:600}
+.spin-back{color:#716a86;text-decoration:none;display:inline-flex;align-items:center;gap:8px;padding:8px 0}.spin-back:hover{color:var(--purple)}
+.spin-topnote{display:flex;align-items:center;gap:7px;color:#716a86}.spin-topnote:before{content:'';width:7px;height:7px;border-radius:50%;background:#279a71}
+.spin-layout{display:grid;grid-template-columns:.95fr 1.05fr;gap:56px;align-items:center}
+.spin-eyebrow{display:inline-flex;align-items:center;gap:8px;background:#eee8ff;border-radius:8px;padding:8px 12px;font-size:11px;font-weight:800;letter-spacing:.11em;color:#6742ce}
+.spin-title{font-size:clamp(42px,5.5vw,66px);line-height:1.08;letter-spacing:-.055em;font-weight:850;margin:22px 0 18px;color:var(--ink)}
+.spin-title span{color:#eb6356;display:block}.spin-sub{max-width:340px;color:#787086;font-size:15px;line-height:1.8;margin:0 0 28px}
+.coupon-ticket{position:relative;max-width:360px;display:flex;align-items:center;gap:15px;padding:20px;background:white;border:1px solid #e5dfee;border-radius:16px;box-shadow:0 5px 0 #efe9f3}
+.ticket-icon{display:grid;place-items:center;flex-shrink:0;width:44px;height:44px;border-radius:12px;background:#fff1c4;color:#815a15}.ticket-icon svg{width:25px;height:25px}
+.coupon-info{min-width:0;flex:1;border-left:1px dashed #ded6e8;padding-left:15px}.coupon-label{display:block;font-size:10px;color:#898098;text-transform:uppercase;letter-spacing:.1em;font-weight:700;margin-bottom:5px}
+.coupon-code{font-family:ui-monospace,monospace;font-size:16px;font-weight:800;overflow-wrap:anywhere}.coupon-meta{font-size:11px;line-height:1.7;color:#827990;margin-top:5px;overflow-wrap:anywhere}.coupon-category{color:#6945c9;font-weight:700}
+.spin-steps{display:flex;align-items:center;gap:9px;margin-top:28px;color:#8b8297;font-size:11px}.spin-steps span{display:flex;align-items:center;gap:6px}.spin-steps b{display:grid;place-items:center;width:21px;height:21px;border-radius:50%;background:#ede7f8;color:#68588b;font-size:10px}.spin-steps .current{color:#6545d8;font-weight:700}.spin-steps .current b{background:#6545d8;color:#fff}.spin-steps i{height:1px;width:18px;background:#dcd3e7}
+.spin-play{text-align:center;min-width:0;position:relative;padding:26px 16px 0}
+.wheel-stage{position:relative;width:min(100%,380px);margin:0 auto 28px;isolation:isolate}.wheel-stage:before{content:'';position:absolute;inset:-23px;border-radius:50%;background:#f0e8fc;z-index:-2}.wheel-stage:after{content:'';position:absolute;inset:-12px;border:1px dashed #d3bfee;border-radius:50%;z-index:-1}
+.wheel-spark{position:absolute;z-index:4;color:#f1af37;font-size:35px;line-height:1;pointer-events:none}.spark-one{top:-15px;right:-22px;transform:rotate(12deg)}.spark-two{bottom:22px;left:-28px;color:#f27887;font-size:25px}.spark-three{top:35%;right:-31px;color:#7355d2;font-size:16px}
+.wheel-wrap{position:relative;aspect-ratio:1;border-radius:50%;padding:12px;background:#fff;box-shadow:0 8px 0 #d4c4ec,0 14px 24px #54358019}
+#wheelCanvas{display:block;width:100%;height:100%;aspect-ratio:1;border-radius:50%;border:2px solid #fff}
+.wheel-pointer{position:absolute;top:-13px;left:50%;transform:translateX(-50%);width:34px;height:43px;z-index:3;filter:drop-shadow(0 3px 1px #482c6d30)}.wheel-pointer svg{width:100%;height:100%}
+.wheel-hub{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:21%;aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#fff;border:5px solid #fff6e3;box-shadow:0 3px 12px #3c24522b;border-radius:50%;color:#6545d8;font-size:11px;font-weight:850;letter-spacing:.04em;pointer-events:none}.wheel-hub svg{width:25px;height:25px;margin-bottom:3px}
+.spin-btn{display:inline-flex;justify-content:center;align-items:center;gap:12px;width:min(100%,320px);min-height:57px;border:0;border-radius:16px;background:#6545d8;color:#fff;box-shadow:0 5px 0 #4930a4;padding:14px 22px;font-size:16px;font-weight:750;cursor:pointer;transition:transform .18s,box-shadow .18s,background .18s}.spin-btn:hover:not(:disabled){background:#5636c6;transform:translateY(-2px);box-shadow:0 7px 0 #4930a4}.spin-btn:active:not(:disabled){transform:translateY(3px);box-shadow:0 2px 0 #4930a4}.spin-btn:disabled{cursor:default;background:#8b76c5;box-shadow:0 5px 0 #71609f}.spin-btn svg{width:20px;height:20px}
+.spin-page a:focus-visible,.spin-btn:focus-visible{outline:3px solid #ef9560;outline-offset:5px}.spin-note{font-size:11px;color:#8b8297;margin:16px 0 0}.spin-status{font-size:12px;color:#655384;line-height:1.7;margin:12px auto 0;max-width:340px;overflow-wrap:anywhere}.spin-status:empty{display:none}
+.draw-preview{display:flex;align-items:center;gap:16px;background:#f2edfc;border:1px solid #e7dff5;border-radius:18px;padding:20px 24px;margin-top:42px}.draw-preview-icon{display:grid;place-items:center;flex-shrink:0;background:#fff;width:46px;height:46px;border-radius:13px;color:#7953d7}.draw-preview-icon svg{width:25px;height:25px}.draw-preview h2{font-size:14px;font-weight:750;margin:0 0 4px;color:var(--ink)}.draw-preview p{font-size:12px;line-height:1.6;color:#827593;margin:0}.draw-preview-tag{margin-left:auto;flex-shrink:0;border:1px solid #d9ccef;border-radius:20px;padding:6px 10px;font-size:10px;font-weight:750;color:#7953bb}
+#resultBox{max-width:620px;margin:36px auto 0;text-align:center;border:1px solid #e2d8ef;border-radius:24px;background:#fff;padding:30px;box-shadow:0 8px 0 #eee6f5;scroll-margin-top:90px}.result-icon{display:grid;place-items:center;margin:0 auto 15px;width:55px;height:55px;border-radius:50%;background:#fff1bd;font-size:27px;color:#a57513}.result-label{color:#93829f;font-size:10px;letter-spacing:.1em;font-weight:750;overflow-wrap:anywhere}.result-heading{font-size:25px;font-weight:800;color:var(--ink);margin-top:10px}.result-pts{font-size:62px;line-height:1.2;letter-spacing:-.05em;color:#6843d4;font-weight:850;margin:7px 0}.result-caption{font-size:13px;color:#8b7d97;line-height:1.7}#giftName{margin-top:10px;color:#a56b12;font-weight:700;background:#fff5d4;border-radius:9px;padding:10px}.result-action{display:inline-block;text-decoration:none;margin-top:20px;background:#6545d8;color:#fff;border-radius:12px;padding:13px 25px;font-size:13px;font-weight:700}
+#luckyDraw{margin-top:22px;border-top:1px dashed #e2d8ec;padding-top:4px}.draw-scene{height:145px;position:relative;overflow:hidden;margin-top:16px}.draw-ticket{position:absolute;left:calc(50% - 37px);top:0;background:#ffe197;color:#6e4b19;border:2px dashed #c69141;border-radius:7px;padding:8px;font-size:10px;font-weight:800;animation:ticket-drop 1s ease-in forwards}.draw-box{position:absolute;left:calc(50% - 65px);bottom:4px;width:130px;height:70px;background:#b8a2ef;border:2px solid #9676dc;border-radius:8px;padding-top:24px;color:#40286f;font-size:13px;font-weight:750;animation:box-shake .6s 1s}.draw-box:before{content:'';position:absolute;top:-8px;left:-6px;width:138px;height:13px;background:#7550c9;border-radius:4px;transform-origin:left;animation:box-open .5s 1.6s forwards}
+.draw-confetti{position:absolute;left:50%;top:70px;opacity:0;width:7px;height:13px;background:#ec7387;--x:-65px;--y:-55px;animation:draw-confetti .9s 1.7s both}.draw-confetti:nth-of-type(3){--x:65px;--y:-65px;background:#7bbdae;animation-delay:1.8s}.draw-confetti:nth-of-type(4){--x:-35px;--y:-90px;background:#e8b74c;animation-delay:1.75s}.draw-confetti:nth-of-type(5){--x:30px;--y:-85px;background:#9c79dd;animation-delay:1.85s}.draw-confetti:nth-of-type(6){--x:85px;--y:-25px;background:#eea469;animation-delay:1.7s}#drawMessage{font-size:13px;line-height:1.9;color:#70607f;margin-top:10px}
+@keyframes ticket-drop{to{transform:translateY(90px) rotate(12deg) scale(.4);opacity:0}}@keyframes box-shake{25%,75%{transform:rotate(-7deg)}50%{transform:rotate(7deg)}}@keyframes box-open{to{transform:rotate(-20deg)}}@keyframes draw-confetti{0%{opacity:0;transform:translate(0,0) rotate(0)}20%{opacity:1}80%{opacity:1}100%{opacity:0;transform:translate(var(--x),var(--y)) rotate(190deg)}}
+@media(max-width:760px){.spin-page{max-width:510px;padding:14px 24px 100px}.spin-topbar{margin-bottom:19px;font-size:11px}.spin-topnote{font-size:10px}.spin-layout{grid-template-columns:1fr;gap:32px}.spin-intro{text-align:center}.spin-eyebrow{font-size:10px;padding:6px 10px}.spin-title{font-size:40px;margin:14px 0 12px}.spin-title span{display:inline}.spin-sub{font-size:13px;line-height:1.7;max-width:290px;margin:0 auto 19px}.coupon-ticket{padding:13px 15px;max-width:350px;margin:auto;text-align:left}.ticket-icon{width:38px;height:38px}.coupon-label{font-size:9px;margin-bottom:2px}.coupon-code{font-size:14px}.coupon-meta{font-size:10px;margin-top:2px}.spin-steps{display:none}.spin-play{padding:10px 14px 0}.wheel-stage{max-width:310px;margin-bottom:25px}.wheel-stage:before{inset:-17px}.wheel-stage:after{inset:-8px}.wheel-wrap{padding:9px}.wheel-hub{font-size:9px;border-width:4px}.wheel-hub svg{width:21px;height:21px}.wheel-pointer{width:29px;height:37px;top:-12px}.spin-btn{min-height:53px;font-size:15px;border-radius:14px}.spin-note{font-size:10px}.draw-preview{margin-top:28px;padding:16px;gap:12px}.draw-preview h2{font-size:12px}.draw-preview p{font-size:11px}.draw-preview-icon{width:38px;height:38px}.draw-preview-tag{display:none}#resultBox{padding:24px 18px}.spark-one{font-size:27px;right:-14px}.spark-two{left:-22px}.spark-three{right:-22px}}
+@media(max-width:760px){.spin-topbar{margin-bottom:10px}.spin-title{font-size:36px;margin:12px 0 10px}.spin-sub{font-size:12px;line-height:1.6;margin-bottom:15px}.coupon-ticket{padding:10px 13px}.spin-layout{gap:20px}.spin-play{padding-top:4px}.wheel-stage{max-width:280px;margin-bottom:22px}.wheel-hub{font-size:8px;letter-spacing:0}.spin-note{margin-top:13px}}
+@media(max-width:360px){.spin-page{padding-left:18px;padding-right:18px}.spin-title{font-size:33px}.spin-topnote{display:none}.spin-play{padding-left:12px;padding-right:12px}.coupon-ticket{gap:10px}.coupon-info{padding-left:10px}}
+@media(prefers-reduced-motion:reduce){.draw-scene{display:none}.spin-btn{transition:none}}
 </style>
 {% endblock %}
 {% block content %}
-<div class="spin-page">
-  <div class="spin-brand">OURPINCODE</div>
-  <div class="spin-eyebrow">A LITTLE SPIN. A BIG SMILE.</div>
-  <h1 class="spin-title">Spin &amp; <span>Win!</span></h1>
-  <p class="spin-sub">Your next surprise is one spin away.<br>Ready to reveal your reward?</p>
-  <div class="coupon-badge">
-    <span class="coupon-icon" aria-hidden="true">✦</span>
-    <div class="coupon-info"><div class="coupon-badge-code">{{ coupon.code }} - {{ coupon.get_category_display }}</div><div class="coupon-badge-shop">{{ coupon.shop.name }}</div></div>
+<main class="spin-page">
+  <div class="spin-topbar"><a class="spin-back" href="{% url 'opc_activate_coupon' %}"><span aria-hidden="true">←</span> My coupons</a><span class="spin-topnote">Coupon ready. Let's play!</span></div>
+  <div class="spin-layout">
+    <section class="spin-intro" aria-labelledby="spinTitle">
+      <div class="spin-eyebrow"><span aria-hidden="true">✦</span> SPIN &amp; WIN</div>
+      <h1 class="spin-title" id="spinTitle">A little spin.<br><span>A happy win.</span></h1>
+      <p class="spin-sub">You've got the coupon. Now for the fun part! Give the wheel a spin to reveal your reward.</p>
+      <div class="coupon-ticket">
+        <div class="ticket-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 5h18v5a2 2 0 0 0 0 4v5H3v-5a2 2 0 0 0 0-4Z"/><path d="M9 5v3m0 2v4m0 2v3"/></svg></div>
+        <div class="coupon-info"><span class="coupon-label">Your lucky ticket</span><div class="coupon-code">{{ coupon.code }}</div><div class="coupon-meta"><span class="coupon-category">{{ coupon.get_category_display }}</span> · {{ coupon.shop.name }}</div></div>
+      </div>
+      <div class="spin-steps" aria-label="Coupon entered. Next: spin and win."><span><b aria-hidden="true">✓</b> Enter coupon</span><i aria-hidden="true"></i><span class="current"><b aria-hidden="true">2</b> Spin the wheel</span><i aria-hidden="true"></i><span><b aria-hidden="true">3</b> Enjoy!</span></div>
+    </section>
+    <section class="spin-play" aria-label="Prize wheel">
+      <div class="wheel-stage">
+        <span class="wheel-spark spark-one" aria-hidden="true">✦</span><span class="wheel-spark spark-two" aria-hidden="true">✦</span><span class="wheel-spark spark-three" aria-hidden="true">✧</span>
+        <div class="wheel-wrap">
+          <canvas id="wheelCanvas" width="800" height="800" role="img" aria-label="Prize wheel. Spin to reveal your reward."></canvas>
+          <div class="wheel-hub" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 1 15 9 23 12 15 15 12 23 9 15 1 12 9 9Z"/></svg>GOOD LUCK</div>
+          <div class="wheel-pointer" aria-hidden="true"><svg viewBox="0 0 34 43"><path d="M3 3Q17-2 31 3L20 39Q17 44 14 39Z" fill="#ef755d" stroke="#fff" stroke-width="3"/><circle cx="17" cy="10" r="3" fill="#fff4dc"/></svg></div>
+        </div>
+      </div>
+      {% csrf_token %}
+      <button class="spin-btn" id="spinBtn" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M20 7a9 9 0 1 0 1 8M20 2v5h-5"/></svg> Let's spin!</button>
+      <p class="spin-note">One coupon. One spin. A little bit of joy.</p>
+      <p id="spinStatus" class="spin-status" role="status" aria-live="polite"></p>
+    </section>
   </div>
-  <div class="wheel-stage">
-    <div class="wheel-wrap">
-      <canvas id="wheelCanvas" width="800" height="800" role="img" aria-label="Circular prize wheel. Spin to reveal your reward."></canvas>
-      <div class="wheel-hub" aria-hidden="true"><span>✦</span>WIN</div>
-      <div class="wheel-pointer" aria-hidden="true"></div>
-    </div>
-  </div>
-  {% csrf_token %}
-  <button class="spin-btn" id="spinBtn" type="button">✦ &nbsp; SPIN NOW &nbsp; ✦</button>
-  <p class="spin-note">One coupon. One spin. Your moment!</p>
-  <p id="spinStatus" class="spin-status" role="status" aria-live="polite"></p>
-  <div id="resultBox" hidden aria-live="polite">
-    <div class="result-label">CONGRATULATIONS {{ request.user.get_full_name|default:request.user.username|upper }}!</div>
-    <div class="result-heading">You won!</div>
-    <div class="result-pts" id="resultPts"></div>
-    <div class="result-caption">OURPINCODE Points</div>
-    <p class="result-caption" id="giftName" hidden></p>
+  <aside class="draw-preview" id="drawPreview">
+    <div class="draw-preview-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 11h16v10H4zM2 7h20v4H2zM12 7v14"/><path d="M12 7C4 8 5 0 9 3l3 4Zm0 0c8 1 7-7 3-4l-3 4Z"/></svg></div>
+    <div><h2>And there's more to look forward to.</h2><p>Every successfully used coupon gets one entry into this month's Lucky Draw.</p></div><span class="draw-preview-tag">MONTHLY LUCKY DRAW</span>
+  </aside>
+  <section id="resultBox" hidden aria-live="polite" aria-label="Your reward">
+    <div class="result-icon" aria-hidden="true">✦</div><div class="result-label">CONGRATULATIONS {{ request.user.get_full_name|default:request.user.username|upper }}!</div>
+    <h2 class="result-heading">A happy little win!</h2><div class="result-pts" id="resultPts"></div><div class="result-caption">OURPINCODE Points · Added to your wallet</div><p class="result-caption" id="giftName" hidden></p>
     <div id="luckyDraw" hidden>
-      <div class="draw-scene" aria-hidden="true"><span class="draw-ticket">COUPON</span><div class="draw-box">Lucky Draw</div><span class="draw-confetti">✦ · ✧ · ✦</span></div>
+      <div class="draw-scene" aria-hidden="true"><span class="draw-ticket">YOUR TICKET</span><div class="draw-box">Lucky Draw</div><span class="draw-confetti"></span><span class="draw-confetti"></span><span class="draw-confetti"></span><span class="draw-confetti"></span><span class="draw-confetti"></span></div>
       <p id="drawMessage" hidden role="status">🎉 Congratulations!<br>You are eligible for this month's Lucky Draw!<br>Your coupon has been added to the draw.<br>Good Luck! 🍀</p>
     </div>
-    <a href="{% url 'opc_my_points' %}" class="result-action">VIEW MY POINTS →</a>
-  </div>
-</div>
+    <a href="{% url 'opc_my_points' %}" class="result-action">View my points <span aria-hidden="true">→</span></a>
+  </section>
+</main>
 <script>
+(() => {
 const slots = [
   {% for s in slots %}
   {label:"{{ s.label|escapejs }}", points:{{ s.points }}, color:"{{ s.color|escapejs }}"},
   {% endfor %}
 ];
 if (!slots.length) slots.push({label:'10 Points',points:10,color:'#7547bc'});
-const canvas = document.getElementById('wheelCanvas');
-const ctx = canvas.getContext('2d');
-const W = 800, cx = W/2, cy = W/2, r = cx - 3;
-const palette = ['#7041ad','#d85385','#4265b6','#bb438b','#3b9298','#8b4ab8'];
-const fullTurn = 2 * Math.PI;
-const arc = fullTurn / slots.length;
-let currentAngle = -Math.PI / 2 - arc / 2;
-function drawWheel(rot) {
+const canvas=document.getElementById('wheelCanvas');
+const ctx=canvas.getContext('2d');
+const W=800,cx=W/2,cy=W/2,r=cx-3;
+const palette=['#fee09a','#c5b1f1','#f7b4c6','#9ed8c8','#a9cef0','#f8bd98'];
+const fullTurn=2*Math.PI,arc=fullTurn/slots.length;
+let currentAngle=-Math.PI/2-arc/2;
+function drawWheel(rot){
   ctx.clearRect(0,0,W,W);
-  slots.forEach((s,i) => {
-    const start = rot + i * arc;
+  slots.forEach((s,i)=>{
+    const start=rot+i*arc;
     ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,r,start,start+arc);ctx.closePath();
-    ctx.fillStyle = palette[i % palette.length];
-    if (/^#[0-9a-f]{3}([0-9a-f]{3})?$/i.test(s.color)) ctx.fillStyle=s.color;
-    ctx.fill();ctx.strokeStyle='#ffedc480';ctx.lineWidth=3;ctx.stroke();
-    ctx.save();ctx.translate(cx,cy);ctx.rotate(start+arc/2);
-    ctx.fillStyle='#fff';ctx.shadowColor='#0009';ctx.shadowBlur=5;
-    ctx.font='800 27px system-ui,sans-serif';ctx.textAlign='right';ctx.textBaseline='middle';
-    ctx.fillText(s.label,r-35,0,r-145);ctx.restore();
+    ctx.fillStyle=palette[i%palette.length];ctx.fill();ctx.strokeStyle='#ffffffb0';ctx.lineWidth=3;ctx.stroke();
+    ctx.save();ctx.translate(cx,cy);ctx.rotate(start+arc/2);ctx.translate(r*.66,0);ctx.rotate(Math.PI/2);
+    ctx.fillStyle='#302348';ctx.textAlign='center';ctx.textBaseline='middle';
+    const width=Math.min(210,2*r*.66*Math.sin(Math.min(arc,Math.PI)/2)*.85);
+    const pointsLabel=s.label.match(/^(\d+)\s*points?$/i);
+    if(pointsLabel){
+      ctx.font='800 49px system-ui,sans-serif';ctx.fillText(pointsLabel[1],0,-10,Math.max(width,75));
+      ctx.font='700 22px system-ui,sans-serif';ctx.fillText('POINTS',0,28,Math.max(width,75));
+    }else{
+      const words=s.label.split(/\s+/),lines=[''];
+      ctx.font='750 25px system-ui,sans-serif';
+      words.forEach(word=>{const n=lines.length-1,candidate=lines[n]?lines[n]+' '+word:word;if(ctx.measureText(candidate).width>width&&lines[n]&&lines.length<3)lines.push(word);else lines[n]=candidate;});
+      lines.forEach((line,n)=>ctx.fillText(line,0,(n-(lines.length-1)/2)*31,Math.max(width,75)));
+    }
+    ctx.restore();
   });
-  const sheen=ctx.createRadialGradient(cx,cy,80,cx,cy,r);
-  sheen.addColorStop(0,'#ffffff20');sheen.addColorStop(.7,'#ffffff00');sheen.addColorStop(1,'#00000026');
-  ctx.beginPath();ctx.arc(cx,cy,r,0,fullTurn);ctx.fillStyle=sheen;ctx.fill();
 }
 drawWheel(currentAngle);
 const button=document.getElementById('spinBtn');
 const status=document.getElementById('spinStatus');
 let spinning=false;
-button.addEventListener('click',async () => {
+button.addEventListener('click',async()=>{
   if(spinning)return;
-  spinning=true;button.disabled=true;button.textContent='REVEALING YOUR REWARD…';status.textContent='';
-  try {
+  spinning=true;button.disabled=true;button.textContent='Finding your happy win…';status.textContent='';
+  try{
     const response=await fetch("{% url 'opc_spin_api' %}",{
       method:'POST',headers:{'X-CSRFToken':document.querySelector('[name=csrfmiddlewaretoken]').value,'Content-Type':'application/json'}
     });
     const data=await response.json();
-    if(!response.ok || data.error)throw new Error(data.error || 'Unable to complete your spin.');
-    const index=slots.findIndex(s=>s.points===data.points && s.label===data.label);
+    if(!response.ok||data.error)throw new Error(data.error||'Unable to complete your spin.');
+    const index=slots.findIndex(s=>s.points===data.points&&s.label===data.label);
     const target=index<0?currentAngle:-Math.PI/2-(index+.5)*arc;
-    const delta=((target-currentAngle)%fullTurn+fullTurn)%fullTurn;
-    const from=currentAngle;
-    const distance=6*fullTurn+delta;
+    const delta=((target-currentAngle)%fullTurn+fullTurn)%fullTurn,from=currentAngle,distance=6*fullTurn+delta;
     const duration=window.matchMedia('(prefers-reduced-motion: reduce)').matches?0:4600;
     const start=performance.now();
     function animate(now){
@@ -141,21 +139,23 @@ button.addEventListener('click',async () => {
       currentAngle=from+distance*(1-Math.pow(1-progress,4));drawWheel(currentAngle);
       if(progress<1){requestAnimationFrame(animate);return;}
       document.getElementById('resultPts').textContent=data.points;
-      if(data.is_surprise && data.surprise_gift_name){const gift=document.getElementById('giftName');gift.textContent=data.surprise_gift_name;gift.hidden=false;}
+      if(data.is_surprise&&data.surprise_gift_name){const gift=document.getElementById('giftName');gift.textContent=data.surprise_gift_name;gift.hidden=false;}
       document.getElementById('resultBox').hidden=false;
       if(data.lucky_draw_entry_id){
+        document.getElementById('drawPreview').hidden=true;
         document.getElementById('luckyDraw').hidden=false;
-        setTimeout(()=>{document.getElementById('drawMessage').hidden=false;},duration?2500:0);
+        setTimeout(()=>{document.getElementById('drawMessage').hidden=false;},duration?2800:0);
       }
-      button.textContent='REWARD REVEALED';status.textContent='Your points have been added to your wallet.';
+      button.textContent='Your reward is ready ✓';status.textContent='Your points have been added to your wallet.';
       document.getElementById('resultBox').scrollIntoView({behavior:duration?'smooth':'auto',block:'nearest'});
     }
     requestAnimationFrame(animate);
-  } catch(error){
+  }catch(error){
     status.textContent=error.message+' Check My Points or activate your coupon again to confirm its status.';
-    button.textContent='CHECK MY POINTS';button.disabled=false;
+    button.textContent='Check my points';button.disabled=false;
     button.onclick=()=>{window.location.href="{% url 'opc_my_points' %}";};
   }
 });
+})();
 </script>
 {% endblock %}
