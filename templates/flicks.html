@@ -101,23 +101,31 @@ body { overflow: hidden !important; margin: 0 !important; padding: 0 !important;
   border: 1.5px solid rgba(255,255,255,.3);
 }
 
-/* ── MUTE BUTTON (inside right actions) ── */
+/* ── SOUND CONTROL (center of the video) ── */
 .fk-mute-btn {
-  background: none;
-  border: none;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 7;
+  background: rgba(0,0,0,.55);
+  border: 1px solid rgba(255,255,255,.45);
+  border-radius: 24px;
   color: #fff;
   cursor: pointer;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  gap: 5px;
-  padding: 0;
+  gap: 8px;
+  padding: 12px 16px;
+  min-height: 44px;
   min-width: 48px;
   transition: transform .12s;
 }
-.fk-mute-btn:active { transform: scale(0.82); }
+.fk-mute-btn:active { transform: translate(-50%, -50%) scale(.95); }
+.fk-mute-btn:focus-visible { outline: 3px solid #fff; outline-offset: 4px; }
 .fk-mute-btn i {
-  font-size: 28px;
+  font-size: 20px;
   filter: drop-shadow(0 1px 4px rgba(0,0,0,.6));
 }
 .fk-mute-btn span {
@@ -426,6 +434,13 @@ body { overflow: hidden !important; margin: 0 !important; padding: 0 !important;
         <div class="fk-play-indicator" id="fk-pi-{{ flick.pk }}"><i class="fas fa-pause"></i></div>
       </div>
 
+      {% if flick.video %}
+      <button type="button" class="fk-mute-btn" onclick="fkToggleMute()" aria-label="Turn sound on" aria-pressed="false">
+        <i class="fas fa-volume-mute fk-mute-icon" aria-hidden="true"></i>
+        <span class="fk-mute-label">Sound off</span>
+      </button>
+      {% endif %}
+
       <!-- Right actions -->
       <div class="fk-actions">
         <!-- Like -->
@@ -444,11 +459,6 @@ body { overflow: hidden !important; margin: 0 !important; padding: 0 !important;
         <button class="fk-act-btn" onclick="fkShare({{ flick.pk }}, '{{ flick.title|default:flick.user.get_full_name|escapejs }}')">
           <i class="far fa-paper-plane"></i>
           <span>Share</span>
-        </button>
-        <!-- Mute -->
-        <button class="fk-mute-btn" onclick="fkToggleMute(this)">
-          <i class="fas fa-volume-mute fk-mute-icon"></i>
-          <span class="fk-mute-label">Sound</span>
         </button>
         <!-- Advertise own flick -->
         {% if flick.user == request.user %}
@@ -559,7 +569,11 @@ function fkToggleMute() {
     i.className = (_fkMuted ? 'fas fa-volume-mute' : 'fas fa-volume-up') + ' fk-mute-icon';
   });
   document.querySelectorAll('.fk-mute-label').forEach(function(s){
-    s.textContent = _fkMuted ? 'Sound' : 'Mute';
+    s.textContent = _fkMuted ? 'Sound off' : 'Sound on';
+  });
+  document.querySelectorAll('.fk-mute-btn').forEach(function(button){
+    button.setAttribute('aria-pressed', String(!_fkMuted));
+    button.setAttribute('aria-label', _fkMuted ? 'Turn sound on' : 'Turn sound off');
   });
 }
 
