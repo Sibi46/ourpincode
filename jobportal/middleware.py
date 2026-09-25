@@ -2,6 +2,7 @@ from django.shortcuts import redirect
 
 # Pages anyone can visit without logging in
 PUBLIC_PREFIXES = [
+    '/news/',                     # News Desk views enforce write/agent permissions
     '/businesses/',
     '/business/',
     '/login/',

@@ -5,6 +5,7 @@ from django.conf.urls.static import static
 from jobs import views
 
 urlpatterns = [
+    path('news/', include('newsdesk.urls')),
     path('network/', include('portal.network_urls')),
     path('admin/',                  admin.site.urls),
     path('',                        views.home,               name='home'),

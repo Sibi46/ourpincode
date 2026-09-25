@@ -130,6 +130,7 @@ INSTALLED_APPS = [
     'portal',
     'coupons',
     'quiz',
+    'newsdesk',
 ]
 
 AUTH_USER_MODEL = 'jobs.User'

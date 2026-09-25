@@ -387,6 +387,7 @@ a{text-decoration:none;color:inherit}
 
 <!-- MOBILE MENU -->
 <div class="mob-menu" id="mobMenu">
+  <a href="{% url 'newsdesk:feed' %}"><i class="fas fa-newspaper"></i> News Desk</a>
   <a href="{% url 'network_feed' %}"><i class="fas fa-user-friends"></i> Network</a>
   <a href="/"><i class="fas fa-home"></i> Home</a>
   <a href="/portal/"><i class="fas fa-users"></i> Community</a>
@@ -771,6 +772,11 @@ var olxAdCur = 0;
 
 <!-- FEATURE SHOWCASE -->
 <section style="max-width:680px;margin:24px auto;padding:0 16px">
+  <a href="{% url 'newsdesk:feed' %}" style="display:block;padding:25px;margin-bottom:18px;border:1px solid #cdded9;border-radius:18px;background:#f7f6f1;color:#172c32;text-decoration:none">
+    <span style="font-size:12px;font-weight:800;letter-spacing:2px;color:#087f78">OURPINCODE NEWS DESK</span>
+    <h2 style="font-size:25px;margin:10px 0">Big stories. Local heartbeat.</h2>
+    <p style="font-size:14px;margin:0">Discover local news, events and celebrations in your pincode. Explore your neighbourhood →</p>
+  </a>
   <a href="{% url 'network_feed' %}" style="display:block;padding:25px;border:1px solid #cde6d7;border-radius:18px;background:#edf7ee;color:#164b3a;text-decoration:none">
     <span style="font-size:12px;font-weight:800;letter-spacing:.08em">👋 NETWORK</span>
     <h2 style="font-size:24px;margin:9px 0">Your pincode. Your people.</h2>

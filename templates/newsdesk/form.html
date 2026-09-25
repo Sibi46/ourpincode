@@ -1,0 +1,9 @@
+{% extends 'newsdesk/base.html' %}
+{% block news_content %}
+<section class="nd-form-page"><p class="nd-eyebrow">OURPINCODE NEWS DESK</p><h1>{{ heading }}</h1><p class="nd-muted">{{ intro }}</p>
+<form class="nd-form nd-panel" method="post" enctype="multipart/form-data">{% csrf_token %}{{ form.non_field_errors }}
+{% for field in form %}<div class="nd-field">{{ field.label_tag }}{{ field }}{% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}{{ field.errors }}</div>{% endfor %}
+<button class="nd-btn" type="submit">{{ submit }} →</button></form>
+{% if item.photo or item.video %}<aside class="nd-panel"><h2>Current attachments</h2>{% if item.photo %}<a href="{% url 'newsdesk:media' item.pk 'photo' %}">View photo</a>{% endif %} {% if item.video %}<a href="{% url 'newsdesk:media' item.pk 'video' %}">View video</a>{% endif %}<p class="nd-muted">Upload a new file to replace an attachment.</p></aside>{% endif %}
+{% if cards %}<h2>Your recent birthday cards</h2><div class="nd-card-links">{% for card in cards %}<a href="{% url 'newsdesk:card' card.pk %}">🎂 {{ card.recipient }} · {{ card.created_at|date:'d M' }}</a>{% endfor %}</div>{% endif %}
+</section>{% endblock %}
