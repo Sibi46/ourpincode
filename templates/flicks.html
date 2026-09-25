@@ -124,6 +124,7 @@ body { overflow: hidden !important; margin: 0 !important; padding: 0 !important;
 }
 .fk-mute-btn:active { transform: translate(-50%, -50%) scale(.95); }
 .fk-mute-btn:focus-visible { outline: 3px solid #fff; outline-offset: 4px; }
+.fk-mute-btn[hidden] { display: none; }
 .fk-mute-btn i {
   font-size: 20px;
   filter: drop-shadow(0 1px 4px rgba(0,0,0,.6));
@@ -420,7 +421,7 @@ body { overflow: hidden !important; margin: 0 !important; padding: 0 !important;
       <!-- Media -->
       <div class="fk-reel-media" id="fkm-{{ flick.pk }}">
         {% if flick.video %}
-        <video loop playsinline muted preload="metadata" data-fk-vid id="fkv-{{ flick.pk }}">
+        <video loop playsinline preload="metadata" data-fk-vid id="fkv-{{ flick.pk }}">
           <source src="{{ flick.video.url }}">
         </video>
         {% elif flick.image %}
@@ -435,9 +436,9 @@ body { overflow: hidden !important; margin: 0 !important; padding: 0 !important;
       </div>
 
       {% if flick.video %}
-      <button type="button" class="fk-mute-btn" onclick="fkToggleMute()" aria-label="Turn sound on" aria-pressed="false">
+      <button type="button" class="fk-mute-btn" onclick="fkToggleMute()" aria-label="Turn sound on" hidden>
         <i class="fas fa-volume-mute fk-mute-icon" aria-hidden="true"></i>
-        <span class="fk-mute-label">Sound off</span>
+        <span class="fk-mute-label">Tap for sound</span>
       </button>
       {% endif %}
 
@@ -554,7 +555,7 @@ body { overflow: hidden !important; margin: 0 !important; padding: 0 !important;
 <script>
 const _fcsrf = document.cookie.match(/csrftoken=([^;]+)/)?.[1] || '';
 let _fkActivePk = null;
-let _fkMuted    = true;
+let _fkMuted    = false;
 let _fkCmtPk    = null;
 const _fkNewCmts = {};
 
@@ -562,19 +563,38 @@ const _fkNewCmts = {};
 setTimeout(function(){ var b=document.getElementById('fk-msg-banner'); if(b) b.remove(); }, 3000);
 
 /* ── MUTE ── */
-function fkToggleMute() {
-  _fkMuted = !_fkMuted;
+function fkSyncSound() {
   document.querySelectorAll('[data-fk-vid]').forEach(function(v){ v.muted = _fkMuted; });
-  document.querySelectorAll('.fk-mute-icon').forEach(function(i){
-    i.className = (_fkMuted ? 'fas fa-volume-mute' : 'fas fa-volume-up') + ' fk-mute-icon';
-  });
-  document.querySelectorAll('.fk-mute-label').forEach(function(s){
-    s.textContent = _fkMuted ? 'Sound off' : 'Sound on';
-  });
   document.querySelectorAll('.fk-mute-btn').forEach(function(button){
-    button.setAttribute('aria-pressed', String(!_fkMuted));
-    button.setAttribute('aria-label', _fkMuted ? 'Turn sound on' : 'Turn sound off');
+    button.hidden = !_fkMuted;
   });
+}
+
+async function fkPlay(vid) {
+  const attempt = (vid._fkPlayAttempt || 0) + 1;
+  vid._fkPlayAttempt = attempt;
+  const isCurrent = () => vid._fkPlayAttempt === attempt &&
+    vid.closest('.fk-reel').dataset.pk === String(_fkActivePk) && !_fkCmtPk;
+  vid.muted = _fkMuted;
+  try {
+    await vid.play();
+    if (isCurrent()) fkSyncSound();
+  } catch (error) {
+    // Browsers may require a gesture before allowing audible autoplay.
+    // A scroll/pause abort or an invalid video must not change the sound setting.
+    if (!isCurrent() || error.name !== 'NotAllowedError' || vid.muted) return;
+    _fkMuted = true;
+    fkSyncSound();
+    try { await vid.play(); } catch (_) {}
+  }
+}
+
+function fkToggleMute() {
+  const vid = document.querySelector('#fkr-' + _fkActivePk + ' [data-fk-vid]');
+  if (!vid) return;
+  _fkMuted = false;
+  // Keep the fallback button until play succeeds in this user gesture.
+  fkPlay(vid);
 }
 
 /* ── AUTO-PLAY via IntersectionObserver ── */
@@ -583,7 +603,7 @@ const fkIO = new IntersectionObserver(function(entries) {
     const vid = entry.target.querySelector('[data-fk-vid]');
     if (entry.isIntersecting) {
       _fkActivePk = parseInt(entry.target.dataset.pk);
-      if (vid) { vid.muted = _fkMuted; vid.play().catch(function(){}); }
+      if (vid) fkPlay(vid);
     } else {
       if (vid) vid.pause();
     }
@@ -606,7 +626,7 @@ document.querySelectorAll('.fk-reel-media').forEach(function(el) {
         _tapTimer = null;
         const vid = el.querySelector('[data-fk-vid]');
         if (vid) {
-          if (vid.paused) { vid.play().catch(function(){}); fkShowPI(pk, false); }
+          if (vid.paused) { fkPlay(vid); fkShowPI(pk, false); }
           else            { vid.pause();                    fkShowPI(pk, true);  }
         }
       }, 220);
@@ -675,7 +695,7 @@ function fkCloseCmt() {
   _fkCmtPk = null;
   if (_fkActivePk) {
     var vid = document.querySelector('#fkr-' + _fkActivePk + ' [data-fk-vid]');
-    if (vid) { vid.muted = _fkMuted; vid.play().catch(function(){}); }
+    if (vid) fkPlay(vid);
   }
 }
 

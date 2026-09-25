@@ -351,7 +351,7 @@ a{text-decoration:none;color:inherit}
         {{ request.user.get_full_name|default:request.user.username|slice:":1"|upper }}
       </a>
     {% else %}
-      <a href="{% url 'register' %}" class="tb-icon-btn" title="Create account" aria-label="Create account"><i class="fas fa-user" aria-hidden="true"></i></a>
+      <a href="#regPop" class="tb-icon-btn" title="Create account" aria-label="Create account" aria-haspopup="dialog" onclick="window._regNextUrl=null;document.getElementById('regPop').classList.add('show');return false;"><i class="fas fa-user" aria-hidden="true"></i></a>
       <a href="#" class="tb-btn tb-register" onclick="document.getElementById('regPop').classList.add('show');return false;" style="display:none" id="tb-reg-btn">Join</a>
     {% endif %}
   </div>
