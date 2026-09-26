@@ -1,5 +1,6 @@
 <section class="hp-section hp-overview" aria-label="Explore your neighbourhood">
   <section class="hp-promo" aria-label="Local business opportunities">
+    <div class="hp-promo-top"><span class="hp-promo-label"><span aria-hidden="true">&#10022;</span> GROW LOCAL</span><span class="hp-promo-location">Your pincode. Your people.</span></div>
     <div class="hp-promo-stage">
       <a class="hp-promo-slide" href="/advertise/register/" data-promo-slide>Create your <em>business.</em></a>
       <a class="hp-promo-slide" href="{% if request.user.is_authenticated and request.user.advertiser.status == 'approved' %}/advertise/dashboard/{% else %}/advertise/register/{% endif %}" data-promo-slide hidden>Post your <em>ads.</em></a>
@@ -7,6 +8,7 @@
       <a class="hp-promo-slide" href="/vouchers/marketplace/" data-promo-slide hidden>Give a <em>gift voucher.</em></a>
       <a class="hp-promo-slide" href="/smart-marketing/" data-promo-slide hidden>Your business <em>within 2 km.</em></a>
     </div>
+    <div class="hp-promo-bottom"><p>Big possibilities, right in your neighbourhood.</p><div class="hp-promo-controls"><button type="button" data-promo-pause aria-label="Pause promotions" aria-pressed="false">Pause</button><button type="button" data-promo-next aria-label="Next promotion">Next <span aria-hidden="true">&#8594;</span></button></div></div>
   </section>
   <div class="hp-heading"><div><p class="hp-eyebrow">YOUR PINCODE. YOUR POSSIBILITIES.</p><h1>Everything nearby.</h1></div><span class="hp-local-tag">Made for local</span></div>
   <div class="hp-shortcuts">
