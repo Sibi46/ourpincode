@@ -20,24 +20,10 @@
   if (!banner) return;
   const slides = [...banner.querySelectorAll('[data-promo-slide]')];
   const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
-  if (slides.length < 2) return;
-  let index = 0, changing = false, paused = false;
-  const pause = banner.querySelector('[data-promo-pause]');
-  pause.addEventListener('click', () => {
-    paused = !paused;
-    pause.textContent = paused ? 'Play' : 'Pause';
-    pause.setAttribute('aria-label', paused ? 'Play promotions' : 'Pause promotions');
-    pause.setAttribute('aria-pressed', String(paused));
-  });
-  banner.querySelector('[data-promo-next]').addEventListener('click', () => advance());
-  async function advance() {
-    if (changing) return;
-    if (motion.matches) {
-      slides[index].hidden = true;
-      index = (index + 1) % slides.length;
-      slides[index].hidden = false;
-      return;
-    }
+  let index = 0, changing = false;
+  // Each new message starts on a two-second cadence, including its animation.
+  setInterval(async () => {
+    if (changing || document.hidden || motion.matches || banner.contains(document.activeElement)) return;
     changing = true;
     const outgoing = slides[index];
     try {
@@ -57,9 +43,5 @@
     } finally {
       changing = false;
     }
-  }
-  setInterval(() => {
-    if (paused || document.hidden || motion.matches || banner.contains(document.activeElement) || banner.matches(':hover')) return;
-    advance();
-  }, 4000);
+  }, 2000);
 })();
