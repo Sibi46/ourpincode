@@ -1,11 +1,13 @@
 <section class="hp-section hp-overview" aria-label="Explore your neighbourhood">
-  <nav class="hp-highlights" aria-label="Local highlights">
-    <a href="/news/"><span class="hp-ring hp-mint">🏡</span>Local</a>
-    <a href="/news/?category=festivals"><span class="hp-ring hp-peach">🪔</span>Festivals</a>
-    <a href="/news/birthday/"><span class="hp-ring hp-pink">🎂</span>Birthdays</a>
-    <a href="/news/?category=achievements"><span class="hp-ring hp-blue">🏆</span>Achievers</a>
-    <a href="/businesses/"><span class="hp-ring hp-lilac">🏪</span>Shops</a>
-  </nav>
+  <section class="hp-promo" aria-label="Local business opportunities">
+    <div class="hp-promo-stage">
+      <a class="hp-promo-slide" href="/advertise/register/" data-promo-slide>Create your <em>business.</em></a>
+      <a class="hp-promo-slide" href="{% if request.user.is_authenticated and request.user.advertiser.status == 'approved' %}/advertise/dashboard/{% else %}/advertise/register/{% endif %}" data-promo-slide hidden>Post your <em>ads.</em></a>
+      <a class="hp-promo-slide" href="/offers/post/" data-promo-slide hidden>Share your <em>offers.</em></a>
+      <a class="hp-promo-slide" href="/vouchers/marketplace/" data-promo-slide hidden>Give a <em>gift voucher.</em></a>
+      <a class="hp-promo-slide" href="/smart-marketing/" data-promo-slide hidden>Your business <em>within 2 km.</em></a>
+    </div>
+  </section>
   <div class="hp-heading"><div><p class="hp-eyebrow">YOUR PINCODE. YOUR POSSIBILITIES.</p><h1>Everything nearby.</h1></div><span class="hp-local-tag">Made for local</span></div>
   <div class="hp-shortcuts">
     <a class="hp-tile hp-pink" href="/businesses/"><span>🛍️</span><strong>Shops</strong></a>
