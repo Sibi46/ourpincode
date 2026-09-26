@@ -766,9 +766,11 @@ if(document.addEventListener)document.addEventListener('keydown',function(e){if(
     </a>
   </div>
 </nav>
+{% block register_business_button %}
 <a href="/register/?type=company" class="bn-plus-btn" title="Register Business">
   <i class="fas fa-plus"></i>
 </a>
+{% endblock register_business_button %}
 {% endblock site_bottom_nav %}
 
 <style>
