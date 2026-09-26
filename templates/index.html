@@ -322,6 +322,8 @@ a{text-decoration:none;color:inherit}
 .rp-footer a{color:#1d4ed8;font-weight:700;text-decoration:none}
 .rp-timer{font-size:11px;color:#9ca3af;margin-top:4px;min-height:14px}
 </style>
+<link rel="stylesheet" href="{% static 'css/home-refresh.css' %}">
+<script src="{% static 'js/home-refresh.js' %}" defer></script>
 </head>
 <body>
 
@@ -335,7 +337,7 @@ a{text-decoration:none;color:inherit}
     <!-- Desktop: full logo -->
     <div class="tb-logo">
       <a href="/" style="display:flex;align-items:center;text-decoration:none">
-        <img src="/static/images/ourpincod.jpeg" alt="OUR PINCODE">
+        <img src="/static/images/ourpincod.jpeg" alt="OUR PINCODE"><span class="home-brand-copy"><strong>OUR<span>PINCODE</span></strong><small>&#8982; {% if request.user.pincode %}{{ request.user.pincode }}{% if request.user.city %} &middot; {{ request.user.city|truncatechars:18 }}{% endif %}{% else %}Pincode{% endif %}</small></span>
       </a>
     </div>
   </div>
@@ -361,27 +363,8 @@ a{text-decoration:none;color:inherit}
 <div class="home-search">
   <div class="home-search-inner">
     <i class="fas fa-search"></i>
-    <input type="text" placeholder="Search jobs, offers..." id="homeSearchInput" onkeydown="if(event.key==='Enter'){var q=this.value.trim();if(q)window.location='/jobs/?q='+encodeURIComponent(q)}">
+    <input type="text" placeholder="Search jobs near you…" id="homeSearchInput" onkeydown="if(event.key==='Enter'){var q=this.value.trim();if(q)window.location='/jobs/?q='+encodeURIComponent(q)}">
     <button class="home-search-filter" onclick="var q=document.getElementById('homeSearchInput').value.trim();if(q)window.location='/jobs/?q='+encodeURIComponent(q)">Search</button>
-  </div>
-</div>
-
-<!-- WORLD'S FIRST HUMAN MEDIA STRIP -->
-<div style="background:linear-gradient(160deg,#0f172a 0%,#1a3aaf 50%,#6d28d9 100%);padding:36px 24px;position:relative;overflow:hidden;min-height:140px">
-  <div style="position:absolute;top:-50px;left:-30px;width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,.04);pointer-events:none"></div>
-  <div style="position:absolute;bottom:-60px;right:-20px;width:220px;height:220px;border-radius:50%;background:rgba(255,255,255,.04);pointer-events:none"></div>
-  <div style="position:relative;z-index:1;display:flex;align-items:center;justify-content:center;gap:24px;max-width:420px;margin:0 auto">
-    <!-- LEFT: text content -->
-    <div style="display:flex;flex-direction:column;align-items:flex-start;gap:2px;flex:1">
-      <div style="font-size:36px;font-weight:900;line-height:1;letter-spacing:-.8px;text-shadow:0 2px 16px rgba(0,0,0,.4)">
-        <span style="color:#fff">Our</span><span style="color:#4ade80">Pin</span><span style="color:#fff">code</span>
-      </div>
-      <div style="font-size:13px;font-weight:800;color:rgba(255,255,255,.85);letter-spacing:.18em;text-transform:uppercase;margin-top:6px;white-space:nowrap">World's First Human Media</div>
-    </div>
-    <!-- RIGHT: logo -->
-    <div style="flex-shrink:0">
-      <img src="/static/images/ourpincod.jpeg" alt="OurPincode" style="width:100px;height:100px;border-radius:22px;object-fit:contain;background:#fff;padding:5px;box-shadow:0 6px 28px rgba(0,0,0,.45)">
-    </div>
   </div>
 </div>
 
@@ -428,7 +411,7 @@ a{text-decoration:none;color:inherit}
     <a class="hero-ad-slide {% if forloop.first and not advertiser_banners %}active{% endif %}" href="/ads/adpost-click/{{ ad.pk }}/" target="_blank" rel="noopener" style="display:none;text-decoration:none;position:relative">
       <img src="{{ ad.image.url }}" alt="{{ ad.company_name }}" style="width:100%;height:200px;object-fit:cover;display:block">
       <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.72) 40%,rgba(0,0,0,.1) 100%)"></div>
-      <div style="position:absolute;top:10px;left:12px;background:rgba(239,68,68,.9);color:#fff;font-size:9px;font-weight:800;padding:3px 10px;border-radius:20px;letter-spacing:.6px;text-transform:uppercase">Ad</div>
+      <div style="position:absolute;top:10px;left:12px;background:rgba(239,68,68,.9);color:#fff;font-size:9px;font-weight:800;padding:3px 10px;border-radius:20px;letter-spacing:.6px;text-transform:uppercase">Sponsored</div>
       <div style="position:absolute;bottom:14px;left:14px;right:50px;color:#fff">
         <div style="font-size:17px;font-weight:900;line-height:1.2;text-shadow:0 2px 8px rgba(0,0,0,.6)">{{ ad.company_name }}</div>
         {% if ad.pincode %}<div style="font-size:11px;opacity:.85;margin-top:3px;display:flex;align-items:center;gap:4px"><i class="fas fa-map-marker-alt" style="color:#f97316"></i> {{ ad.pincode }}</div>{% endif %}
@@ -468,69 +451,11 @@ var heroAdCur = 0;
 {% endif %}
 {% endcomment %}
 
-<!-- CATEGORY GRID -->
-<div class="cat-section">
-  <div class="cat-section-header">
-    <span class="cat-section-title">Explore</span>
-    <a href="/portal/" class="cat-section-more">See all →</a>
-  </div>
-  <div class="cat-inner">
-    <a href="/portal/flicks/" class="cat-item">
-      <div class="cat-icon ci-tel">🌐</div>
-      <div class="cat-label">COMMUNITY</div>
-      <div class="cat-sub">Connect, share &amp; grow with your community</div>
-    </a>
-    <a href="/community/school-corner/register/" class="cat-item">
-      <div class="cat-icon ci-yel">🏫</div>
-      <div class="cat-label">MY SCHOOL</div>
-      <div class="cat-sub">School search, reviews, admissions &amp; more</div>
-    </a>
-    <a href="{% if request.user.is_authenticated and request.user.is_employer %}/employer/dashboard/{% else %}/advertise/register/{% endif %}" class="cat-item">
-      <div class="cat-icon ci-blu">📣</div>
-      <div class="cat-label">BUSINESS</div>
-      <div class="cat-sub">Promote your business to local customers</div>
-    </a>
-    <a href="/campus/" class="cat-item">
-      <div class="cat-icon ci-ind">🎓</div>
-      <div class="cat-label">CAMPUS</div>
-      <div class="cat-sub">Colleges, courses, scholarships &amp; careers</div>
-    </a>
-    <a href="/vouchers/marketplace/" class="cat-item">
-      <div class="cat-icon ci-pnk">🎁</div>
-      <div class="cat-label">GIFT VOUCHERS</div>
-      <div class="cat-sub">Buy gift vouchers for your loved ones</div>
-    </a>
-    <a href="/jobs/" class="cat-item">
-      <div class="cat-icon ci-grn">💼</div>
-      <div class="cat-label">JOBS</div>
-      <div class="cat-sub">Find jobs near you. Build your future</div>
-    </a>
-    <a href="/advertise/?cat=health" class="cat-item">
-      <div class="cat-icon ci-grn">🏥</div>
-      <div class="cat-label">HEALTH</div>
-      <div class="cat-sub">Health, pharmacy &amp; wellness near you</div>
-    </a>
-    <a href="/advertise/" class="cat-item">
-      <div class="cat-icon ci-org">🏷️</div>
-      <div class="cat-label">OFFERS</div>
-      <div class="cat-sub">Exclusive local offers &amp; discounts</div>
-    </a>
-    <a href="/portal/events/" class="cat-item">
-      <div class="cat-icon ci-red">📅</div>
-      <div class="cat-label">EVENTS</div>
-      <div class="cat-sub">Local events, workshops, celebrations &amp; more</div>
-    </a>
-    <a href="/community/family/" class="cat-item">
-      <div class="cat-icon ci-pur">👨‍👩‍👧‍👦</div>
-      <div class="cat-label">FAMILY CORNER</div>
-      <div class="cat-sub">Everything for your family's needs and happiness</div>
-    </a>
-  </div>
-</div>
+{% include 'home/overview.html' %}
 
 <!-- ADS SLIDER (after Explore) -->
 {% if advertiser_banners or live_ads %}
-<section style="background:#f4f6f9;padding:14px 12px 8px">
+<section class="hp-sponsored-section"><p class="hp-sponsor-heading">From local businesses · Sponsored</p>
   <div style="position:relative;border-radius:18px;overflow:hidden;box-shadow:0 6px 28px rgba(0,0,0,.18);max-width:640px;margin:0 auto" id="heroSlider2">
     {% for adv in advertiser_banners %}
     <a class="hero-ad-slide2 {% if forloop.first %}active{% endif %}" href="{% if adv.website %}{{ adv.website }}{% else %}#{% endif %}" target="_blank" rel="noopener" style="display:none;text-decoration:none;position:relative">
@@ -547,7 +472,7 @@ var heroAdCur = 0;
     <a class="hero-ad-slide2 {% if forloop.first and not advertiser_banners %}active{% endif %}" href="/ads/adpost-click/{{ ad.pk }}/" target="_blank" rel="noopener" style="display:none;text-decoration:none;position:relative">
       <img src="{{ ad.image.url }}" alt="{{ ad.company_name }}" style="width:100%;height:200px;object-fit:cover;display:block">
       <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.72) 40%,rgba(0,0,0,.1) 100%)"></div>
-      <div style="position:absolute;top:10px;left:12px;background:rgba(239,68,68,.9);color:#fff;font-size:9px;font-weight:800;padding:3px 10px;border-radius:20px;letter-spacing:.6px;text-transform:uppercase">Ad</div>
+      <div style="position:absolute;top:10px;left:12px;background:rgba(239,68,68,.9);color:#fff;font-size:9px;font-weight:800;padding:3px 10px;border-radius:20px;letter-spacing:.6px;text-transform:uppercase">Sponsored</div>
       <div style="position:absolute;bottom:14px;left:14px;right:50px;color:#fff">
         <div style="font-size:17px;font-weight:900;line-height:1.2;text-shadow:0 2px 8px rgba(0,0,0,.6)">{{ ad.company_name }}</div>
         {% if ad.pincode %}<div style="font-size:11px;opacity:.85;margin-top:3px;display:flex;align-items:center;gap:4px"><i class="fas fa-map-marker-alt" style="color:#f97316"></i> {{ ad.pincode }}</div>{% endif %}
@@ -580,6 +505,8 @@ var heroAd2Cur = 0;
 })();
 </script>
 {% endif %}
+
+{% include 'home/gallery.html' %}
 
 <!-- BUSINESS LOGO STRIP -->
 {% if business_logos %}
@@ -647,41 +574,6 @@ var heroAd2Cur = 0;
 
 
 
-<!-- PAID HOMEPAGE BANNER ADS -->
-{% if ads_by_type.homepage_banner %}
-<div class="site-ad-bar" id="siteAdBar" style="margin-top:24px">
-  <div class="site-ad-inner">
-    {% for ad in ads_by_type.homepage_banner %}
-    <a class="site-ad-slide {% if forloop.first %}active{% endif %}"
-       href="{{ ad.link_url|default:'#' }}"
-       target="{{ ad.link_url|yesno:'_blank,_self' }}"
-       onclick="fetch('/ads/click/{{ ad.pk }}/')">
-      <img src="{{ ad.image.url }}" alt="{{ ad.title }}">
-      <div class="site-ad-info">
-        <span class="site-ad-label">Sponsored</span>
-        <span class="site-ad-title">{{ ad.title }}</span>
-        <span class="site-ad-biz">{{ ad.advertiser.business_name }}</span>
-      </div>
-    </a>
-    {% endfor %}
-    {% if ads_by_type.homepage_banner|length > 1 %}
-    <button class="site-ad-prev" onclick="siteAdNav(-1)"><i class="fas fa-chevron-left"></i></button>
-    <button class="site-ad-next" onclick="siteAdNav(1)"><i class="fas fa-chevron-right"></i></button>
-    {% endif %}
-  </div>
-  <button class="site-ad-close" onclick="document.getElementById('siteAdBar').style.display='none'"><i class="fas fa-times"></i></button>
-</div>
-<script>
-(function(){
-  var slides = document.querySelectorAll('.site-ad-slide');
-  var cur = 0;
-  function show(n){ slides[cur].classList.remove('active'); cur=(n+slides.length)%slides.length; slides[cur].classList.add('active'); }
-  window.siteAdNav = function(d){ show(cur+d); };
-  if(slides.length > 1) setInterval(function(){ show(cur+1); }, 5000);
-})();
-</script>
-{% endif %}
-
 <!-- UNIFIED ADS SLIDER (hidden - shown in hero above) -->
 {% if advertiser_banners or live_ads %}
 <div class="olx-ad-wrap" style="display:none">
@@ -740,6 +632,25 @@ var olxAdCur = 0;
 </script>
 {% endif %}
 
+<!-- WORLD'S FIRST HUMAN MEDIA STRIP -->
+<div style="background:linear-gradient(160deg,#0f172a 0%,#1a3aaf 50%,#6d28d9 100%);padding:36px 24px;position:relative;overflow:hidden;min-height:140px">
+  <div style="position:absolute;top:-50px;left:-30px;width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,.04);pointer-events:none"></div>
+  <div style="position:absolute;bottom:-60px;right:-20px;width:220px;height:220px;border-radius:50%;background:rgba(255,255,255,.04);pointer-events:none"></div>
+  <div style="position:relative;z-index:1;display:flex;align-items:center;justify-content:center;gap:24px;max-width:420px;margin:0 auto">
+    <!-- LEFT: text content -->
+    <div style="display:flex;flex-direction:column;align-items:flex-start;gap:2px;flex:1">
+      <div style="font-size:36px;font-weight:900;line-height:1;letter-spacing:-.8px;text-shadow:0 2px 16px rgba(0,0,0,.4)">
+        <span style="color:#fff">Our</span><span style="color:#4ade80">Pin</span><span style="color:#fff">code</span>
+      </div>
+      <div style="font-size:13px;font-weight:800;color:rgba(255,255,255,.85);letter-spacing:.18em;text-transform:uppercase;margin-top:6px;white-space:nowrap">World's First Human Media</div>
+    </div>
+    <!-- RIGHT: logo -->
+    <div style="flex-shrink:0">
+      <img src="/static/images/ourpincod.jpeg" alt="OurPincode" style="width:100px;height:100px;border-radius:22px;object-fit:contain;background:#fff;padding:5px;box-shadow:0 6px 28px rgba(0,0,0,.45)">
+    </div>
+  </div>
+</div>
+
 <!-- SMART MARKETING -->
 <section id="smart-marketing" style="background:#e5ddd5;padding:12px 14px 16px">
   <div style="font-size:11px;font-weight:700;color:#667781;text-align:center;margin-bottom:10px;letter-spacing:.03em;text-transform:uppercase">Smart Marketing</div>
@@ -784,93 +695,6 @@ var olxAdCur = 0;
     <span style="display:inline-block;margin-top:14px;font-size:13px;font-weight:750">Explore your network →</span>
   </a>
 </section>
-<section style="background:#fff;padding:32px 0 8px">
-  <div style="max-width:680px;margin:0 auto;padding:0 16px">
-
-    <!-- 1. Business — label LEFT -->
-    <div style="margin-bottom:28px">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-        <div style="width:32px;height:32px;border-radius:50%;background:#e8f0fe;display:flex;align-items:center;justify-content:center;font-size:16px">📣</div>
-        <span style="font-size:14px;font-weight:800;color:#0a66c2">Business</span>
-      </div>
-      <img src="/static/images/business.jpeg" style="width:100%;border-radius:14px;display:block;box-shadow:0 2px 12px rgba(0,0,0,.1)" alt="Business">
-    </div>
-
-    <!-- 2. Family — label RIGHT -->
-    <div style="margin-bottom:28px">
-      <div style="display:flex;align-items:center;justify-content:flex-end;gap:8px;margin-bottom:8px">
-        <span style="font-size:14px;font-weight:800;color:#dc2626">Family</span>
-        <div style="width:32px;height:32px;border-radius:50%;background:#fee2e2;display:flex;align-items:center;justify-content:center;font-size:16px">👨‍👩‍👧‍👦</div>
-      </div>
-      <img src="/static/images/family.jpeg" style="width:100%;border-radius:14px;display:block;box-shadow:0 2px 12px rgba(0,0,0,.1)" alt="Family">
-    </div>
-
-    <!-- 3. Community — label LEFT -->
-    <div style="margin-bottom:28px">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-        <div style="width:32px;height:32px;border-radius:50%;background:#d1fae5;display:flex;align-items:center;justify-content:center;font-size:16px">🌐</div>
-        <span style="font-size:14px;font-weight:800;color:#059669">Community</span>
-      </div>
-      <img src="/static/images/community.jpeg" style="width:100%;border-radius:14px;display:block;box-shadow:0 2px 12px rgba(0,0,0,.1)" alt="Community">
-    </div>
-
-    <!-- 4. Gift Vouchers — label RIGHT -->
-    <div style="margin-bottom:28px">
-      <div style="display:flex;align-items:center;justify-content:flex-end;gap:8px;margin-bottom:8px">
-        <span style="font-size:14px;font-weight:800;color:#f59e0b">Gift Vouchers</span>
-        <div style="width:32px;height:32px;border-radius:50%;background:#fef3c7;display:flex;align-items:center;justify-content:center;font-size:16px">🎁</div>
-      </div>
-      <img src="/static/images/giftvouchers.jpeg" style="width:100%;border-radius:14px;display:block;box-shadow:0 2px 12px rgba(0,0,0,.1)" alt="Gift Vouchers">
-    </div>
-
-    <!-- 5. Offers — label LEFT -->
-    <div style="margin-bottom:28px">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-        <div style="width:32px;height:32px;border-radius:50%;background:#fee2e2;display:flex;align-items:center;justify-content:center;font-size:16px">🏷️</div>
-        <span style="font-size:14px;font-weight:800;color:#ef4444">Offers</span>
-      </div>
-      <img src="/static/images/offers.jpeg" style="width:100%;border-radius:14px;display:block;box-shadow:0 2px 12px rgba(0,0,0,.1)" alt="Offers">
-    </div>
-
-    <!-- 6. Jobs — label RIGHT -->
-    <div style="margin-bottom:28px">
-      <div style="display:flex;align-items:center;justify-content:flex-end;gap:8px;margin-bottom:8px">
-        <span style="font-size:14px;font-weight:800;color:#6366f1">Jobs</span>
-        <div style="width:32px;height:32px;border-radius:50%;background:#e0e7ff;display:flex;align-items:center;justify-content:center;font-size:16px">💼</div>
-      </div>
-      <img src="/static/images/jobs.jpeg" style="width:100%;border-radius:14px;display:block;box-shadow:0 2px 12px rgba(0,0,0,.1)" alt="Jobs">
-    </div>
-
-    <!-- 7. Health — label LEFT -->
-    <div style="margin-bottom:28px">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-        <div style="width:32px;height:32px;border-radius:50%;background:#d1fae5;display:flex;align-items:center;justify-content:center;font-size:16px">🏥</div>
-        <span style="font-size:14px;font-weight:800;color:#10b981">Health</span>
-      </div>
-      <img src="/static/images/health.jpeg" style="width:100%;border-radius:14px;display:block;box-shadow:0 2px 12px rgba(0,0,0,.1)" alt="Health">
-    </div>
-
-    <!-- 8. Campus — label RIGHT -->
-    <div style="margin-bottom:28px">
-      <div style="display:flex;align-items:center;justify-content:flex-end;gap:8px;margin-bottom:8px">
-        <span style="font-size:14px;font-weight:800;color:#7c3aed">Campus</span>
-        <div style="width:32px;height:32px;border-radius:50%;background:#f3e8ff;display:flex;align-items:center;justify-content:center;font-size:16px">🏫</div>
-      </div>
-      <img src="/static/images/campas.jpeg" style="width:100%;border-radius:14px;display:block;box-shadow:0 2px 12px rgba(0,0,0,.1)" alt="Campus">
-    </div>
-
-    <!-- 9. School — label LEFT -->
-    <div style="margin-bottom:28px">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-        <div style="width:32px;height:32px;border-radius:50%;background:#ffedd5;display:flex;align-items:center;justify-content:center;font-size:16px">🏫</div>
-        <span style="font-size:14px;font-weight:800;color:#f97316">My School</span>
-      </div>
-      <img src="/static/images/school.jpeg" style="width:100%;border-radius:14px;display:block;box-shadow:0 2px 12px rgba(0,0,0,.1)" alt="My School">
-    </div>
-
-  </div>
-</section>
-
 {% comment %}<!-- ABOUT SECTION - moved to /smart-marketing/ story page -->
 <section id="about-section" style="background:#fff;border-top:2px solid #e5e7eb;padding:56px 24px 64px">
   <div style="max-width:1100px;margin:0 auto">
@@ -1279,7 +1103,6 @@ var olxAdCur = 0;
 <!-- BOTTOM NAV -->
 <nav class="bottom-nav">
   <div class="bottom-nav-inner">
-    <a href="{% url 'network_feed' %}" class="bn-item"><i class="fas fa-user-friends"></i><span>Network</span></a>
     <a href="/community/family/" class="bn-item active"><span style="font-size:22px;line-height:1">👨‍👩‍👧‍👦</span><span>Family</span></a>
     <a href="/advertise/" class="bn-item">
       <span class="bn-offer-burst">OFFER</span>

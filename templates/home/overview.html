@@ -1,0 +1,38 @@
+<section class="hp-section hp-overview" aria-label="Explore your neighbourhood">
+  <nav class="hp-highlights" aria-label="Local highlights">
+    <a href="/news/"><span class="hp-ring hp-mint">🏡</span>Local</a>
+    <a href="/news/?category=festivals"><span class="hp-ring hp-peach">🪔</span>Festivals</a>
+    <a href="/news/birthday/"><span class="hp-ring hp-pink">🎂</span>Birthdays</a>
+    <a href="/news/?category=achievements"><span class="hp-ring hp-blue">🏆</span>Achievers</a>
+    <a href="/businesses/"><span class="hp-ring hp-lilac">🏪</span>Shops</a>
+  </nav>
+  <div class="hp-heading"><div><p class="hp-eyebrow">YOUR PINCODE. YOUR POSSIBILITIES.</p><h1>Everything nearby.</h1></div><span class="hp-local-tag">Made for local</span></div>
+  <div class="hp-shortcuts">
+    <a class="hp-tile hp-pink" href="/businesses/"><span>🛍️</span><strong>Shops</strong></a>
+    <a class="hp-tile hp-mint" href="/advertise/"><span>🏷️</span><strong>Offers</strong></a>
+    <a class="hp-tile hp-lilac" href="/jobs/"><span>💼</span><strong>Jobs</strong></a>
+    <a class="hp-tile hp-peach" href="/coupons/activate/"><span>🎟️</span><strong>Coupons</strong></a>
+    <a class="hp-tile hp-blue" href="/news/"><span>📰</span><strong>News</strong></a>
+    <a class="hp-tile hp-mint" href="{% url 'network_feed' %}"><span>👥</span><strong>Network</strong></a>
+  </div>
+  <button class="hp-explore-trigger" type="button" data-explore-open aria-haspopup="dialog"><span class="hp-explore-icon" aria-hidden="true">✦</span><span><strong>Explore more</strong><small>Community · Family · Health · Events<br>Gift Vouchers · My School · Campus</small></span><span aria-hidden="true">↗</span></button>
+  <aside class="hp-advertise"><span class="hp-megaphone" aria-hidden="true">📣</span><div><h2>Advertise your business</h2><p>Reach people in your pincode.</p></div><a href="{% if request.user.is_authenticated and request.user.advertiser.status == 'approved' %}/advertise/dashboard/{% else %}/advertise/register/{% endif %}">Get started <span aria-hidden="true">↗</span></a></aside>
+</section>
+<dialog id="home-explore" class="hp-dialog" aria-labelledby="hp-explore-title">
+  <div class="hp-dialog-header"><div><p class="hp-eyebrow">A LITTLE CLOSER TO HOME</p><h2 id="hp-explore-title">Explore your pincode</h2></div><button type="button" data-explore-close aria-label="Close Explore">✕</button></div>
+  <h3>People &amp; celebrations</h3>
+  <div class="hp-explore-grid">
+    <a class="hp-pink" href="/portal/"><span>👥</span><strong>Community</strong><small>Meet your neighbours</small></a>
+    <a class="hp-peach" href="/community/family/"><span>🏡</span><strong>Family</strong><small>Your family space</small></a>
+    <a class="hp-blue" href="/portal/events/"><span>📅</span><strong>Events</strong><small>What’s happening nearby</small></a>
+    <a class="hp-lilac" href="/vouchers/marketplace/"><span>🎁</span><strong>Gift Vouchers</strong><small>Share a thoughtful gift</small></a>
+  </div>
+  <h3>Learning &amp; wellbeing</h3>
+  <div class="hp-explore-grid hp-learning">
+    <a class="hp-pink" href="/health/"><span>❤️</span><strong>Health</strong><small>Care &amp; wellbeing</small></a>
+    <a class="hp-mint" href="/community/school-corner/"><span>🏫</span><strong>My School</strong><small>School community</small></a>
+    <a class="hp-lilac" href="/campus/"><span>🎓</span><strong>Campus</strong><small>College community</small></a>
+  </div>
+  <h3>More in your neighbourhood</h3>
+  <div class="hp-more-links"><a href="/businesses/">Shops</a><a href="/advertise/">Offers</a><a href="/jobs/">Jobs</a><a href="/coupons/activate/">Coupons</a><a href="/news/">News Desk</a><a href="/network/">Network</a><a href="/advertise/register/">Advertise</a><a href="/smart-marketing/">Smart Marketing</a></div>
+</dialog>
