@@ -8,7 +8,7 @@ Canonical origin comes from the existing `SITE_URL` setting (production: `https:
 
 `/robots.txt` allows crawling and advertises `/sitemap.xml`. Private URLs are deliberately not disallowed: Google must be allowed to observe their `X-Robots-Tag: noindex, follow` responses. Authentication still protects private content. Static assets remain crawlable.
 
-The paginated sitemap index covers:
+The paginated sitemap index omits empty sections and covers:
 
 - Homepage; jobs and business directories only when eligible records exist.
 - Approved active free/paid jobs from active employer accounts, with a title, location and at least 80 characters of description. Expired application dates and expired plans are excluded.

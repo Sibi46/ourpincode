@@ -188,6 +188,8 @@ def sitemap_index(request):
     sections = []
     for name, sitemap_class in SITEMAPS.items():
         sitemap = sitemap_class()
+        if not sitemap.paginator.count:
+            continue
         base = origin() + reverse('seo_sitemap', kwargs={'section': name})
         for page in range(1, sitemap.paginator.num_pages + 1):
             sections.append({'location': base + (f'?p={page}' if page > 1 else '')})

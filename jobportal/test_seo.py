@@ -34,7 +34,8 @@ class SEOTests(TestCase):
 
     def test_sitemap_index_uses_canonical_host(self):
         urls = self.locations(self.client.get('/sitemap.xml'))
-        self.assertEqual(len(urls), 4)
+        self.assertEqual(len(urls), 3)
+        self.assertNotIn('https://ourpincode.com/sitemaps/news.xml', urls)
         for url in urls:
             self.assertTrue(url.startswith('https://ourpincode.com/sitemaps/'))
             self.locations(self.client.get(url.removeprefix('https://ourpincode.com')))
