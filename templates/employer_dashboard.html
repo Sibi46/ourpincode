@@ -243,6 +243,9 @@
     <a class="ig-tab" href="{% url 'portal_event_history' %}"><i class="fas fa-history"></i>Event history</a>
     <a class="ig-tab" href="{% url 'my_offers' %}">My Offers</a>
     <div class="ig-tab" onclick="showSection('coupons',this)" data-sec="coupons"><i class="fas fa-ticket-alt"></i>Coupons</div>
+    {% if request.user.user_type == 'shop' %}
+    <a class="ig-tab" href="{% url 'opc_verify_redemption' %}" style="text-decoration:none"><i class="fas fa-check-circle" style="color:#059669"></i>Coupon Redemption</a>
+    {% endif %}
     <div class="ig-tab" onclick="window.location.href='/offers/post/'"><i class="fas fa-tag" style="color:#FF5722"></i>Offer</div>
     <div class="ig-tab" onclick="window.location.href='/vouchers/business/register/'"><i class="fas fa-gift" style="color:#7c3aed"></i>Voucher</div>
     <div class="ig-tab" onclick="window.location.href='/advertiser/dashboard/'"><i class="fas fa-bullhorn"></i>Ads</div>
@@ -269,7 +272,7 @@
       <p>Share your Salesman Support ID with your salesman to receive coupons. Give the printed coupons to customers; they enter the code and spin to receive points.</p>
       <p>Total: {{ coupon_total }} · Available: {{ coupon_available }} · Used: {{ coupon_used }}</p>
       {% if request.user.user_type == 'shop' %}
-      <p><a href="{% url 'opc_verify_redemption' %}">Verify and redeem customer rewards</a></p>
+      <p><a href="{% url 'opc_verify_redemption' %}" style="display:inline-flex;align-items:center;gap:8px;background:#059669;color:#fff;padding:12px 18px;border-radius:10px;font-weight:700;text-decoration:none"><i class="fas fa-check-circle" aria-hidden="true"></i>Coupon Redemption</a></p>
       {% endif %}
       <div style="overflow-x:auto">
         <table style="width:100%;text-align:left">
