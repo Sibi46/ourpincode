@@ -1,11 +1,11 @@
-﻿{% load static %}
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="OUR PINCODE — Business, Opportunity, Job at Near You. Find Jobs Near You. Hire People Near You. India's PIN-code based hyperlocal job portal.">
-    <title>{% block title %}OUR PINCODE{% endblock %}</title>
+    {% include "includes/seo.html" %}
+    <title>{% if seo.indexable %}{{ seo.title }}{% else %}{% block title %}OUR PINCODE{% endblock %}{% endif %}</title>
     <link rel="stylesheet" href="{% static 'css/style.css' %}?v=5">
     <link rel="stylesheet" href="/static/fontawesome/css/all.min.css">
     {% block extra_css %}{% endblock %}

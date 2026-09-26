@@ -4,7 +4,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>{{ profile.company_name }} — OUR PINCODE</title>
+<title>{% if seo.indexable %}{{ seo.title }}{% else %}{{ profile.company_name }} — OUR PINCODE{% endif %}</title>
+{% include "includes/seo.html" %}
 <link rel="stylesheet" href="{% static 'fontawesome/css/all.min.css' %}">
 <link rel="stylesheet" href="{% static 'css/style.css' %}?v=2">
 <style>

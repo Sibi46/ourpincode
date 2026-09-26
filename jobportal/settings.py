@@ -122,6 +122,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sitemaps',
     'jobs',
     'health',
     'vouchers',
@@ -147,6 +148,7 @@ LOGOUT_REDIRECT_URL = '/'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'jobportal.seo.SEOMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -171,6 +173,7 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'jobs.context_processors.site_ads',
                 'jobportal.context_processors.site_branding',
+                'jobportal.seo.seo_context',
             ],
         },
     },
