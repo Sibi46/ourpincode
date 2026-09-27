@@ -57,6 +57,18 @@ class NetworkTests(TestCase):
             with self.subTest(text=text):
                 self.assertEqual(detect_activity(text), activity)
 
+    def test_selected_categories_override_text_detection(self):
+        for category in ['sports', 'food', 'health', 'transport', 'rent', 'training', 'music']:
+            with self.subTest(category=category):
+                response = self.client.post('/network/', {'text': 'Cricket meetup', 'category': category})
+                self.assertEqual(response.status_code, 302)
+                self.assertEqual(NetworkPost.objects.filter(author=self.neighbour).latest('pk').activity, category)
+
+    def test_invalid_category_is_rejected(self):
+        response = self.client.post('/network/', {'text': 'Hello', 'category': 'invalid'})
+        self.assertEqual(response.status_code, 400)
+        self.assertFalse(NetworkPost.objects.filter(author=self.neighbour).exists())
+
     def test_missing_or_invalid_profile_pincode_cannot_browse_post_or_connect(self):
         for pin in ['', '123', 'abcdef', '000000']:
             User.objects.filter(pk=self.neighbour.pk).update(pincode=pin)

@@ -44,7 +44,8 @@ def network_feed(request):
                 if not pin:
                     return HttpResponseForbidden('Add a valid pincode to your profile before posting.')
                 text = form.cleaned_data['text']
-                NetworkPost.objects.create(author=user, pincode=pin, text=text, activity=detect_activity(text))
+                NetworkPost.objects.create(author=user, pincode=pin, text=text,
+                                           activity=form.cleaned_data['category'] or detect_activity(text))
             messages.success(request, 'Your invitation is visible to people in your pincode.')
             return redirect('network_feed')
     tab = 'mine' if request.GET.get('tab') == 'mine' else 'nearby'

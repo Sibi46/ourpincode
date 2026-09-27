@@ -2,6 +2,13 @@
 import re
 
 ACTIVITIES = [
+    {'key': 'sports', 'label': 'Sports', 'emoji': '🏅', 'words': ['sports']},
+    {'key': 'food', 'label': 'Food', 'emoji': '🍽️', 'words': ['food', 'lunch', 'dinner']},
+    {'key': 'health', 'label': 'Health', 'emoji': '💚', 'words': ['health']},
+    {'key': 'transport', 'label': 'Transport', 'emoji': '🚌', 'words': ['transport', 'carpool']},
+    {'key': 'rent', 'label': 'Rent', 'emoji': '🏠', 'words': ['rent', 'rental']},
+    {'key': 'training', 'label': 'Training', 'emoji': '📚', 'words': ['training']},
+    {'key': 'music', 'label': 'Music', 'emoji': '🎵', 'words': ['music']},
     {'key': 'cricket', 'label': 'Cricket', 'emoji': '🏏', 'words': ['cricket']},
     {'key': 'football', 'label': 'Football', 'emoji': '⚽', 'words': ['football', 'soccer']},
     {'key': 'badminton', 'label': 'Badminton', 'emoji': '🏸', 'words': ['badminton', 'shuttle']},
