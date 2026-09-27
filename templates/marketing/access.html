@@ -1,0 +1,8 @@
+{% extends 'marketing/layout.html' %}
+{% block marketing_content %}
+<h2>Authorize a Smart Marketing Agent</h2>
+<p>Authorized agents can manage your offers, gift vouchers, videos and coupons after verifying your shop phone and password.</p>
+<form method="post">{% csrf_token %}<label>Agent username <input name="username" required></label><button type="submit">Grant access</button></form>
+{% for grant in grants %}<form method="post">{% csrf_token %}<p>{{ grant.agent.username }} · {{ grant.agent.pincode }} <input type="hidden" name="grant" value="{{ grant.pk }}"><button name="action" value="revoke">Revoke access</button></p></form>{% empty %}<p>No agents authorized.</p>{% endfor %}
+<a href="{% url 'employer_dashboard' %}">Back to dashboard</a>
+{% endblock %}

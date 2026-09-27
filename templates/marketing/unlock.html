@@ -1,0 +1,9 @@
+{% extends 'marketing/layout.html' %}
+{% block marketing_content %}
+<h2>Open {{ shop_name }}</h2>
+<form method="post">{% csrf_token %}
+<p><label>Shop phone <input name="phone" type="tel" pattern="[0-9]{10}" required autocomplete="off"></label></p>
+<p><label>Shop password <input name="password" type="password" required autocomplete="off"></label></p>
+<button type="submit">Open shop</button></form>
+<a href="{% url 'marketing_dashboard' %}">Back to shops</a>
+{% endblock %}

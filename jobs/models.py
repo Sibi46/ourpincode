@@ -22,6 +22,7 @@ class User(AbstractUser):
         ('freelancer',          'Freelancer'),
         # ── Advertiser ────────────────────────────────────
         ('advertiser',          'Advertiser'),
+        ('marketing_agent',     'Smart Marketing Agent'),
         ('family_child',        'Family Child Account'),
     ]
 
@@ -57,6 +58,15 @@ class User(AbstractUser):
     def is_state_admin(self):    return self.admin_role == 'state_admin'
     def is_district_admin(self): return self.admin_role == 'district_admin'
     def is_any_admin(self):      return bool(self.admin_role)
+
+
+class MarketingAccess(models.Model):
+    agent = models.ForeignKey(User, on_delete=models.CASCADE, related_name='marketing_shops')
+    shop = models.ForeignKey(User, on_delete=models.CASCADE, related_name='marketing_agents')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['agent', 'shop'], name='unique_marketing_access')]
 
 
 class CompanyProfile(models.Model):

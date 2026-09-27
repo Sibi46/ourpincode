@@ -438,6 +438,7 @@ document.addEventListener('click',function(){
 </script>
 {% endif %}
 
+{% if request.marketing_agent %}<p style="padding:16px;background:#eef2ff">Managing this shop as {{ request.marketing_agent.username }} · <a href="{% url 'marketing_workspace' %}">Shop tools</a> · <a href="{% url 'marketing_dashboard' %}">Switch shop</a></p>{% endif %}
 {% block content %}{% endblock %}
 
 {% if ads_by_type.sidebar or ads_by_type.dashboard_banner %}

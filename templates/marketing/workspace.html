@@ -1,0 +1,15 @@
+{% extends 'marketing/layout.html' %}
+{% block marketing_content %}
+<h2>{{ shop_name }}</h2>
+<p><a href="{% url 'marketing_dashboard' %}">Switch shop</a></p>
+<ul>
+<li><a href="{% url 'offer_post' %}">Post offer</a> · <a href="{% url 'my_offers' %}">Manage offers</a></li>
+<li>{% if shop.businesses.exists %}<a href="{% url 'vouchers:voucher_list' %}">Manage gift vouchers</a>{% else %}Gift vouchers: ask the owner to register their voucher business first.{% endif %}</li>
+<li><a href="{% url 'post_flick' %}">Post video</a></li>
+{% if shop.user_type == 'shop' %}<li><a href="{% url 'opc_verify_redemption' %}">Coupon redemption</a></li>{% endif %}
+</ul>
+<h3>Shop videos</h3>
+{% for video in videos %}<form method="post" action="{% url 'delete_flick' video.pk %}">{% csrf_token %}{{ video.caption }} <button type="submit">Delete video</button></form>{% empty %}<p>No videos yet.</p>{% endfor %}
+<h3>Business coupons</h3>
+<table><thead><tr><th>Code</th><th>Status</th></tr></thead><tbody>{% for coupon in coupons %}<tr><td>{{ coupon.code }}</td><td>{{ coupon.get_status_display }}</td></tr>{% empty %}<tr><td colspan="2">No coupons assigned.</td></tr>{% endfor %}</tbody></table>
+{% endblock %}

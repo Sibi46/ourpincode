@@ -1,0 +1,8 @@
+{% extends 'marketing/layout.html' %}
+{% block marketing_content %}
+<h2 id="create-agent">Create agent</h2>
+<form method="post">{% csrf_token %}{{ form.as_p }}<button type="submit">Create agent</button></form>
+<h2 id="agent-list">Agents</h2>
+{% for agent in agents %}<p>{{ agent.username }} · {{ agent.pincode }} · {{ agent.phone }}</p>{% empty %}<p>No agents yet.</p>{% endfor %}
+<p>Agents sign in through the normal login page with their username or phone and password.</p>
+{% endblock %}

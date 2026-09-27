@@ -1,0 +1,6 @@
+{% extends 'marketing/layout.html' %}
+{% block marketing_content %}
+<h2>Your shops</h2>
+<p>Select a shop, then enter its phone number and password to open its marketing tools.</p>
+{% for grant in grants %}<p><a href="{% url 'marketing_open' grant.shop_id %}">{{ grant.name }}</a> · {{ grant.shop.pincode }}</p>{% empty %}<p>No shops have granted you access yet. Ask the owner to authorize your username from their dashboard.</p>{% endfor %}
+{% endblock %}

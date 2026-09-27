@@ -86,6 +86,26 @@
 
 {% block content %}
 
+<section class="sa-section" id="smart-marketing-agents" aria-labelledby="marketing-agents-heading">
+  <div class="sa-section-head">
+    <h2 class="sa-section-title" id="marketing-agents-heading">
+      <span class="sa-section-icon" style="background:#EEF2FF;color:#4F46E5"><i class="fas fa-user-tie" aria-hidden="true"></i></span>
+      Smart Marketing Agents
+    </h2>
+  </div>
+  <p style="margin:14px 18px;color:#64748B;font-size:13px">Create agents with a username, phone number, pincode and password. Shop owners can authorize them to manage offers, gift vouchers, videos and coupons.</p>
+  <div class="sa-action-grid">
+    <a href="{% url 'marketing_admin' %}#create-agent" class="sa-action">
+      <i class="fas fa-user-plus" style="color:#4F46E5" aria-hidden="true"></i>
+      Create Smart Marketing Agent
+    </a>
+    <a href="{% url 'marketing_admin' %}#agent-list" class="sa-action">
+      <i class="fas fa-users" style="color:#059669" aria-hidden="true"></i>
+      View Smart Marketing Agents
+    </a>
+  </div>
+</section>
+
 <!-- ── PAGE HEADER ── -->
 <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:22px">
   <div>
@@ -98,6 +118,9 @@
     <p style="color:#64748B;font-size:13px;margin:0 0 0 42px">Full control over the OUR PINCODE platform</p>
   </div>
   <div style="display:flex;gap:8px;flex-wrap:wrap">
+    <a href="{% url 'marketing_admin' %}" style="background:#4F46E5;color:#fff;padding:8px 14px;border-radius:9px;font-size:12px;font-weight:700;text-decoration:none;display:flex;align-items:center;gap:6px;border:1.5px solid #4F46E5">
+      <i class="fas fa-user-tie" aria-hidden="true"></i> Smart Marketing Agents
+    </a>
     <a href="/super-admin/analytics/" style="background:#EEF2FF;color:#4F46E5;padding:8px 14px;border-radius:9px;font-size:12px;font-weight:700;text-decoration:none;display:flex;align-items:center;gap:6px;border:1.5px solid #C7D2FE">
       <i class="fas fa-chart-bar"></i> Analytics
     </a>

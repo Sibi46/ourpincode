@@ -7,6 +7,7 @@ from django.contrib.sitemaps import views as sitemap_views
 from .seo import SITEMAPS, robots, sitemap_index
 
 urlpatterns = [
+    path('marketing/', include('jobs.marketing')),
     path('robots.txt', robots, name='robots'),
     path('sitemap.xml', sitemap_index, name='sitemap'),
     path('sitemaps/<section>.xml', sitemap_views.sitemap, {'sitemaps': SITEMAPS}, name='seo_sitemap'),
