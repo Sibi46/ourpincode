@@ -6,8 +6,15 @@ from .models import BirthdayCard, Comment, NewsAgent, NewsItem, Rating
 from .permissions import active_pincodes, is_admin
 
 
+def pincode_input():
+    return forms.TextInput(attrs={'inputmode': 'numeric', 'pattern': '[1-9][0-9]{5}',
+                                  'maxlength': 6, 'placeholder': 'Enter 6-digit pincode',
+                                  'autocomplete': 'postal-code'})
+
+
 class FeedForm(forms.Form):
-    pincode = forms.ModelChoiceField(queryset=PinCode.objects.none(), to_field_name='code', required=False, empty_label='Select your pincode')
+    pincode = forms.ModelChoiceField(queryset=PinCode.objects.none(), to_field_name='code', required=False,
+                                    widget=pincode_input(), error_messages={'invalid_choice': 'Enter a registered, active pincode.'})
     category = forms.ChoiceField(choices=[('', 'All categories')] + list(NewsItem.Category.choices), required=False)
     kind = forms.ChoiceField(choices=[('', 'News & events'), ('news', 'News'), ('event', 'Events')], required=False)
 
@@ -27,9 +34,16 @@ class NewsItemForm(forms.ModelForm):
         }
         help_texts = {'photo': 'JPEG, PNG or WebP; up to 5 MB.', 'video': 'MP4 or WebM; up to 25 MB.', 'event_start': 'Local time (Asia/Kolkata). Required for events.', 'status': 'Drafts are visible only to your assigned desk and admins.'}
 
-    def __init__(self, *args, user, **kwargs):
+    def __init__(self, *args, user, pincode_as_code=False, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['pincode'].queryset = active_pincodes()
+        if pincode_as_code:
+            self.fields['pincode'].to_field_name = 'code'
+            self.fields['pincode'].widget = pincode_input()
+            self.fields['pincode'].help_text = 'Enter the 6-digit pincode registered for this local edition.'
+            self.fields['pincode'].error_messages['invalid_choice'] = 'Enter a registered, active pincode.'
+            if self.instance.pk:
+                self.initial['pincode'] = self.instance.pincode.code
         if not is_admin(user):
             self.fields.pop('pincode')
         # Never expose a direct storage URL, including for draft attachments.

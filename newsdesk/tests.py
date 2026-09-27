@@ -56,6 +56,20 @@ class NewsDeskTests(TestCase):
         self.assertEqual(self.client.get(self.url('api_feed'), {'pincode': '123'}).status_code, 400)
         self.assertEqual(self.client.get(self.url('api_feed'), {'category': 'invented'}).status_code, 400)
 
+    def test_typed_pincode_on_feed_and_story_forms(self):
+        response = self.client.get(self.url('feed'), {'pincode': self.pin.code})
+        self.assertContains(response, 'name="pincode"')
+        self.assertContains(response, 'inputmode="numeric"')
+        self.client.force_login(self.admin)
+        response = self.client.get(self.url('edit', self.item.pk))
+        self.assertContains(response, 'value="600001"')
+        self.assertContains(response, 'inputmode="numeric"')
+        response = self.client.post(self.url('create'), self.story_data(pincode=self.other_pin.code))
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(NewsItem.objects.get(title='A new local story').pincode, self.other_pin)
+        response = self.client.post(self.url('create'), self.story_data(pincode='999999'))
+        self.assertContains(response, 'Enter a registered, active pincode.', status_code=400)
+
     def test_selected_pin_remembered_and_reset(self):
         self.client.get(self.url('feed'), {'pincode': self.other_pin.code})
         self.assertEqual(self.client.get(self.url('api_feed')).json()['results'][0]['id'], self.other_item.pk)

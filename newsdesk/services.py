@@ -15,11 +15,11 @@ def valid(form):
 
 
 @transaction.atomic
-def save_item(user, data, files=None, pk=None):
+def save_item(user, data, files=None, pk=None, *, pincode_as_code=False):
     scope = managed_items(user, lock=True)
     item = get_object_or_404(scope.select_for_update(), pk=pk) if pk else NewsItem(author=user)
     original_pin = item.pincode_id
-    form = NewsItemForm(data, files, instance=item, user=user)
+    form = NewsItemForm(data, files, instance=item, user=user, pincode_as_code=pincode_as_code)
     valid(form)
     item = form.save(commit=False)
     if not is_admin(user):

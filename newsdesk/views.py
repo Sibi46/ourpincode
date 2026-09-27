@@ -189,10 +189,10 @@ def manage(request):
 def edit(request, pk=None):
     scope = managed_items(request.user)
     item = get_object_or_404(scope, pk=pk) if pk else None
-    form = NewsItemForm(payload(request) if request.method == 'POST' else None, request.FILES or None, instance=item, user=request.user)
+    form = NewsItemForm(payload(request) if request.method == 'POST' else None, request.FILES or None, instance=item, user=request.user, pincode_as_code=not api(request))
     if request.method == 'POST':
         try:
-            item = services.save_item(request.user, payload(request), request.FILES, pk)
+            item = services.save_item(request.user, payload(request), request.FILES, pk, pincode_as_code=not api(request))
         except ValidationError as error:
             if api(request):
                 raise
