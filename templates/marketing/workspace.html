@@ -1,15 +1,17 @@
 {% extends 'marketing/layout.html' %}
 {% block marketing_content %}
-<h2>{{ shop_name }}</h2>
-<p><a href="{% url 'marketing_dashboard' %}">Switch shop</a></p>
-<ul>
-<li><a href="{% url 'offer_post' %}">Post offer</a> · <a href="{% url 'my_offers' %}">Manage offers</a></li>
-<li>{% if shop.businesses.exists %}<a href="{% url 'vouchers:voucher_list' %}">Manage gift vouchers</a>{% else %}Gift vouchers: ask the owner to register their voucher business first.{% endif %}</li>
-<li><a href="{% url 'post_flick' %}">Post video</a></li>
-{% if shop.user_type == 'shop' %}<li><a href="{% url 'opc_verify_redemption' %}">Coupon redemption</a></li>{% endif %}
-</ul>
-<h3>Shop videos</h3>
-{% for video in videos %}<form method="post" action="{% url 'delete_flick' video.pk %}">{% csrf_token %}{{ video.caption }} <button type="submit">Delete video</button></form>{% empty %}<p>No videos yet.</p>{% endfor %}
-<h3>Business coupons</h3>
-<table><thead><tr><th>Code</th><th>Status</th></tr></thead><tbody>{% for coupon in coupons %}<tr><td>{{ coupon.code }}</td><td>{{ coupon.get_status_display }}</td></tr>{% empty %}<tr><td colspan="2">No coupons assigned.</td></tr>{% endfor %}</tbody></table>
+<header class="heading"><div><div class="eyebrow">Shop workspace</div><h1>{{ shop_name }}</h1><p class="intro">Everything you need to manage this shop's marketing.</p></div><a class="button secondary" href="{% url 'marketing_dashboard' %}"><i class="fas fa-exchange-alt" aria-hidden="true"></i> Switch shop</a></header>
+<span class="badge green"><i class="fas fa-lock" aria-hidden="true"></i> Shop access verified</span>
+<div class="tool-grid">
+<section class="card tool"><span class="icon orange"><i class="fas fa-tags" aria-hidden="true"></i></span><div><h2>Offers</h2><p>Create offers and manage this shop's promotions.</p></div><a class="button" href="{% url 'offer_post' %}">Post offer</a><a class="text-link" href="{% url 'my_offers' %}">Manage offers <span aria-hidden="true">→</span></a></section>
+<section class="card tool"><span class="icon pink"><i class="fas fa-gift" aria-hidden="true"></i></span><div><h2>Gift vouchers</h2><p>Create and manage gift vouchers for customers.</p></div>{% if shop.businesses.exists %}<a class="button" href="{% url 'vouchers:voucher_list' %}">Manage vouchers</a>{% else %}<div class="tool-disabled"><i class="fas fa-info-circle" aria-hidden="true"></i> Ask the owner to register their voucher business to enable this tool.</div>{% endif %}</section>
+<section class="card tool"><span class="icon"><i class="fas fa-video" aria-hidden="true"></i></span><div><h2>Video posts</h2><p>Share updates and bring this shop's story to life.</p></div><a class="button" href="{% url 'post_flick' %}">Post video</a><a class="text-link" href="#shop-videos">View shop posts <span aria-hidden="true">↓</span></a></section>
+<section class="card tool"><span class="icon teal"><i class="fas fa-ticket-alt" aria-hidden="true"></i></span><div><h2>Coupons</h2><p>Review assigned coupons and verify redemptions.</p></div>{% if shop.user_type == 'shop' %}<a class="button" href="{% url 'opc_verify_redemption' %}">Verify redemption</a>{% endif %}<a class="text-link" href="#business-coupons">View coupons <span aria-hidden="true">↓</span></a></section>
+</div>
+<div class="workspace-panels">
+<section class="card" id="shop-videos"><div class="panel-head"><div><h2>Shop videos &amp; posts</h2><p>Content published for this shop.</p></div><span class="badge">{{ videos|length }} post{{ videos|length|pluralize }}</span></div>
+{% for video in videos %}<article class="video-row"><span class="icon"><i class="fas fa-play" aria-hidden="true"></i></span><div class="video-info"><h3>{{ video.title|default:'Shop post' }}</h3><p>{{ video.caption|truncatechars:160 }}</p><p>{{ video.created_at|date:'d M Y' }}</p></div><form method="post" action="{% url 'delete_flick' video.pk %}" onsubmit="return confirm('Delete this shop post? This cannot be undone.');">{% csrf_token %}<button class="button danger" type="submit" aria-label="Delete {{ video.title|default:'shop post' }}">Delete</button></form></article>{% empty %}<div class="empty"><span class="icon"><i class="fas fa-video" aria-hidden="true"></i></span><h3>Tell this shop's story</h3><p>Your video posts will appear here. Use Post video to share the first update.</p></div>{% endfor %}</section>
+<section class="card" id="business-coupons"><div class="panel-head"><div><h2>Business coupons</h2><p>Up to 100 assigned coupons and their current status.</p></div></div>
+{% if coupons %}<div class="table-scroll"><table><thead><tr><th scope="col">Coupon code</th><th scope="col">Status</th></tr></thead><tbody>{% for coupon in coupons %}<tr><td><strong>{{ coupon.code }}</strong></td><td><span class="badge">{{ coupon.get_status_display }}</span></td></tr>{% endfor %}</tbody></table></div>{% else %}<div class="empty"><span class="icon teal"><i class="fas fa-ticket-alt" aria-hidden="true"></i></span><h3>No coupons assigned yet</h3><p>Coupons will appear here when a salesman assigns them to this business.</p></div>{% endif %}</section>
+</div>
 {% endblock %}
