@@ -86,6 +86,22 @@
 
 {% block content %}
 
+<section class="sa-section" id="news-management" aria-labelledby="news-management-heading">
+  <div class="sa-section-head">
+    <h2 class="sa-section-title" id="news-management-heading">
+      <span class="sa-section-icon" style="background:#FFF7ED;color:#9A3412"><i class="fas fa-newspaper" aria-hidden="true"></i></span>
+      News &amp; Local Stories
+    </h2>
+  </div>
+  <p style="margin:14px 18px;color:#64748B;font-size:13px">Publish local news and events, manage stories, and assign news agents to pincodes.</p>
+  <div class="sa-action-grid">
+    <a href="{% url 'newsdesk:manage' %}" class="sa-action"><i class="fas fa-newspaper" style="color:#9A3412" aria-hidden="true"></i> Manage News</a>
+    <a href="{% url 'newsdesk:create' %}" class="sa-action"><i class="fas fa-pen" style="color:#4F46E5" aria-hidden="true"></i> Post News</a>
+    <a href="{% url 'newsdesk:agents' %}" class="sa-action"><i class="fas fa-user-plus" style="color:#059669" aria-hidden="true"></i> Assign News Agents</a>
+    <a href="{% url 'newsdesk:feed' %}" class="sa-action"><i class="fas fa-book-open" style="color:#64748B" aria-hidden="true"></i> View Newspaper</a>
+  </div>
+</section>
+
 <section class="sa-section" id="smart-marketing-agents" aria-labelledby="marketing-agents-heading">
   <div class="sa-section-head">
     <h2 class="sa-section-title" id="marketing-agents-heading">
