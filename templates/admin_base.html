@@ -89,6 +89,9 @@
       </a>
 
       <div class="ap-nav-section">Admins</div>
+      <a href="{% url 'marketing_admin' %}" class="ap-nav-link {% if request.path == '/marketing/admin/' %}active{% endif %}">
+        <i class="fas fa-user-tie" aria-hidden="true"></i> Marketing Agents
+      </a>
       <a href="/super-admin/state-admins/" class="ap-nav-link">
         <i class="fas fa-user-shield"></i> State Admins
       </a>
