@@ -398,7 +398,8 @@
                         </div>
                         <div class="form-group full">
                             <label><i class="fas fa-map-marker-alt"></i> Pincode *</label>
-                            <input type="text" id="emp-pincode-input" name="emp_pincode" data-pinlookup placeholder="Enter 6-digit area pincode" maxlength="6" inputmode="numeric" pattern="\d{6}" required>
+                            <input type="text" id="emp-pincode-input" name="emp_pincode" aria-describedby="business-pincode-help" placeholder="Enter 6-digit area pincode" maxlength="6" inputmode="numeric" pattern="\d{6}" required>
+                            <small id="business-pincode-help" style="display:block;margin-top:6px;color:#64748b;font-size:12px">Enter any 6-digit pincode. No prior registration or location assignment is required.</small>
                         </div>
                         <div class="form-group full">
                             <label for="emp-logo-upload">Business logo</label>
@@ -493,7 +494,7 @@
                         </div>
                         <div class="form-group full">
                             <label><i class="fas fa-map-pin"></i> PIN Code *</label>
-                            <input type="text" name="pincode" placeholder="6-digit PIN code" maxlength="6" pattern="[0-9]{6}" required data-pinlookup>
+                            <input type="text" name="pincode" placeholder="6-digit PIN code" maxlength="6" pattern="[0-9]{6}" required>
                         </div>
                         <div class="form-group full">
                             <label><i class="fas fa-store"></i> Business Name <span style="font-weight:400;color:#888">(optional)</span></label>
@@ -577,7 +578,7 @@
                     </div>
                     <div class="form-group full">
                         <label><i class="fas fa-map-pin"></i> PIN Code *</label>
-                        <input type="text" id="empPincode" name="pincode" placeholder="6-digit PIN code" maxlength="6" inputmode="numeric" pattern="[0-9]{6}" required data-pinlookup>
+                        <input type="text" id="empPincode" name="pincode" placeholder="6-digit PIN code" maxlength="6" inputmode="numeric" pattern="[0-9]{6}" required>
                         <small style="color:#888;font-size:12px">We show jobs near your area</small>
                     </div>
                     <div class="form-group full">
@@ -670,7 +671,7 @@
                     </div>
                     <div class="form-group full">
                         <label><i class="fas fa-map-pin"></i> PIN Code *</label>
-                        <input type="text" id="indPincode" name="pincode" placeholder="6-digit PIN code" maxlength="6" inputmode="numeric" pattern="[0-9]{6}" required data-pinlookup>
+                        <input type="text" id="indPincode" name="pincode" placeholder="6-digit PIN code" maxlength="6" inputmode="numeric" pattern="[0-9]{6}" required>
                         <small style="color:#888;font-size:12px">We show jobs near your area</small>
                     </div>
                     <div class="form-group full">
@@ -739,7 +740,7 @@
                     </div>
                     <div class="form-group full">
                         <label><i class="fas fa-map-pin"></i> PIN Code *</label>
-                        <input type="text" id="freePincode" name="pincode" placeholder="6-digit PIN code" maxlength="6" inputmode="numeric" pattern="[0-9]{6}" required data-pinlookup>
+                        <input type="text" id="freePincode" name="pincode" placeholder="6-digit PIN code" maxlength="6" inputmode="numeric" pattern="[0-9]{6}" required>
                         <small style="color:#888;font-size:12px">We show jobs near your area</small>
                     </div>
                     <div class="form-group full">
@@ -929,7 +930,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
     <script src="{% static 'js/ac_roles.js' %}?v=1"></script>
-    <script src="{% static 'js/pincode_lookup.js' %}?v=1"></script>
+
 <script>
 document.addEventListener('DOMContentLoaded',function(){
   document.querySelectorAll('input[type="tel"]').forEach(function(inp){
