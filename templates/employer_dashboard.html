@@ -249,7 +249,6 @@
 
   <nav class="ig-quick-actions" aria-label="Business tools">
     <a class="ig-quick-action ig-agent-action" href="{% url 'marketing_access' %}"><span class="ig-action-icon"><i class="fas fa-user-shield" aria-hidden="true"></i></span><span>Smart Marketing<span class="ig-action-caption">Agent access</span></span><i class="fas fa-chevron-right ig-action-arrow" aria-hidden="true"></i></a>
-    <a class="ig-quick-action" href="{% url 'portal_event_history' %}"><span class="ig-action-icon"><i class="fas fa-history" aria-hidden="true"></i></span><span>Event History</span></a>
     <a class="ig-quick-action" href="{% url 'my_offers' %}"><span class="ig-action-icon"><i class="fas fa-tags" aria-hidden="true"></i></span><span>My Offers</span></a>
     {% if request.user.user_type == 'shop' %}<a class="ig-quick-action" href="{% url 'opc_verify_redemption' %}"><span class="ig-action-icon"><i class="fas fa-check-circle" aria-hidden="true"></i></span><span>Coupon Redemption</span></a>{% endif %}
   </nav>
