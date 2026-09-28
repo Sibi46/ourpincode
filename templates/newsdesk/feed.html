@@ -10,6 +10,7 @@
 <form id="nd-filters" class="edition-filters" method="get"><div><label for="{{ form.pincode.id_for_label }}">Your pincode</label>{{ form.pincode }}</div><div><label for="{{ form.category.id_for_label }}">Section</label>{{ form.category }}</div><div><label for="{{ form.kind.id_for_label }}">News / events</label>{{ form.kind }}</div><button class="nd-btn" type="submit">View edition &rarr;</button></form>
 <div class="edition-title"><h2>FRONT PAGE</h2><p>{% if selected_pin %}THE {{ selected_pin.code }} EDITION{% else %}LOCAL STORIES. SHARED PERSPECTIVES.{% endif %}</p><span>{{ page.paginator.count }} published stor{{ page.paginator.count|pluralize:'y,ies' }}</span></div>
 {% if top_stories %}
+{% if selected_pin %}<p style="font-size:12px;margin:0 0 12px">Showing pincode {{ selected_pin.code }}. <a href="{% url 'newsdesk:feed' %}" style="color:#a12024;text-decoration:underline">Show all published news</a></p>{% endif %}
 <section class="top-grid count-{{ top_stories|length }}" aria-label="Top news">
 {% for story in top_stories %}<article class="editorial-story top-story slot-{{ forloop.counter }} {% if forloop.counter == 2 or forloop.counter == 4 or forloop.counter == 6 %}green-story{% endif %}">
 {% include 'newsdesk/components/editorial_story.html' with lead=forloop.first %}

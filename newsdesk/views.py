@@ -91,7 +91,7 @@ def desk_context(request):
 @endpoint()
 def feed(request):
     values = request.GET.copy()
-    if 'pincode' not in values:
+    if api(request) and 'pincode' not in values:
         values['pincode'] = request.session.get('news_pincode') or getattr(request.user, 'pincode', '')
         # A resident profile may contain a pincode not yet configured in the hierarchy.
         if not re.fullmatch(r'[1-9][0-9]{5}', values['pincode'] or ''):
@@ -104,7 +104,9 @@ def feed(request):
         request.session['news_pincode'] = pin.code
     elif 'pincode' in request.GET:
         request.session.pop('news_pincode', None)
-    items = published_items().filter(pincode__code=code).select_related('pincode') if pin else NewsItem.objects.none()
+    items = published_items().select_related('pincode')
+    if pin:
+        items = items.filter(pincode__code=code)
     for field in ('category', 'kind'):
         if selected[field]:
             items = items.filter(**{field: selected[field]})

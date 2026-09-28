@@ -85,7 +85,20 @@ class NewsDeskTests(TestCase):
     def test_selected_pin_remembered_and_reset(self):
         self.client.get(self.url('feed'), {'pincode': self.other_pin.code})
         self.assertEqual(self.client.get(self.url('api_feed')).json()['results'][0]['id'], self.other_item.pk)
-        self.assertEqual(self.client.get(self.url('api_feed'), {'pincode': ''}).json()['total'], 0)
+        self.assertEqual(self.client.get(self.url('api_feed'), {'pincode': ''}).json()['total'], 2)
+
+    def test_front_page_shows_published_stories_without_pincode(self):
+        self.client.get(self.url('feed'), {'pincode': self.pin.code})
+        response = self.client.get(self.url('feed'))
+        self.assertContains(response, self.item.title)
+        self.assertContains(response, self.other_item.title)
+        self.assertNotContains(response, self.draft.title)
+        self.client.logout()
+        response = self.client.get(self.url('feed'))
+        self.assertContains(response, self.item.title)
+        self.assertContains(response, self.other_item.title)
+        response = self.client.get(self.url('feed'), {'pincode': self.pin.code})
+        self.assertNotContains(response, self.other_item.title)
 
     def test_drafts_and_future_publications_never_public(self):
         self.assertEqual(self.client.get(self.url('api_detail', self.draft.pk)).status_code, 404)
