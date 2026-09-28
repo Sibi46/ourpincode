@@ -13,14 +13,13 @@ def pincode_input():
 
 
 class FeedForm(forms.Form):
-    pincode = forms.ModelChoiceField(queryset=PinCode.objects.none(), to_field_name='code', required=False,
-                                    widget=pincode_input(), error_messages={'invalid_choice': 'Enter a registered, active pincode.'})
+    pincode = forms.RegexField(regex=r'\A[1-9][0-9]{5}\Z', required=False,
+                              widget=pincode_input(), error_messages={'invalid': 'Enter a valid 6-digit pincode.'})
     category = forms.ChoiceField(choices=[('', 'All categories')] + list(NewsItem.Category.choices), required=False)
     kind = forms.ChoiceField(choices=[('', 'News & events'), ('news', 'News'), ('event', 'Events')], required=False)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['pincode'].queryset = active_pincodes()
 
 
 class NewsItemForm(forms.ModelForm):
@@ -40,7 +39,7 @@ class NewsItemForm(forms.ModelForm):
         if pincode_as_code:
             self.fields['pincode'].to_field_name = 'code'
             self.fields['pincode'].widget = pincode_input()
-            self.fields['pincode'].help_text = 'Enter the 6-digit pincode registered for this local edition.'
+            self.fields['pincode'].help_text = 'Enter any valid 6-digit pincode. New pincodes are added when you save.'
             self.fields['pincode'].error_messages['invalid_choice'] = 'Enter a registered, active pincode.'
             if self.instance.pk:
                 self.initial['pincode'] = self.instance.pincode.code

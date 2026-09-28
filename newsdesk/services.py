@@ -2,6 +2,8 @@ from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import transaction
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
+import re
+from jobs.models import State, District, PinCode
 
 from .forms import CommentForm, NewsItemForm, RatingForm, ReportForm
 from .models import Comment, CommentReport, NewsItem, Rating
@@ -19,6 +21,15 @@ def save_item(user, data, files=None, pk=None, *, pincode_as_code=False):
     scope = managed_items(user, lock=True)
     item = get_object_or_404(scope.select_for_update(), pk=pk) if pk else NewsItem(author=user)
     original_pin = item.pincode_id
+    if pincode_as_code and is_admin(user):
+        code = str(data.get('pincode', '')).strip()
+        if not re.fullmatch(r'[1-9][0-9]{5}', code):
+            raise ValidationError('Enter a valid 6-digit pincode.')
+        if not PinCode.objects.filter(code=code).exists():
+            # Keep unknown geography explicitly unassigned, rather than inventing a location.
+            state, _ = State.objects.get_or_create(code='UNASN', defaults={'name': 'Unassigned geography'})
+            district, _ = District.objects.get_or_create(state=state, name='Unassigned district')
+            PinCode.objects.get_or_create(code=code, defaults={'district': district})
     form = NewsItemForm(data, files, instance=item, user=user, pincode_as_code=pincode_as_code)
     valid(form)
     item = form.save(commit=False)

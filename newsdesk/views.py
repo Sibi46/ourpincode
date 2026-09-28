@@ -1,4 +1,6 @@
 import json
+import re
+from types import SimpleNamespace
 import mimetypes
 import textwrap
 from functools import wraps
@@ -92,16 +94,17 @@ def feed(request):
     if 'pincode' not in values:
         values['pincode'] = request.session.get('news_pincode') or getattr(request.user, 'pincode', '')
         # A resident profile may contain a pincode not yet configured in the hierarchy.
-        if not active_pincodes().filter(code=values['pincode']).exists():
+        if not re.fullmatch(r'[1-9][0-9]{5}', values['pincode'] or ''):
             values['pincode'] = ''
     form = FeedForm(values)
     selected = services.valid(form)
-    pin = selected['pincode']
+    code = selected['pincode']
+    pin = SimpleNamespace(code=code) if code else None
     if pin:
         request.session['news_pincode'] = pin.code
     elif 'pincode' in request.GET:
         request.session.pop('news_pincode', None)
-    items = published_items().filter(pincode=pin).select_related('pincode') if pin else NewsItem.objects.none()
+    items = published_items().filter(pincode__code=code).select_related('pincode') if pin else NewsItem.objects.none()
     for field in ('category', 'kind'):
         if selected[field]:
             items = items.filter(**{field: selected[field]})

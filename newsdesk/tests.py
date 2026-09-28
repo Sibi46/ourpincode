@@ -68,7 +68,19 @@ class NewsDeskTests(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertEqual(NewsItem.objects.get(title='A new local story').pincode, self.other_pin)
         response = self.client.post(self.url('create'), self.story_data(pincode='999999'))
-        self.assertContains(response, 'Enter a registered, active pincode.', status_code=400)
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(NewsItem.objects.filter(pincode__code='999999').exists())
+
+    def test_unregistered_pincode_feed_and_atomic_creation(self):
+        self.assertEqual(self.client.get(self.url('api_feed'), {'pincode': '654321'}).json()['total'], 0)
+        self.assertFalse(PinCode.objects.filter(code='654321').exists())
+        self.client.force_login(self.admin)
+        response = self.client.post(self.url('create'), self.story_data(pincode='654321', title=''))
+        self.assertEqual(response.status_code, 400)
+        self.assertFalse(PinCode.objects.filter(code='654321').exists())
+        response = self.client.post(self.url('create'), self.story_data(pincode='654321', status='published'))
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(self.client.get(self.url('api_feed'), {'pincode': '654321'}).json()['total'], 1)
 
     def test_selected_pin_remembered_and_reset(self):
         self.client.get(self.url('feed'), {'pincode': self.other_pin.code})
