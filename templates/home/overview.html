@@ -12,12 +12,12 @@
   <div class="hp-shortcuts">
     <a class="hp-tile hp-pink" href="/businesses/"><span>🛍️</span><strong>Shops</strong></a>
     <a class="hp-tile hp-mint" href="/advertise/"><span>🏷️</span><strong>Offers</strong></a>
-    <a class="hp-tile hp-lilac" href="/jobs/"><span>💼</span><strong>Jobs</strong></a>
+    <a class="hp-tile hp-lilac" href="/portal/"><span>🏘️</span><strong>Community</strong></a>
     <a class="hp-tile hp-peach" href="/coupons/activate/"><span>🎟️</span><strong>Coupons</strong></a>
     <a class="hp-tile hp-blue" href="/news/"><span>📰</span><strong>News</strong></a>
     <a class="hp-tile hp-mint" href="{% url 'network_feed' %}"><span>👥</span><strong>Network</strong></a>
   </div>
-  <button class="hp-explore-trigger" type="button" data-explore-open aria-haspopup="dialog"><span class="hp-explore-icon" aria-hidden="true">✦</span><span><strong>Explore more</strong><small>Community · Family · Health · Events<br>Gift Vouchers · My School · Campus</small></span><span aria-hidden="true">↗</span></button>
+  <button class="hp-explore-trigger" type="button" data-explore-open aria-haspopup="dialog"><span class="hp-explore-icon" aria-hidden="true">✦</span><span><strong>Explore more</strong><small>Show all sections · Jobs, Family, Health &amp; more</small></span><span aria-hidden="true">↗</span></button>
   <aside class="hp-advertise"><span class="hp-megaphone" aria-hidden="true">📣</span><div><h2>Advertise your business</h2><p>Reach people in your pincode.</p></div><a href="{% if request.user.is_authenticated and request.user.advertiser.status == 'approved' %}/advertise/dashboard/{% else %}/advertise/register/{% endif %}">Get started <span aria-hidden="true">↗</span></a></aside>
 </section>
 <dialog id="home-explore" class="hp-dialog" aria-labelledby="hp-explore-title">
@@ -36,5 +36,16 @@
     <a class="hp-lilac" href="/campus/"><span>🎓</span><strong>Campus</strong><small>College community</small></a>
   </div>
   <h3>More in your neighbourhood</h3>
-  <div class="hp-more-links"><a href="/businesses/">Shops</a><a href="/advertise/">Offers</a><a href="/jobs/">Jobs</a><a href="/coupons/activate/">Coupons</a><a href="/news/">News Desk</a><a href="/network/">Network</a><a href="/advertise/register/">Advertise</a><a href="/smart-marketing/">Smart Marketing</a></div>
+  <div class="hp-explore-grid">
+    <a class="hp-pink" href="/businesses/"><span>🛍️</span><strong>Shops</strong><small>Discover local businesses</small></a>
+    <a class="hp-mint" href="/advertise/"><span>🏷️</span><strong>Offers</strong><small>Find local deals</small></a>
+    <a class="hp-lilac" href="/jobs/"><span>💼</span><strong>Jobs</strong><small>Find work nearby</small></a>
+    <a class="hp-peach" href="/coupons/activate/"><span>🎟️</span><strong>Coupons</strong><small>Activate your gift coupon</small></a>
+    <a class="hp-blue" href="/news/"><span>📰</span><strong>News</strong><small>Read your local edition</small></a>
+    <a class="hp-mint" href="{% url 'network_feed' %}"><span>👥</span><strong>Network</strong><small>Connect with neighbours</small></a>
+    <a class="hp-lilac" href="/flicks/"><span>🎬</span><strong>Flicks</strong><small>Watch community posts</small></a>
+    <a class="hp-peach" href="/quiz/"><span>🧠</span><strong>Quiz</strong><small>Test your knowledge</small></a>
+    <a class="hp-blue" href="/advertise/register/"><span>📣</span><strong>Advertise</strong><small>Promote your business</small></a>
+    <a class="hp-pink" href="/smart-marketing/"><span>🚀</span><strong>Smart Marketing</strong><small>Grow your local reach</small></a>
+  </div>
 </dialog>
