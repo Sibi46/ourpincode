@@ -59,7 +59,16 @@
   .ig-tabs{background:#fff;display:flex;border-bottom:1.5px solid #e5e7eb;position:sticky;top:52px;z-index:100;overflow-x:auto;scrollbar-width:none}
   .ig-tabs::-webkit-scrollbar{display:none}
   .ig-tab{flex:0 0 auto;min-width:56px;padding:10px 10px 9px;text-align:center;font-size:10px;font-weight:700;color:#888;cursor:pointer;border-bottom:2.5px solid transparent;transition:.15s;display:flex;flex-direction:column;align-items:center;gap:2px}
-  .ig-tab i{font-size:16px}
+  .ig-tab i{font-size:18px}
+  button.ig-tab{background:#fff;border:0;border-bottom:2.5px solid transparent;font-family:inherit;min-height:57px}
+  .ig-tab:focus-visible,.ig-quick-action:focus-visible{outline:3px solid #a5b4fc;outline-offset:-3px}
+  .ig-quick-actions{display:flex;flex-wrap:wrap;gap:10px;padding:14px;background:#f8fafc;border-bottom:1px solid #e5e7eb}
+  .ig-quick-action{display:flex;align-items:center;gap:9px;flex:1;min-width:135px;padding:12px;border:1px solid #e2e8f0;border-radius:12px;background:#fff;text-decoration:none;color:#334155;font-size:11px;font-weight:750;line-height:1.4}
+  .ig-action-icon{width:34px;height:34px;border-radius:10px;background:#eef2ff;color:#4f46e5;display:grid;place-items:center;font-size:16px;flex-shrink:0}
+  .ig-agent-action{background:#eef2ff;border-color:#c7d2fe;color:#3730a3;flex:1.5;min-width:195px}
+  .ig-agent-action .ig-action-icon{background:#4f46e5;color:#fff}.ig-action-caption{display:block;font-size:10px;font-weight:500;color:#6366f1;margin-top:2px}.ig-action-arrow{margin-left:auto;font-size:10px;color:#6366f1}
+  .ig-quick-action:hover{border-color:#818cf8;background:#eef2ff}
+  @media(max-width:480px){.ig-quick-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:12px}.ig-quick-action,.ig-agent-action{min-width:0;padding:10px;font-size:10px}.ig-agent-action{grid-column:1/-1}.ig-tab{min-width:60px}.ig-action-icon{width:30px;height:30px;font-size:14px}}
   .ig-tab.active{color:#0a66c2;border-bottom-color:#0a66c2}
 
   /* CONTENT */
@@ -238,36 +247,37 @@
     </div>
   </div>
 
+  <nav class="ig-quick-actions" aria-label="Business tools">
+    <a class="ig-quick-action ig-agent-action" href="{% url 'marketing_access' %}"><span class="ig-action-icon"><i class="fas fa-user-shield" aria-hidden="true"></i></span><span>Smart Marketing<span class="ig-action-caption">Agent access</span></span><i class="fas fa-chevron-right ig-action-arrow" aria-hidden="true"></i></a>
+    <a class="ig-quick-action" href="{% url 'portal_event_history' %}"><span class="ig-action-icon"><i class="fas fa-history" aria-hidden="true"></i></span><span>Event History</span></a>
+    <a class="ig-quick-action" href="{% url 'my_offers' %}"><span class="ig-action-icon"><i class="fas fa-tags" aria-hidden="true"></i></span><span>My Offers</span></a>
+    {% if request.user.user_type == 'shop' %}<a class="ig-quick-action" href="{% url 'opc_verify_redemption' %}"><span class="ig-action-icon"><i class="fas fa-check-circle" aria-hidden="true"></i></span><span>Coupon Redemption</span></a>{% endif %}
+  </nav>
+
   <!-- TABS -->
   <div class="ig-tabs" id="igTabs">
-    <a class="ig-tab" href="{% url 'portal_event_history' %}"><i class="fas fa-history"></i>Event history</a>
-    <a class="ig-tab" href="{% url 'my_offers' %}">My Offers</a>
-    <div class="ig-tab" onclick="showSection('coupons',this)" data-sec="coupons"><i class="fas fa-ticket-alt"></i>Coupons</div>
-    {% if request.user.user_type == 'shop' %}
-    <a class="ig-tab" href="{% url 'opc_verify_redemption' %}" style="text-decoration:none"><i class="fas fa-check-circle" style="color:#059669"></i>Coupon Redemption</a>
-    {% endif %}
-    <div class="ig-tab" onclick="window.location.href='/offers/post/'"><i class="fas fa-tag" style="color:#FF5722"></i>Offer</div>
-    <div class="ig-tab" onclick="window.location.href='/vouchers/business/register/'"><i class="fas fa-gift" style="color:#7c3aed"></i>Voucher</div>
-    <div class="ig-tab" onclick="window.location.href='/advertiser/dashboard/'"><i class="fas fa-bullhorn"></i>Ads</div>
-    <div class="ig-tab" onclick="showSection('flicks',this)" data-sec="flicks"><i class="fas fa-bolt" style="color:#f59e0b"></i>Flicks</div>
-    <div class="ig-tab" onclick="showSection('gallery',this)" data-sec="gallery"><i class="fas fa-images" style="color:#10b981"></i>Gallery</div>
-    <div class="ig-tab" onclick="window.location.href='/quiz/'"><i class="fas fa-brain" style="color:#7c3aed"></i>Quiz</div>
-    <div class="ig-tab" onclick="showSection('notifications',this)" data-sec="notifications"><i class="fas fa-bell"></i>Notifs{% if unread_notif_count %} <span style="background:#e65100;color:#fff;border-radius:10px;padding:1px 5px;font-size:9px">{{ unread_notif_count }}</span>{% endif %}</div>
-    <div class="ig-tab" onclick="showSection('messages',this)" data-sec="messages"><i class="fas fa-comment-dots"></i>Msgs{% if unread_msg_count %} <span style="background:#e65100;color:#fff;border-radius:10px;padding:1px 5px;font-size:9px">{{ unread_msg_count }}</span>{% endif %}</div>
-    <div class="ig-tab active" onclick="showSection('active-jobs',this)" data-sec="active-jobs"><i class="fas fa-briefcase"></i>Jobs</div>
-    <div class="ig-tab" onclick="showSection('applications',this)" data-sec="applications"><i class="fas fa-file-alt"></i>Apply</div>
-    <div class="ig-tab" onclick="showSection('shortlisted',this)" data-sec="shortlisted"><i class="fas fa-star"></i>Short</div>
-    <div class="ig-tab" onclick="showSection('my-profile',this)" data-sec="my-profile"><i class="fas fa-id-card"></i>Company Profile{% if profile_incomplete %} <span style="background:#e65100;color:#fff;border-radius:10px;padding:1px 5px;font-size:9px">!</span>{% endif %}</div>
-    <div class="ig-tab" onclick="showSection('subscription',this)" data-sec="subscription"><i class="fas fa-crown"></i>Plan</div>
-    <div class="ig-tab" onclick="showSection('wallet',this)" data-sec="wallet"><i class="fas fa-wallet"></i>Wallet</div>
-    <div class="ig-tab" onclick="showSection('billing',this)" data-sec="billing"><i class="fas fa-receipt"></i>Billing</div>
-    <div class="ig-tab" onclick="showSection('feedback',this)" data-sec="feedback"><i class="fas fa-comment-alt"></i>Feedback</div>
+    <button type="button" class="ig-tab" onclick="showSection('coupons',this)" data-sec="coupons"><i class="fas fa-ticket-alt"></i>Coupons</button>
+    <button type="button" class="ig-tab" onclick="window.location.href='/offers/post/'"><i class="fas fa-tag" style="color:#FF5722"></i>Offer</button>
+    <button type="button" class="ig-tab" onclick="showSection('flicks',this)" data-sec="flicks"><i class="fas fa-bolt" style="color:#f59e0b"></i>Flicks</button>
+    <button type="button" class="ig-tab" onclick="showSection('my-profile',this)" data-sec="my-profile"><i class="fas fa-id-card"></i>Company Profile{% if profile_incomplete %} <span style="background:#e65100;color:#fff;border-radius:10px;padding:1px 5px;font-size:9px">!</span>{% endif %}</button>
+    <button type="button" class="ig-tab" onclick="window.location.href='/advertiser/dashboard/'"><i class="fas fa-bullhorn"></i>Ads</button>
+    <button type="button" class="ig-tab" onclick="window.location.href='/vouchers/business/register/'"><i class="fas fa-gift" style="color:#7c3aed"></i>Voucher</button>
+    <button type="button" class="ig-tab" onclick="window.location.href='/quiz/'"><i class="fas fa-brain" style="color:#7c3aed"></i>Quiz</button>
+    <button type="button" class="ig-tab" onclick="showSection('gallery',this)" data-sec="gallery"><i class="fas fa-images" style="color:#10b981"></i>Gallery</button>
+    <button type="button" class="ig-tab" onclick="showSection('notifications',this)" data-sec="notifications"><i class="fas fa-bell"></i>Notifs{% if unread_notif_count %} <span style="background:#e65100;color:#fff;border-radius:10px;padding:1px 5px;font-size:9px">{{ unread_notif_count }}</span>{% endif %}</button>
+    <button type="button" class="ig-tab" onclick="showSection('messages',this)" data-sec="messages"><i class="fas fa-comment-dots"></i>Msgs{% if unread_msg_count %} <span style="background:#e65100;color:#fff;border-radius:10px;padding:1px 5px;font-size:9px">{{ unread_msg_count }}</span>{% endif %}</button>
+    <button type="button" class="ig-tab active" onclick="showSection('active-jobs',this)" data-sec="active-jobs"><i class="fas fa-briefcase"></i>Jobs</button>
+    <button type="button" class="ig-tab" onclick="showSection('applications',this)" data-sec="applications"><i class="fas fa-file-alt"></i>Apply</button>
+    <button type="button" class="ig-tab" onclick="showSection('shortlisted',this)" data-sec="shortlisted"><i class="fas fa-star"></i>Short</button>
+    <button type="button" class="ig-tab" onclick="showSection('subscription',this)" data-sec="subscription"><i class="fas fa-crown"></i>Plan</button>
+    <button type="button" class="ig-tab" onclick="showSection('wallet',this)" data-sec="wallet"><i class="fas fa-wallet"></i>Wallet</button>
+    <button type="button" class="ig-tab" onclick="showSection('billing',this)" data-sec="billing"><i class="fas fa-receipt"></i>Billing</button>
+    <button type="button" class="ig-tab" onclick="showSection('feedback',this)" data-sec="feedback"><i class="fas fa-comment-alt"></i>Feedback</button>
   </div>
 
   <!-- CONTENT AREA -->
   <div class="ig-content">
   <div id="igToast" class="ig-toast"></div>
-    <p><a href="{% url 'marketing_access' %}">Smart Marketing Agent access</a></p>
     <section class="dash-section" data-sec="coupons">
       <h2>Business coupons</h2>
       <p>Share your Salesman Support ID with your salesman to receive coupons. Give the printed coupons to customers; they enter the code and spin to receive points.</p>
