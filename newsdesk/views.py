@@ -108,7 +108,13 @@ def feed(request):
     page = Paginator(items, 12).get_page(request.GET.get('page'))
     if api(request):
         return JsonResponse(page_data(page, serialize_item))
-    return render(request, 'newsdesk/feed.html', {'form': form, 'page': page, 'selected_pin': pin, **desk_context(request)})
+    edition = list(page)
+    return render(request, 'newsdesk/feed.html', {
+        'form': form, 'page': page, 'selected_pin': pin,
+        'top_stories': edition[:6], 'latest_stories': edition[6:],
+        'community_stories': [story for story in edition if story.category in ('community', 'achievements')][:3],
+        **desk_context(request),
+    })
 
 
 @endpoint()
