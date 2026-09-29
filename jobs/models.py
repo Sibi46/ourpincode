@@ -34,6 +34,7 @@ class User(AbstractUser):
 
     ADMIN_ROLES = [
         ('',               'Regular User'),
+        ('scoped_admin',   'Assigned Admin'),
         ('super_admin',    'Super Admin'),
         ('state_admin',    'State Admin'),
         ('district_admin', 'District Admin'),
@@ -653,6 +654,7 @@ class PinCode(models.Model):
 
 class AdminProfile(models.Model):
     ADMIN_ROLES = [
+        ('scoped_admin',   'Assigned Admin'),
         ('super_admin',    'Super Admin'),
         ('state_admin',    'State Admin'),
         ('district_admin', 'District Admin'),
@@ -663,6 +665,8 @@ class AdminProfile(models.Model):
     district     = models.ForeignKey(District, null=True, blank=True, on_delete=models.SET_NULL, related_name='district_admin_profiles')
     appointed_by = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name='appointed_admins')
     notes        = models.TextField(blank=True)
+    all_states   = models.BooleanField(default=False)
+    sections     = models.JSONField(default=list, blank=True)
     is_active    = models.BooleanField(default=True)
     created_at   = models.DateTimeField(auto_now_add=True)
 

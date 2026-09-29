@@ -1,0 +1,3 @@
+{{ scope_form.non_field_errors }}
+{% for field in scope_form %}<div class="team-field">{{ field.label_tag }}{{ field }}{{ field.errors }}</div>{% endfor %}
+<p class="team-note">Choose a state and the sections this admin may moderate. Select all states for a national section admin. Only the Main Super Admin can create admins or change permissions. Records without a mapped state remain with the Main Super Admin.</p>

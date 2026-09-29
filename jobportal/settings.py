@@ -27,6 +27,9 @@ try:
 except ImportError:
     pass
 
+GA4_MEASUREMENT_ID = os.environ.get('GA4_MEASUREMENT_ID', '').strip()
+
+
 def env_bool(name, default):
     value = os.environ.get(name, str(default)).strip().lower()
     if value in {'true', '1', 'yes', 'on'}:
@@ -153,6 +156,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'jobs.assigned_admin.AssignedAdminMiddleware',
     'jobs.marketing.MarketingMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',

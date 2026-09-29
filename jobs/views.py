@@ -444,6 +444,8 @@ def logout_view(request):
 @login_required
 def dashboard(request):
     role = request.user.admin_role
+    if role == 'scoped_admin':
+        return redirect('assigned_dashboard')
     if role == 'super_admin':
         return redirect('super_admin_dashboard')
     if role == 'state_admin':
@@ -2456,6 +2458,8 @@ def admin_panel_login(request):
     if user and getattr(user, 'admin_role', None):
         login(request, user, backend='jobs.backends.PhoneOrEmailBackend')
         role = user.admin_role
+        if role == 'scoped_admin':
+            return redirect('assigned_dashboard')
         if role == 'super_admin':
             return redirect('/super-admin/')
         elif role == 'state_admin':
@@ -3102,6 +3106,7 @@ def super_admin_dashboard(request):
         'open_complaints': open_complaints, 'recent_users': recent_users,
         'state_list': state_list, 'recent_jobs': recent_jobs,
         'industries': industries, 'notifications': notifications,
+        'personal_notifications': UserNotification.objects.filter(user=request.user, is_read=False)[:5],
         'employer_count': employer_count, 'jobseeker_count': jobseeker_count,
         'pending_jobs_count': pending_jobs_count, 'paid_verify_count': paid_verify_count,
         'voucher_biz_pending': voucher_biz_pending,
