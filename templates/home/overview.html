@@ -1,5 +1,5 @@
 <section class="hp-section hp-overview" aria-label="Explore your neighbourhood">
-  <section class="hp-promo" aria-label="Local business opportunities">
+  <section class="hp-promo hp-promo-gandhi" aria-label="Local business opportunities">
     <div class="hp-promo-stage">
       <a class="hp-promo-slide" href="/advertise/register/" data-promo-slide>Create your <em>business.</em></a>
       <a class="hp-promo-slide" href="{% if request.user.is_authenticated and request.user.advertiser.status == 'approved' %}/advertise/dashboard/{% else %}/advertise/register/{% endif %}" data-promo-slide hidden>Post your <em>ads.</em></a>
