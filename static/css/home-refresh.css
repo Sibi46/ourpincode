@@ -7,13 +7,14 @@ body{background:#faf9fd;color:var(--hp-ink);padding-bottom:86px}html{scroll-beha
 .hp-promo{margin:20px 0;background:none;border:0;padding:0}.hp-promo-stage{position:relative;height:88px;overflow:hidden}.hp-promo-slide{position:absolute;inset:0;display:flex;align-content:center;justify-content:center;align-items:center;flex-wrap:wrap;column-gap:.25em;padding:8px 0;font-size:36px;font-weight:800;line-height:1.2;letter-spacing:-1px;color:var(--hp-ink);text-align:center}.hp-promo-slide em{font-style:normal;color:var(--hp-purple)}.hp-promo-slide[hidden]{display:none}.hp-promo-slide:focus-visible{outline-offset:-4px}
 @media(max-width:600px){.hp-promo{margin:14px 0}.hp-promo-stage{height:80px}.hp-promo-slide{font-size:27px;letter-spacing:-.7px}}
 
-/* Gandhi Jayanti: decoration only; carousel dimensions and interactions stay intact. */
-.hp-promo-gandhi{position:relative;isolation:isolate;border-radius:18px;background:radial-gradient(ellipse at 8% 0%,#f1c17b40,transparent 45%),radial-gradient(ellipse at 95% 100%,#849c642b,transparent 42%),#fffaf0;box-shadow:inset 0 0 0 1px #d9c6a480,0 5px 18px #493b1a08;overflow:hidden}
-.hp-promo-gandhi::before{content:"";position:absolute;z-index:2;pointer-events:none;left:18px;top:8px;width:72px;height:72px;border-radius:50%;background:#eadbc5 url('../images/gandhi-portrait-1931.jpg') center 43%/cover no-repeat;filter:sepia(.45) contrast(.92);box-shadow:0 0 0 3px #fffaf0,0 0 0 4px #bd935a70}
-.hp-promo-gandhi::after{content:"";position:absolute;z-index:2;pointer-events:none;right:18px;top:5px;width:92px;height:76px;background:url('../images/gandhi-charkha.svg') center/contain no-repeat}
-.hp-promo-gandhi .hp-promo-stage{border-radius:inherit;background:linear-gradient(90deg,#d59240,transparent 42%) top left/100% 2px no-repeat,linear-gradient(90deg,transparent 48%,#638467) bottom right/100% 3px no-repeat}
-.hp-promo-gandhi .hp-promo-slide{padding-left:112px;padding-right:120px;color:#253f34;font-weight:700;letter-spacing:-1.1px}
-.hp-promo-gandhi .hp-promo-slide em{color:#9d571c;text-decoration:underline;text-decoration-color:#d2aa6866;text-decoration-thickness:2px;text-underline-offset:6px}
-.hp-promo-gandhi .hp-promo-slide:focus-visible{outline:3px solid #527958;outline-offset:-5px;border-radius:inherit}
-@media(max-width:600px){.hp-promo-gandhi{border-radius:14px}.hp-promo-gandhi::before{left:9px;top:10px;width:58px;height:58px}.hp-promo-gandhi::after{right:3px;top:22px;width:40px;height:38px;opacity:.75}.hp-promo-gandhi .hp-promo-slide{padding-left:78px;padding-right:45px;font-size:22px;letter-spacing:-.6px}.hp-promo-gandhi .hp-promo-slide em{text-underline-offset:4px}}
-@media(max-width:360px){.hp-promo-gandhi::before{left:7px;width:54px;height:54px;top:12px}.hp-promo-gandhi .hp-promo-slide{padding-left:70px;padding-right:38px;font-size:20px}.hp-promo-gandhi::after{width:34px;right:1px}}
+/* Shopping promotion: existing carousel content, dimensions and controls retained. */
+.hp-promo-shopping{position:relative;isolation:isolate;border-radius:18px;background:radial-gradient(ellipse at 8% 0%,#f1c3d654,transparent 44%),radial-gradient(ellipse at 95% 100%,#bdabe84a,transparent 44%),#fff9f5;box-shadow:inset 0 0 0 1px #e5cedb,0 5px 18px #74366708;overflow:hidden}
+.hp-promo-shopping::before,.hp-promo-shopping::after{content:"";position:absolute;z-index:2;pointer-events:none;top:0;height:88px;background-position:center;background-size:contain;background-repeat:no-repeat}
+.hp-promo-shopping::before{left:8px;width:110px;background-image:url('../images/promo-shopping-fashion.svg')}
+.hp-promo-shopping::after{right:8px;width:110px;background-image:url('../images/promo-shopping-gifts.svg')}
+.hp-promo-shopping .hp-promo-stage{border-radius:inherit;background:linear-gradient(90deg,#bc719d88,transparent 44%) top left/100% 2px no-repeat,linear-gradient(90deg,transparent 48%,#b4a0d999) bottom right/100% 2px no-repeat}
+.hp-promo-shopping .hp-promo-slide{padding-left:128px;padding-right:128px;color:#3d2849;font-weight:700;letter-spacing:-1.1px}
+.hp-promo-shopping .hp-promo-slide em{color:#a34879;text-decoration:underline;text-decoration-color:#d9a87466;text-decoration-thickness:2px;text-underline-offset:6px}
+.hp-promo-shopping .hp-promo-slide:focus-visible{outline:3px solid #8651a1;outline-offset:-5px;border-radius:inherit}
+@media(max-width:600px){.hp-promo-shopping{border-radius:14px}.hp-promo-shopping::before{left:1px;top:8px;width:68px;height:66px}.hp-promo-shopping::after{right:1px;top:17px;width:52px;height:52px}.hp-promo-shopping .hp-promo-slide{padding-left:73px;padding-right:56px;font-size:22px;letter-spacing:-.6px}.hp-promo-shopping .hp-promo-slide em{text-underline-offset:4px}}
+@media(max-width:360px){.hp-promo-shopping::before{width:61px;left:0}.hp-promo-shopping::after{width:45px;right:0}.hp-promo-shopping .hp-promo-slide{padding-left:65px;padding-right:47px;font-size:20px}}
