@@ -36,10 +36,12 @@ Apply the additive migration before restarting the application:
 
 ```sh
 python manage.py migrate
+python manage.py seed_states
 python manage.py check
 ```
 
 No existing roles are converted and no accounts are created automatically.
+`seed_states` adds missing states and union territories for the Assigned State dropdown. It preserves existing state records, inactive states and pincode mappings, and is safe to run again.
 
 ## Validation
 
