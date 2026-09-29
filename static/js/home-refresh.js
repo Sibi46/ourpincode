@@ -45,3 +45,68 @@
     }
   }, 2000);
 })();
+
+(() => {
+  const zip = document.querySelector('[data-promo-zip]');
+  if (!zip) return;
+  const pull = zip.querySelector('.hp-zip-pull');
+  const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  let pointer = null, startX = 0, progress = 0, opening = false, timer;
+  const travel = () => Math.max(1, zip.clientWidth - pull.offsetWidth);
+  function paint(value) {
+    progress = Math.max(0, Math.min(1, value));
+    zip.style.setProperty('--zip-progress', progress);
+    zip.style.setProperty('--zip-travel', `${progress * travel()}px`);
+  }
+  function reset() {
+    clearTimeout(timer);
+    pointer = null;
+    opening = false;
+    zip.classList.remove('is-dragging', 'is-opening');
+    paint(0);
+  }
+  function openRegistration() {
+    if (opening) return;
+    opening = true;
+    paint(1);
+    zip.classList.remove('is-dragging');
+    zip.classList.add('is-opening');
+    timer = setTimeout(() => window.location.assign(zip.href), motion.matches ? 0 : 180);
+  }
+  zip.addEventListener('pointerdown', event => {
+    if (opening || pointer !== null || !event.isPrimary || event.button !== 0 || event.ctrlKey || event.metaKey || !event.target.closest('.hp-zip-pull')) return;
+    pointer = event.pointerId;
+    startX = event.clientX;
+    zip.focus({preventScroll: true});
+    zip.setPointerCapture(pointer);
+    zip.classList.add('is-dragging');
+    paint(0);
+  });
+  zip.addEventListener('pointermove', event => {
+    if (event.pointerId !== pointer) return;
+    paint((startX - event.clientX) / travel());
+  });
+  zip.addEventListener('pointerup', event => {
+    if (event.pointerId !== pointer) return;
+    paint((startX - event.clientX) / travel());
+    const complete = progress >= 0.88;
+    pointer = null;
+    zip.releasePointerCapture(event.pointerId);
+    if (complete) openRegistration();
+    else reset();
+  });
+  zip.addEventListener('pointercancel', reset);
+  zip.addEventListener('lostpointercapture', () => { if (pointer !== null) reset(); });
+  zip.addEventListener('dragstart', event => event.preventDefault());
+  zip.addEventListener('click', event => {
+    if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+    event.preventDefault();
+    // Enter / assistive-technology activation remains a normal accessible link.
+    if (event.detail === 0) openRegistration();
+  });
+  zip.addEventListener('keydown', event => {
+    if (event.key === 'Escape') reset();
+  });
+  window.addEventListener('pageshow', reset);
+  window.addEventListener('resize', () => { if (!opening) reset(); });
+})();
