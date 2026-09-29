@@ -674,6 +674,21 @@ class AdminProfile(models.Model):
         return f"{self.get_role_display()} — {self.user.get_full_name() or self.user.username}"
 
 
+class AdminActivity(models.Model):
+    actor = models.ForeignKey(User, null=True, on_delete=models.SET_NULL, related_name='admin_activities')
+    actor_name = models.CharField(max_length=150)
+    section = models.CharField(max_length=30)
+    action = models.CharField(max_length=30)
+    target_id = models.CharField(max_length=40, blank=True)
+    target_name = models.CharField(max_length=250, blank=True)
+    state_name = models.CharField(max_length=100, blank=True)
+    details = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        ordering = ['-created_at', '-pk']
+
+
 class Industry(models.Model):
     COLLAR_TYPES = [('white', 'White Collar'), ('blue', 'Blue Collar'), ('both', 'Both')]
     name      = models.CharField(max_length=100, unique=True)

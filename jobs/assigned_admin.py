@@ -5,8 +5,9 @@ from functools import wraps
 from django import forms
 from django.apps import apps
 from django.contrib import messages
+from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.paginator import Paginator
 from django.db import transaction
@@ -16,7 +17,8 @@ from django.urls import path
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
-from .models import AdminProfile, PinCode, State, User, UserNotification
+from .models import AdminActivity, AdminProfile, PinCode, State, User, UserNotification
+from .admin_activity import record_activity
 
 # Model, geographic lookup, title, permitted moderation actions.
 SECTIONS = {
@@ -88,7 +90,7 @@ def scoped_records(user, section):
 
 
 class ScopeForm(forms.ModelForm):
-    sections = forms.MultipleChoiceField(choices=SECTION_CHOICES, widget=forms.CheckboxSelectMultiple)
+    sections = forms.MultipleChoiceField(choices=SECTION_CHOICES, required=False, widget=forms.CheckboxSelectMultiple)
     class Meta:
         model = AdminProfile
         fields = ('all_states', 'state', 'sections')
@@ -101,6 +103,8 @@ class ScopeForm(forms.ModelForm):
 
     def clean(self):
         data = super().clean()
+        if not self.instance.pk and not data.get('sections'):
+            self.add_error('sections', 'Enable at least one section for a new admin.')
         if not data.get('all_states') and not data.get('state'):
             self.add_error('state', 'Select a state, or choose all states.')
         if data.get('all_states'):
@@ -109,24 +113,59 @@ class ScopeForm(forms.ModelForm):
 
 
 class AdminAccountForm(UserCreationForm):
-    phone = forms.RegexField(r'^[0-9]{10}$', label='Mobile number', max_length=10)
+    phone = forms.RegexField(r'^[0-9]{10}$', label='Mobile number (optional)', max_length=10, required=False)
     first_name = forms.CharField(label='Name', max_length=150)
     class Meta(UserCreationForm.Meta):
         model = User
-        fields = ('first_name', 'phone')
+        fields = ('first_name', 'username', 'phone')
+
+    def clean_username(self):
+        username = super().clean_username()
+        if User.objects.filter(Q(username__iexact=username) | Q(phone=username) | Q(email__iexact=username) | Q(business_phone=username)).exists():
+            raise forms.ValidationError('This username is already used. Choose another one.')
+        return username
 
     def clean_phone(self):
         phone = self.cleaned_data['phone']
-        if User.objects.filter(Q(username=phone) | Q(phone=phone) | Q(business_phone=phone)).exists():
+        if phone and User.objects.filter(Q(username=phone) | Q(phone=phone) | Q(business_phone=phone)).exists():
             raise forms.ValidationError('This mobile number already belongs to an account.')
-        self.instance.username = phone
         return phone
+
+
+class AdminLoginForm(AuthenticationForm):
+    def confirm_login_allowed(self, user):
+        super().confirm_login_allowed(user)
+        if user.admin_role not in ('super_admin', 'scoped_admin'):
+            raise forms.ValidationError('This account does not have access to the admin workspace.')
+        if user.admin_role == 'scoped_admin':
+            profile = getattr(user, 'admin_profile', None)
+            if not profile or not profile.is_active:
+                raise forms.ValidationError('Your admin access is suspended. Contact the Main Super Admin.')
+
+
+def admin_login(request):
+    if request.user.is_authenticated:
+        return redirect('dashboard')
+    form = AdminLoginForm(request, data=request.POST if request.method == 'POST' else None)
+    if request.method == 'POST':
+        from .views import _rate_limit, _get_client_ip
+        if not _rate_limit(f'assigned_login_{_get_client_ip(request)}', 5, 300):
+            form = AdminLoginForm(request, data={})
+            form.add_error(None, 'Too many attempts. Please try again in five minutes.')
+        elif form.is_valid():
+            login(request, form.get_user())
+            return redirect('dashboard')
+    return render(request, 'assigned_admin/login.html', {'form': form})
+
+
+def scope_snapshot(profile):
+    return {'state': profile.state.name if profile.state_id else '', 'all_states': profile.all_states, 'sections': list(profile.sections), 'active': profile.is_active}
 
 
 @main_admin_required
 def manage_admins(request):
     account_form = AdminAccountForm(request.POST if request.method == 'POST' else None)
-    scope_form = ScopeForm(request.POST if request.method == 'POST' else None)
+    scope_form = ScopeForm(request.POST if request.method == 'POST' else None, initial={'sections': list(SECTIONS)})
     if request.method == 'POST':
         valid_account = account_form.is_valid()
         valid_scope = scope_form.is_valid()
@@ -141,8 +180,9 @@ def manage_admins(request):
                 profile.role = 'scoped_admin'
                 profile.appointed_by = request.user
                 profile.save()
-                UserNotification.objects.create(user=user, title='Your admin access is ready', message='Sign in with your mobile number and password to manage your assigned sections.')
-            messages.success(request, f'Admin created. Login mobile: {user.phone}.')
+                UserNotification.objects.create(user=user, title='Your admin access is ready', message='Sign in with your username and password to manage your assigned sections.')
+                record_activity(request.user, 'team', 'create_admin', user.pk, user.username, {'after': scope_snapshot(profile)})
+            messages.success(request, f'Admin created. Login username: {user.username}.')
             return redirect('manage_assigned_admins')
     admins = AdminProfile.objects.filter(role='scoped_admin').select_related('user', 'state')
     for admin in admins:
@@ -153,9 +193,12 @@ def manage_admins(request):
 @main_admin_required
 def edit_admin(request, pk):
     profile = get_object_or_404(AdminProfile, pk=pk, role='scoped_admin', user__admin_role='scoped_admin')
+    before = scope_snapshot(profile)
     form = ScopeForm(request.POST if request.method == 'POST' else None, instance=profile)
     if request.method == 'POST' and form.is_valid():
-        form.save()
+        with transaction.atomic():
+            form.save()
+            record_activity(request.user, 'team', 'change_access', profile.user_id, profile.user.username, {'before': before, 'after': scope_snapshot(profile)})
         messages.success(request, 'Admin permissions updated. They apply immediately.')
         return redirect('manage_assigned_admins')
     return render(request, 'assigned_admin/edit.html', {'scope_form': form, 'profile': profile})
@@ -169,6 +212,7 @@ def toggle_assigned_admin(request, pk):
         profile.is_active = not profile.is_active
         profile.save(update_fields=['is_active'])
         User.objects.filter(pk=profile.user_id).update(is_active=profile.is_active)
+        record_activity(request.user, 'team', 'activate_admin' if profile.is_active else 'suspend_admin', profile.user_id, profile.user.username)
     messages.success(request, 'Admin access updated.')
     return redirect('manage_assigned_admins')
 
@@ -176,10 +220,25 @@ def toggle_assigned_admin(request, pk):
 @login_required
 def assigned_dashboard(request):
     profile = profile_for(request.user)
-    sections = [{'key': key, 'name': value[0], 'count': scoped_records(request.user, key).count()}
-                for key, value in SECTIONS.items() if profile is None or key in profile.sections]
+    sections = []
+    pending_filters = {'jobs': {'is_approved': False, 'status': 'active'}, 'news': {'status': 'draft'}, 'offers': {'is_active': False}, 'ads': {'status': 'pending'}, 'community': {'is_verified': False}, 'vouchers': {'status': 'pending'}}
+    for key, value in SECTIONS.items():
+        enabled = profile is None or key in profile.sections
+        records = scoped_records(request.user, key) if enabled else None
+        sections.append({'key': key, 'name': value[0], 'enabled': enabled,
+                         'count': records.count() if enabled else None,
+                         'pending': records.filter(**pending_filters[key]).count() if enabled and key in pending_filters else 0})
+    recent_activity = AdminActivity.objects.filter(actor=request.user)
+    if profile:
+        recent_activity = recent_activity.filter(section__in=list(profile.sections) + ['account'])
+        recent_activity = recent_activity.filter(state_name=profile.state.name if profile.state_id and not profile.all_states else 'All states')
     return render(request, 'assigned_admin/dashboard.html', {
         'profile': profile, 'sections': sections,
+        'enabled_count': sum(item['enabled'] for item in sections),
+        'record_count': sum(item['count'] or 0 for item in sections),
+        'pending_count': sum(item['pending'] for item in sections),
+        'recent_activity': recent_activity[:8],
+        'section_nav': [item for item in sections if item['enabled']],
         'notifications': UserNotification.objects.filter(user=request.user)[:5],
     })
 
@@ -198,7 +257,9 @@ def assigned_section(request, section):
         if obj.admin_status is None:
             obj.admin_status = 'Active' if getattr(obj, 'is_active', True) else 'Suspended'
         obj.admin_detail = getattr(obj, 'body', '') or getattr(obj, 'description', '') or getattr(obj, 'caption', '')
-    return render(request, 'assigned_admin/section.html', {'page': page, 'section': section, 'label': label, 'actions': actions, 'search': search})
+    profile = profile_for(request.user)
+    section_nav = [{'key': key, 'name': value[0]} for key, value in SECTIONS.items() if profile is None or key in profile.sections]
+    return render(request, 'assigned_admin/section.html', {'page': page, 'section': section, 'label': label, 'actions': actions, 'search': search, 'section_nav': section_nav})
 
 
 @login_required
@@ -210,6 +271,8 @@ def assigned_action(request, section, pk):
     action = request.POST.get('action')
     if action not in SECTIONS[section][4]:
         raise PermissionDenied('Unsupported action.')
+    target_name = getattr(obj, SECTIONS[section][3]) or f'#{obj.pk}'
+    before = {name: getattr(obj, name) for name in ('status', 'is_active', 'is_approved', 'is_verified') if hasattr(obj, name)}
     if section == 'jobs':
         obj.is_approved = action == 'approve'
         obj.status = 'active' if action == 'approve' else 'closed'
@@ -248,11 +311,31 @@ def assigned_action(request, section, pk):
         if section == 'community' and action == 'approve':
             obj.is_verified = True
         obj.save()
+    after = {'deleted': True} if action == 'delete' else {name: getattr(obj, name) for name in before}
+    record_activity(request.user, section, action, pk, target_name, {'before': before, 'after': after})
     messages.success(request, 'Saved successfully.')
     return redirect('assigned_section', section=section)
 
 
+@main_admin_required
+def admin_activity(request):
+    logs = AdminActivity.objects.all()
+    actor = request.GET.get('actor', '').strip()[:150]
+    section = request.GET.get('section', '')
+    if actor:
+        logs = logs.filter(actor_name__icontains=actor)
+    if section in SECTIONS or section in ('team', 'account'):
+        logs = logs.filter(section=section)
+    return render(request, 'assigned_admin/activity.html', {
+        'page': Paginator(logs, 40).get_page(request.GET.get('page')),
+        'actor_filter': actor, 'section_filter': section,
+        'section_choices': [('team', 'Admin permissions'), ('account', 'Sign-ins')] + SECTION_CHOICES,
+    })
+
+
 urlpatterns = [
+    path('admin-workspace/login/', admin_login, name='assigned_login'),
+    path('super-admin/team/activity/', admin_activity, name='admin_activity'),
     path('super-admin/team/', manage_admins, name='manage_assigned_admins'),
     path('super-admin/team/<int:pk>/edit/', edit_admin, name='edit_assigned_admin'),
     path('super-admin/team/<int:pk>/toggle/', toggle_assigned_admin, name='toggle_assigned_admin'),

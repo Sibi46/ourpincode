@@ -3050,6 +3050,7 @@ def flick_advertise(request, pk):
 
 @super_admin_required
 def super_admin_dashboard(request):
+    from .models import AdminActivity
     from vouchers.models import Business as VoucherBusiness, VoucherSlotPurchase, GiftVoucher, VoucherPurchase
     from django.db.models import Sum as DjSum
     total_users     = User.objects.count()
@@ -3107,6 +3108,7 @@ def super_admin_dashboard(request):
         'state_list': state_list, 'recent_jobs': recent_jobs,
         'industries': industries, 'notifications': notifications,
         'personal_notifications': UserNotification.objects.filter(user=request.user, is_read=False)[:5],
+        'recent_admin_activity': AdminActivity.objects.all()[:5],
         'employer_count': employer_count, 'jobseeker_count': jobseeker_count,
         'pending_jobs_count': pending_jobs_count, 'paid_verify_count': paid_verify_count,
         'voucher_biz_pending': voucher_biz_pending,

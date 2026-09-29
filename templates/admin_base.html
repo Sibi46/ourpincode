@@ -81,6 +81,7 @@
 
       <div class="ap-nav-section">Overview</div>
       <a href="{% url 'manage_assigned_admins' %}" class="ap-nav-link"><i class="fas fa-user-shield" aria-hidden="true"></i> Admin Team</a>
+      <a href="{% url 'admin_activity' %}" class="ap-nav-link"><i class="fas fa-history" aria-hidden="true"></i> Admin Activity</a>
       <a href="/super-admin/" class="ap-nav-link {% if request.path == '/super-admin/' %}active{% endif %}">
         <i class="fas fa-tachometer-alt"></i> Dashboard
       </a>
@@ -240,6 +241,7 @@
       {% elif request.user.admin_role == 'scoped_admin' %}
       <div class="ap-nav-section">Assigned access</div>
       <a href="{% url 'assigned_dashboard' %}" class="ap-nav-link"><i class="fas fa-th-large" aria-hidden="true"></i> My workspace</a>
+      {% for item in section_nav %}<a href="{% url 'assigned_section' item.key %}" class="ap-nav-link {% if section == item.key %}active{% endif %}">{{ item.name }}</a>{% endfor %}
       <p style="padding:14px;color:#64748b;font-size:12px;line-height:1.6">Your workspace shows the sections and state assigned by the Main Super Admin.</p>
       {% elif request.user.admin_role == 'state_admin' %}
 

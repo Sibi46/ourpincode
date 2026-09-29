@@ -85,7 +85,7 @@ class AssignedAdminTests(TestCase):
         self.assertEqual(self.action(self.remote).status_code, 302)
 
     def account_payload(self, **extra):
-        data = {'first_name': 'Delhi Admin', 'phone': '9000000092', 'password1': 'Strong-team-849!', 'password2': 'Strong-team-849!', 'state': self.delhi.pk, 'sections': ['jobs', 'news']}
+        data = {'first_name': 'Delhi Admin', 'username': '9000000092', 'phone': '9000000092', 'password1': 'Strong-team-849!', 'password2': 'Strong-team-849!', 'state': self.delhi.pk, 'sections': ['jobs', 'news']}
         data.update(extra)
         return data
 
@@ -192,3 +192,90 @@ class AssignedAdminTests(TestCase):
                         self.assertEqual(objects[0].status, 'approved')
                     else:
                         self.assertTrue(objects[0].is_active)
+
+    def test_username_creation_without_phone_and_real_admin_login(self):
+        from django.core.cache import cache
+        from .models import AdminActivity
+        cache.clear()
+        self.client.force_login(self.main)
+        payload = self.account_payload(username='delhi.manager', phone='')
+        response = self.client.post(reverse('manage_assigned_admins'), payload)
+        self.assertRedirects(response, reverse('manage_assigned_admins'))
+        user = User.objects.get(username='delhi.manager')
+        self.assertTrue(user.check_password(payload['password1']))
+        self.assertFalse(user.is_staff)
+        self.client.logout()
+        self.assertContains(self.client.get(reverse('assigned_login')), 'Admin login')
+        response = self.client.post(reverse('assigned_login'), {'username': 'delhi.manager', 'password': payload['password1']}, follow=True)
+        self.assertContains(response, 'Delhi dashboard')
+        self.assertTrue(AdminActivity.objects.filter(actor=user, action='login').exists())
+        self.assertTrue(AdminActivity.objects.filter(action='create_admin', target_name='delhi.manager').exists())
+        self.assertNotIn(payload['password1'], str(list(AdminActivity.objects.values())))
+
+    def test_username_collision_case_and_phone_alias(self):
+        from .assigned_admin import AdminAccountForm
+        User.objects.create_user('DELHI.manager')
+        for username in ('delhi.manager', self.admin.phone):
+            self.assertFalse(AdminAccountForm(self.account_payload(username=username)).is_valid())
+
+    def test_all_features_can_be_switched_off_immediately(self):
+        from .models import AdminActivity
+        manager = Client()
+        manager.force_login(self.main)
+        response = manager.post(reverse('edit_assigned_admin', args=[self.profile.pk]), {'state': self.tn.pk, 'sections': []})
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(self.action(self.local).status_code, 403)
+        response = self.client.get(reverse('assigned_dashboard'))
+        self.assertContains(response, '0 sections enabled')
+        self.assertNotContains(response, 'Manage Jobs')
+        self.assertTrue(AdminActivity.objects.filter(action='change_access', target_id=str(self.admin.pk)).exists())
+
+    def test_moderation_audited_and_denied_action_not_recorded(self):
+        from .models import AdminActivity
+        self.assertEqual(self.action(self.local).status_code, 302)
+        log = AdminActivity.objects.get(section='jobs', action='approve')
+        self.assertEqual(log.actor, self.admin)
+        self.assertEqual(log.target_id, str(self.local.pk))
+        self.assertEqual(log.state_name, 'Tamil Nadu')
+        self.assertFalse(log.details['before']['is_approved'])
+        self.assertTrue(log.details['after']['is_approved'])
+        self.assertEqual(self.action(self.remote).status_code, 404)
+        self.assertEqual(AdminActivity.objects.filter(section='jobs').count(), 1)
+        self.client.force_login(self.main)
+        response = self.client.get(reverse('admin_activity'), {'actor': self.admin.username, 'section': 'jobs'})
+        self.assertContains(response, self.local.title)
+        self.assertNotContains(response, self.remote.title)
+
+    def test_audit_failure_rolls_back_action(self):
+        from unittest.mock import patch
+        with patch('jobs.assigned_admin.record_activity', side_effect=RuntimeError('audit unavailable')):
+            with self.assertRaises(RuntimeError):
+                self.action(self.local)
+        self.local.refresh_from_db()
+        self.assertFalse(self.local.is_approved)
+        self.assertFalse(self.owner.notifications.exists())
+
+    def test_assigned_admin_cannot_read_global_history(self):
+        self.assertRedirects(self.client.get(reverse('admin_activity')), reverse('assigned_dashboard'))
+        self.assertEqual(self.client.post(reverse('admin_activity')).status_code, 403)
+
+    def test_dashboard_counts_are_state_and_section_scoped(self):
+        response = self.client.get(reverse('assigned_dashboard'))
+        self.assertEqual(response.context['record_count'], 1)
+        self.assertEqual(response.context['enabled_count'], 1)
+        disabled = [s for s in response.context['sections'] if not s['enabled']]
+        self.assertTrue(all(s['count'] is None for s in disabled))
+        self.assertContains(response, 'Tamil Nadu dashboard')
+
+    def test_login_rejects_suspended_user_and_limits_attempts(self):
+        from django.core.cache import cache
+        cache.clear()
+        self.client.logout()
+        self.admin.is_active = False
+        self.admin.save()
+        response = self.client.post(reverse('assigned_login'), {'username': self.admin.username, 'password': 'Secure-admin-123!'})
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn('_auth_user_id', self.client.session)
+        for _ in range(5):
+            response = self.client.post(reverse('assigned_login'), {'username': 'missing', 'password': 'wrong'})
+        self.assertContains(response, 'Too many attempts')

@@ -5,12 +5,19 @@ The current `super_admin` keeps full access. Existing state/district admins are 
 ## Use
 
 1. Open Super Admin > Admin Team > Create admin.
-2. Enter name, unique mobile number and password with confirmation.
+2. Enter name, unique username and password with confirmation. Mobile number is optional.
 3. Select a state (for example Tamil Nadu or Delhi), or choose All states.
-4. Select the sections the admin may moderate. Select all listed sections for a state-wide content moderator, or only Jobs for a Jobs admin.
-5. The new admin signs in at `/login/` with their mobile number and password. `/dashboard/` sends them to `/admin-workspace/`.
+4. Use the ON/OFF switches for the sections the admin may moderate. All are initially enabled for a state admin; use Disable all and enable only Jobs or Flicks for a section admin.
+5. Share `/admin-workspace/login/` with the admin. They sign in using their username and password and reach their named state dashboard automatically. Existing accounts keep their original login usernames.
 
 Edit access or suspend/reactivate accounts in Admin Team. Changes apply to existing sessions on the next request. These accounts cannot create other admins, use Django admin, or enter the older unrestricted admin panels.
+All sections can be turned off for an existing admin. Disabled sections appear as OFF cards without record counts or action links. Dashboard totals include only enabled sections within the assigned state; financial and account-management tools remain with the Main Super Admin.
+
+## Activity monitoring
+
+The Main Super Admin dashboard shows recent activity; `/super-admin/team/activity/` provides paginated history filtered by admin username and section. Records include successful admin sign-ins, account creation, permission updates, suspension/reactivation, and successful moderation actions performed in the assigned workspace. Content changes and their audit record are saved in the same transaction. Failed/denied actions are not recorded as successful actions.
+
+History starts with this release, not retroactively. Existing legacy back-office actions are outside this log. Passwords are never recorded. Actor and target names are retained when a referenced account or moderated Flick is deleted. Assigned admins cannot access the global activity log; their dashboard shows only their own activity for their current scope.
 
 ## Sections
 
