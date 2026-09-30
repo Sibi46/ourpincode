@@ -52,6 +52,35 @@
   const pull = zip.querySelector('.hp-zip-pull');
   const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
   let pointer = null, startX = 0, progress = 0, opening = false, timer;
+  let audio, soundBuffer, lastSound = 0;
+  function prepareSound() {
+    try {
+      const Audio = window.AudioContext || window.webkitAudioContext;
+      if (!Audio) return;
+      if (!audio) {
+        audio = new Audio();
+        soundBuffer = audio.createBuffer(1, Math.ceil(audio.sampleRate * .045), audio.sampleRate);
+        const samples = soundBuffer.getChannelData(0);
+        for (let i = 0; i < samples.length; i++) samples[i] = (Math.random() * 2 - 1) * (1 - i / samples.length);
+      }
+      if (audio.state === 'suspended') audio.resume().catch(() => {});
+    } catch (_) { /* Sound is optional; registration always remains available. */ }
+  }
+  function zipSound() {
+    if (!audio || audio.state !== 'running' || !soundBuffer || audio.currentTime - lastSound < .035) return;
+    lastSound = audio.currentTime;
+    const source = audio.createBufferSource();
+    const filter = audio.createBiquadFilter();
+    const gain = audio.createGain();
+    source.buffer = soundBuffer;
+    filter.type = 'bandpass';
+    filter.frequency.value = 2400;
+    filter.Q.value = .7;
+    gain.gain.value = .13;
+    source.connect(filter).connect(gain).connect(audio.destination);
+    source.onended = () => { source.disconnect(); filter.disconnect(); gain.disconnect(); };
+    source.start();
+  }
   const travel = () => Math.max(1, zip.clientWidth - pull.offsetWidth);
   function paint(value) {
     progress = Math.max(0, Math.min(1, value));
@@ -68,14 +97,15 @@
   function openRegistration() {
     if (opening) return;
     opening = true;
-    paint(1);
     zip.classList.remove('is-dragging');
     zip.classList.add('is-opening');
-    timer = setTimeout(() => window.location.assign(zip.href), motion.matches ? 0 : 180);
+    paint(1);
+    timer = setTimeout(() => window.location.assign(zip.href), motion.matches ? 0 : 320);
   }
   zip.addEventListener('pointerdown', event => {
     if (opening || pointer !== null || !event.isPrimary || event.button !== 0 || event.ctrlKey || event.metaKey || !event.target.closest('.hp-zip-pull')) return;
     pointer = event.pointerId;
+    prepareSound();
     startX = event.clientX;
     zip.focus({preventScroll: true});
     zip.setPointerCapture(pointer);
@@ -84,7 +114,9 @@
   });
   zip.addEventListener('pointermove', event => {
     if (event.pointerId !== pointer) return;
+    const previous = progress;
     paint((startX - event.clientX) / travel());
+    if (Math.abs(progress - previous) > .004) zipSound();
   });
   zip.addEventListener('pointerup', event => {
     if (event.pointerId !== pointer) return;
