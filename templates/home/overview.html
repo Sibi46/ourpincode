@@ -1,5 +1,20 @@
+{% load static %}
 <section class="hp-section hp-overview" aria-label="Explore your neighbourhood">
   <section class="hp-promo hp-promo-shopping" aria-label="Local business opportunities">
+    <div class="hp-promo-art hp-promo-art-left" aria-hidden="true">
+      <img src="{% static 'images/promo-mens-fashion.svg' %}" alt="" width="112" height="96">
+      <img src="{% static 'images/promo-shopping-fashion.svg' %}" alt="" width="112" height="96" hidden>
+      <img src="{% static 'images/promo-cakes.svg' %}" alt="" width="112" height="96" hidden>
+      <img src="{% static 'images/promo-necklaces.svg' %}" alt="" width="112" height="96" hidden>
+      <img src="{% static 'images/promo-makeup.svg' %}" alt="" width="112" height="96" hidden>
+      <img src="{% static 'images/promo-watches.svg' %}" alt="" width="112" height="96" hidden>
+    </div>
+    <div class="hp-promo-art hp-promo-art-right" aria-hidden="true">
+      <img src="{% static 'images/promo-shopping-gifts.svg' %}" alt="" width="112" height="96">
+      <img src="{% static 'images/promo-bags.svg' %}" alt="" width="112" height="96" hidden>
+      <img src="{% static 'images/promo-offers.svg' %}" alt="" width="112" height="96" hidden>
+      <img src="{% static 'images/promo-voucher.svg' %}" alt="" width="112" height="96" hidden>
+    </div>
     <div class="hp-promo-stage">
       <a class="hp-promo-slide" href="/advertise/register/" data-promo-slide>Create your <em>business.</em></a>
       <a class="hp-promo-slide" href="{% if request.user.is_authenticated and request.user.advertiser.status == 'approved' %}/advertise/dashboard/{% else %}/advertise/register/{% endif %}" data-promo-slide hidden>Post your <em>ads.</em></a>

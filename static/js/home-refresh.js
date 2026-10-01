@@ -45,3 +45,35 @@
     }
   }, 2000);
 })();
+
+// Rotate decorative product categories independently of the promotional links.
+(() => {
+  const banner = document.querySelector('.hp-promo-shopping');
+  if (!banner) return;
+  const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const groups = [...banner.querySelectorAll('.hp-promo-art')].map(element => ({
+    images: [...element.querySelectorAll('img')], index: 0
+  }));
+  let changing = false;
+  setInterval(async () => {
+    if (changing || document.hidden || motion.matches || banner.contains(document.activeElement)) return;
+    changing = true;
+    try {
+      await Promise.all(groups.map(async group => {
+        const nextIndex = (group.index + 1) % group.images.length;
+        const next = group.images[nextIndex];
+        if (!next || !next.complete || !next.naturalWidth) return;
+        const current = group.images[group.index];
+        await current.animate([{opacity: 1, transform: 'translateY(0)'}, {opacity: 0, transform: 'translateY(-8px)'}], {duration: 220}).finished;
+        current.hidden = true;
+        next.hidden = false;
+        group.index = nextIndex;
+        await next.animate([{opacity: 0, transform: 'translateY(8px)'}, {opacity: 1, transform: 'translateY(0)'}], {duration: 350, easing: 'ease-out'}).finished;
+      }));
+    } catch (_) {
+      // A cancelled animation must not stop subsequent category rotations.
+    } finally {
+      changing = false;
+    }
+  }, 3200);
+})();
