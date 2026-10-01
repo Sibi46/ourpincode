@@ -122,6 +122,8 @@
     .dsec-header h2  { font-size: 16px !important; }
   }
   </style>
+  <link rel="stylesheet" href="{% static 'css/employer-storefront.css' %}?v=1">
+  <script src="{% static 'js/employer-storefront.js' %}?v=1" defer></script>
 </head>
 <body>
 
@@ -144,6 +146,10 @@
 </div>
 
 <div class="ig-wrap">
+  <header class="shop-front">
+    <div class="shop-sign">{{ profile.company_name|default:request.user.username }}</div>
+    <div class="shop-awning" aria-hidden="true"></div>
+  </header>
   <section style="padding:16px;background:#fff;border-bottom:1px solid #e5e7eb" aria-label="Registered businesses">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
       <h2 style="font-size:14px;margin:0">Registered businesses</h2><a href="{% url 'business_list' %}" style="font-size:12px;color:#0a66c2;font-weight:700">See all</a>
@@ -1777,6 +1783,18 @@ function postAction(url){
 </div>
 {% include "includes/email_autofill.html" %}
 {% include "includes/quiz_popup.html" %}
+{% if profile %}
+<dialog class="shop-entry" id="shopEntry" aria-labelledby="shopEntryName" aria-describedby="shopEntryHint" data-shop="{{ request.user.pk }}-{{ profile.pk }}">
+  <div class="shop-sign" id="shopEntryName">{{ profile.company_name }}</div>
+  <div class="shop-awning" aria-hidden="true"></div>
+  <button type="button" class="shop-doors" id="shopDoors" aria-label="Open your shop dashboard. Double tap, or press Enter or Space.">
+    <span class="shop-door shop-door-left" aria-hidden="true"></span><span class="shop-door shop-door-right" aria-hidden="true"></span>
+    <span class="shop-door-plaque" aria-hidden="true">Welcome to your shop</span>
+  </button>
+  <p id="shopEntryHint">Double-tap the doors to open your dashboard</p>
+  <button type="button" class="shop-entry-open" id="shopEntryOpen">Open dashboard</button>
+</dialog>
+{% endif %}
 </body>
 </html>
 

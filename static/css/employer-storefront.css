@@ -1,0 +1,25 @@
+body{background:#f6f0e7}
+.ig-wrap{max-width:820px}
+.shop-front{padding-top:18px;background:#fffaf2}
+.shop-sign{margin:0 auto;padding:18px 20px 22px;text-align:center;font-family:Georgia,'Times New Roman',serif;font-size:clamp(25px,5vw,38px);font-weight:700;letter-spacing:.025em;color:#492d21;overflow-wrap:anywhere;line-height:1.2;text-shadow:0 1px #fff}
+.shop-awning{position:relative;height:48px;background:repeating-linear-gradient(100deg,#b9232c 0 24px,#d6373e 24px 40px,#fff7e9 40px 64px,#e9dfce 64px 80px);border-top:5px solid #702d28;border-bottom:9px solid #98262d;border-radius:5px 5px 14px 14px;box-shadow:0 8px 12px #48281f26;z-index:1}
+.ig-tabs{position:relative;top:auto;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:15px 12px;padding:24px 18px 30px;overflow:visible;border:8px solid #855230;border-top:5px solid #d6aa76;border-bottom:14px solid #684025;border-radius:12px;background:repeating-linear-gradient(0deg,#bd8b59 0px,#c69766 3px,#d2a575 5px,#c69968 55px);box-shadow:0 8px 0 #482e20,0 14px 24px #492c2024;margin:16px 12px 26px}
+.ig-tabs button.ig-tab{min-width:0;min-height:82px;padding:10px 4px;gap:7px;border:1px solid #e2cfaf;border-bottom:4px solid #d6bfa0;border-radius:12px;background:linear-gradient(#fffdf7,#f5e8d3);box-shadow:0 5px 7px #482b2233;color:#573c2c;font-size:11px;white-space:normal;overflow-wrap:anywhere;transition:transform .18s,box-shadow .18s}
+.ig-tabs .ig-tab i{font-size:24px;color:#9d4934}
+.ig-tabs button.ig-tab:hover{transform:translateY(-3px);box-shadow:0 8px 10px #482b2240}
+.ig-tabs button.ig-tab.active{background:#fff8db;border-color:#a35435;color:#71351f;box-shadow:0 0 0 2px #a35435,0 5px 8px #482b2233}
+.ig-header{background:#fffdf8}.ig-name{font-family:Georgia,'Times New Roman',serif;color:#492d21;font-size:23px}.ig-quick-actions{background:#fffaf2}
+.shop-entry{padding:0 0 22px;border:1px solid #a37c53;border-radius:16px;width:min(460px,calc(100% - 28px));max-height:calc(100dvh - 32px);overflow:auto;margin:auto;background:#fff8ea;color:#533624;text-align:center;box-shadow:0 25px 90px #1e120a66}
+.shop-entry::backdrop{background:#23170ed9;backdrop-filter:blur(5px)}
+body:has(.shop-entry[open]){overflow:hidden}
+.shop-doors{position:relative;display:block;width:calc(100% - 44px);height:clamp(190px,42dvh,330px);margin:18px auto 0;padding:0;border:9px solid #57321e;border-bottom:12px solid #4c2e1d;border-radius:4px;background:#281b13;perspective:900px;cursor:pointer;touch-action:manipulation;overflow:hidden}
+.shop-door{position:absolute;top:0;bottom:0;width:50%;background:repeating-linear-gradient(92deg,#885532 0,#9c673e 3px,#8f5b36 6px,#a16e45 42px);border:3px solid #694023;box-shadow:inset 0 0 0 7px #af7a4e,inset 0 0 0 10px #704729;transition:transform .65s ease;backface-visibility:hidden}
+.shop-door:before{content:'';position:absolute;inset:22px 17px;border:5px ridge #ab784b;border-radius:3px;box-shadow:inset 0 3px 15px #38200d55}
+.shop-door:after{content:'';position:absolute;top:51%;width:7px;height:42px;background:linear-gradient(90deg,#a87b34,#f7d991,#9b6b2c);border-radius:5px;box-shadow:1px 3px 4px #352110}
+.shop-door-left{left:0;transform-origin:left}.shop-door-right{right:0;transform-origin:right}.shop-door-left:after{right:12px}.shop-door-right:after{left:12px}
+.shop-door-plaque{position:absolute;top:24%;left:15%;width:70%;padding:10px;background:#fff0d4;color:#63432d;border:2px solid #bd9457;border-radius:4px;font:italic 18px Georgia,serif;transition:opacity .2s}
+.shop-entry.is-opening .shop-door-left{transform:rotateY(-100deg)}.shop-entry.is-opening .shop-door-right{transform:rotateY(100deg)}.shop-entry.is-opening .shop-door-plaque{opacity:0}
+.shop-entry p{padding:0 18px;font-size:13px}.shop-entry-open{padding:10px 20px;border:1px solid #815032;border-radius:8px;background:#76452b;color:#fff5e4;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer}
+.shop-entry button:focus-visible{outline:3px solid #cf8d22;outline-offset:3px}
+@media(max-width:600px){.ig-tabs{grid-template-columns:repeat(4,minmax(0,1fr));gap:12px 8px;margin:12px 8px 24px;padding:18px 10px 22px;border-width:5px;border-bottom-width:10px}.ig-tabs button.ig-tab{font-size:10px;min-height:78px}.shop-awning{height:40px}}
+@media(prefers-reduced-motion:reduce){.shop-door,.shop-door-plaque,.ig-tabs button.ig-tab{transition:none}.ig-tabs button.ig-tab:hover{transform:none}}
