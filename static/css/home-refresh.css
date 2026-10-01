@@ -8,13 +8,21 @@ body{background:#faf9fd;color:var(--hp-ink);padding-bottom:86px}html{scroll-beha
 @media(max-width:600px){.hp-promo{margin:14px 0}.hp-promo-stage{height:80px}.hp-promo-slide{font-size:27px;letter-spacing:-.7px}}
 
 /* Shopping promotion: existing carousel content, dimensions and controls retained. */
-.hp-promo-shopping{position:relative;isolation:isolate;border-radius:18px;background:radial-gradient(ellipse at 8% 0%,#f1c3d654,transparent 44%),radial-gradient(ellipse at 95% 100%,#bdabe84a,transparent 44%),#fff9f5;box-shadow:inset 0 0 0 1px #e5cedb,0 5px 18px #74366708;overflow:hidden}
+.hp-promo-shopping{position:relative;isolation:isolate;border-radius:18px;background:radial-gradient(ellipse at 8% 0%,#49778280,transparent 48%),radial-gradient(ellipse at 95% 100%,#96744445,transparent 44%),#142b38;box-shadow:inset 0 0 0 1px #ae94684d,0 7px 22px #142b381c;overflow:hidden}
 .hp-promo-shopping::before,.hp-promo-shopping::after{content:"";position:absolute;z-index:2;pointer-events:none;top:0;height:88px;background-position:center;background-size:contain;background-repeat:no-repeat}
-.hp-promo-shopping::before{left:8px;width:110px;background-image:url('../images/promo-shopping-fashion.svg')}
+.hp-promo-shopping::before{left:8px;width:110px;background-image:url('../images/promo-mens-fashion.svg')}
 .hp-promo-shopping::after{right:8px;width:110px;background-image:url('../images/promo-shopping-gifts.svg')}
-.hp-promo-shopping .hp-promo-stage{border-radius:inherit;background:linear-gradient(90deg,#bc719d88,transparent 44%) top left/100% 2px no-repeat,linear-gradient(90deg,transparent 48%,#b4a0d999) bottom right/100% 2px no-repeat}
-.hp-promo-shopping .hp-promo-slide{padding-left:128px;padding-right:128px;color:#3d2849;font-weight:700;letter-spacing:-1.1px}
-.hp-promo-shopping .hp-promo-slide em{color:#a34879;text-decoration:underline;text-decoration-color:#d9a87466;text-decoration-thickness:2px;text-underline-offset:6px}
+.hp-promo-shopping .hp-promo-stage{border-radius:inherit;background:linear-gradient(90deg,#d9b97888,transparent 44%) top left/100% 2px no-repeat,linear-gradient(90deg,transparent 48%,#d9b97866) bottom right/100% 2px no-repeat}
+.hp-promo-shopping .hp-promo-slide{padding-left:128px;padding-right:128px;color:#fff7e9;font-weight:700;letter-spacing:-1.1px}
+.hp-promo-shopping .hp-promo-slide em{color:#edcc8c;text-decoration:underline;text-decoration-color:#d9a87466;text-decoration-thickness:2px;text-underline-offset:6px}
 .hp-promo-shopping .hp-promo-slide:focus-visible{outline:3px solid #8651a1;outline-offset:-5px;border-radius:inherit}
 @media(max-width:600px){.hp-promo-shopping{border-radius:14px}.hp-promo-shopping::before{left:1px;top:8px;width:68px;height:66px}.hp-promo-shopping::after{right:1px;top:17px;width:52px;height:52px}.hp-promo-shopping .hp-promo-slide{padding-left:73px;padding-right:56px;font-size:22px;letter-spacing:-.6px}.hp-promo-shopping .hp-promo-slide em{text-underline-offset:4px}}
 @media(max-width:360px){.hp-promo-shopping::before{width:61px;left:0}.hp-promo-shopping::after{width:45px;right:0}.hp-promo-shopping .hp-promo-slide{padding-left:65px;padding-right:47px;font-size:20px}}
+
+/* Gentle garment movement and a slow light sweep frame the existing carousel. */
+.hp-promo-shopping::before{animation:hp-fashion-float 4.8s ease-in-out infinite;transform-origin:50% 20%}
+.hp-promo-shopping::after{animation:hp-fashion-float 5.6s ease-in-out -2s infinite}
+.hp-promo-shopping .hp-promo-stage::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(110deg,transparent 35%,#fff2cf10 48%,transparent 61%);transform:translateX(-110%);animation:hp-fashion-light 7s ease-in-out infinite}
+@keyframes hp-fashion-float{0%,100%{transform:translateY(2px) rotate(-2deg)}50%{transform:translateY(-3px) rotate(2deg)}}
+@keyframes hp-fashion-light{0%,35%{transform:translateX(-110%)}80%,100%{transform:translateX(110%)}}
+@media(prefers-reduced-motion:reduce){.hp-promo-shopping::before,.hp-promo-shopping::after,.hp-promo-shopping .hp-promo-stage::after{animation:none}.hp-promo-shopping .hp-promo-stage::after{display:none}}
