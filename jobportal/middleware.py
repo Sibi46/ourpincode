@@ -57,6 +57,14 @@ class LoginRequiredMiddleware:
     def __call__(self, request):
         if not request.user.is_authenticated:
             path = request.path
+            if path.startswith('/tuition/'):
+                from django.urls import resolve, Resolver404
+                try:
+                    match = resolve(path)
+                    if match.namespace == 'tuition' and match.url_name in {'discover', 'profile', 'apply', 'received', 'file', 'showcase', 'event', 'programme', 'result', 'achievement', 'asset', 'activity_file'}:
+                        return self.get_response(request)
+                except Resolver404:
+                    pass
 
             # Allow exact home
             if path in {'/', '/robots.txt', '/sitemap.xml'} or path.startswith('/sitemaps/'):

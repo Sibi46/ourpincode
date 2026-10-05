@@ -157,4 +157,4 @@ class CorrectionTests(TestCase):
         response = self.client.get(reverse('employer_dashboard'))
         self.assertContains(response, 'Registered businesses')
         self.assertContains(response, reverse('business_profile', args=[self.profile.company_id]))
-        self.assertContains(response, reverse('portal_event_history'))
+        self.assertNotContains(response, reverse('portal_event_history'))

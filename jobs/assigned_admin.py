@@ -22,6 +22,7 @@ from .admin_activity import record_activity
 
 # Model, geographic lookup, title, permitted moderation actions.
 SECTIONS = {
+    'tuition': ('Tuition', 'tuition.TeacherProfile', 'pincode', 'name', ('approve', 'suspend')),
     'jobs': ('Jobs', 'jobs.Job', 'pincode', 'title', ('approve', 'suspend')),
     'news': ('News', 'newsdesk.NewsItem', 'pincode__code', 'title', ('publish', 'unpublish')),
     'offers': ('Offers', 'jobs.LocalOffer', 'owner__pincode', 'title', ('activate', 'suspend')),
@@ -47,6 +48,10 @@ class AssignedAdminMiddleware:
         if not request.user.is_authenticated or request.user.admin_role != 'scoped_admin':
             return None
         name = request.resolver_match.url_name
+        if request.resolver_match.namespace == 'tuition' and name in {'admin_hub', 'content_review', 'media_preview', 'teacher_review', 'student_review', 'complaint_review'}:
+            from tuition.permissions import admin_teachers
+            admin_teachers(request.user)
+            return None
         allowed = {'assigned_dashboard', 'assigned_section', 'assigned_action', 'dashboard', 'logout'}
         if name not in allowed:
             if request.method in ('GET', 'HEAD'):
@@ -78,6 +83,9 @@ def profile_for(user):
 
 
 def scoped_records(user, section):
+    if section == 'tuition':
+        from tuition.permissions import admin_teachers
+        return admin_teachers(user)
     profile = profile_for(user)
     if section not in SECTIONS or (profile and section not in profile.sections):
         raise PermissionDenied('This section has not been assigned to you.')
@@ -279,6 +287,9 @@ def assigned_action(request, section, pk):
         # QuerySet update avoids the unrelated geocoding performed by Job.save.
         records.filter(pk=pk).update(is_approved=obj.is_approved, status=obj.status)
         UserNotification.objects.create(user=obj.posted_by, title=f'Job {action}d: {obj.title}', message='Your job was reviewed by an administrator. Open your dashboard to see its status and select a plan.', link=f'/jobs/{pk}/select-plan/')
+    elif section == 'tuition':
+        obj.status = 'approved' if action == 'approve' else 'suspended'
+        obj.save(update_fields=['status', 'updated_at'])
     elif section == 'news':
         obj.status = 'published' if action == 'publish' else 'draft'
         try:

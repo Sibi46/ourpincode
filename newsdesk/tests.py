@@ -326,13 +326,13 @@ class NewsDeskTests(TestCase):
             self.client.force_login(self.agent)
             response = self.client.get(self.url('media', item.pk, 'photo'))
             self.assertEqual(response.status_code, 200)
-            response.close()
+            self.assertTrue(b''.join(response.streaming_content))
             services.save_item(self.agent, self.story_data(status='published'), pk=item.pk)
             self.client.logout()
             response = self.client.get(self.url('media', item.pk, 'photo'))
             self.assertEqual(response.status_code, 200)
             self.assertEqual(response['X-Content-Type-Options'], 'nosniff')
-            response.close()
+            self.assertTrue(b''.join(response.streaming_content))
             for name, content in [('bad.mp4', b'<html>'), ('x.html', b'0000ftypisom')]:
                 with self.assertRaises(ValidationError):
                     services.save_item(self.agent, self.story_data(), {'video': SimpleUploadedFile(name, content)})

@@ -44,6 +44,9 @@ Thumbs.db
 # Claude Code session data
 .claude/
 
+# Disposable local audit tools, databases, fixtures and browser evidence
+/.audit-tools/
+
 # Stray root-level image dumps (images belong in static/images/)
 /Community.jpg
 /adds.jpg

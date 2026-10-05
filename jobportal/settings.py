@@ -135,6 +135,7 @@ INSTALLED_APPS = [
     'coupons',
     'quiz',
     'newsdesk',
+    'tuition',
 ]
 
 AUTH_USER_MODEL = 'jobs.User'
@@ -158,6 +159,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'jobs.assigned_admin.AssignedAdminMiddleware',
     'jobs.marketing.MarketingMiddleware',
+    'tuition.messaging.LegacyGuardMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'jobportal.middleware.LoginRequiredMiddleware',
@@ -247,6 +249,9 @@ STATICFILES_DIRS = [BASE_DIR / 'static']
 
 MEDIA_URL  = '/media/'
 MEDIA_ROOT = env_path('MEDIA_ROOT', _storage_base / 'media')
+TUITION_PRIVATE_ROOT = env_path('TUITION_PRIVATE_ROOT', _storage_base / 'tuition-private')
+TUITION_MEETING_HOSTS = ('meet.google.com', 'zoom.us', 'teams.microsoft.com')
+TUITION_FFPROBE = os.getenv('TUITION_FFPROBE', '').strip()
 for _name, _path in (('STATIC_ROOT', STATIC_ROOT), ('MEDIA_ROOT', MEDIA_ROOT)):
     if paths_overlap(_path, BASE_DIR):
         raise ImproperlyConfigured(f'{_name} must not overlap the project checkout.')

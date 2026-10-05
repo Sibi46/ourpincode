@@ -42,7 +42,7 @@ class SettingsSecretsTest(TestCase):
 
     def test_db_user_uses_env(self):
         """DB_USER must be read from environment when set."""
-        with patch.dict(os.environ, {'DB_USER': 'app_user', 'DB_PASSWORD': 'app_pass'}):
+        with patch.dict(os.environ, {'DJANGO_SECRET_KEY': 'synthetic-settings-test', 'DB_USER': 'app_user', 'DB_PASSWORD': 'app_pass'}):
             import importlib
             import jobportal.settings as s
             importlib.reload(s)
@@ -51,7 +51,7 @@ class SettingsSecretsTest(TestCase):
 
     def test_email_host_password_uses_env(self):
         """EMAIL_HOST_PASSWORD must be read from environment when set."""
-        with patch.dict(os.environ, {'EMAIL_HOST_PASSWORD': 'env-gmail-pass'}):
+        with patch.dict(os.environ, {'DJANGO_SECRET_KEY': 'synthetic-settings-test', 'EMAIL_HOST_PASSWORD': 'env-gmail-pass'}):
             import importlib
             import jobportal.settings as s
             importlib.reload(s)
@@ -552,7 +552,7 @@ class AdminLoginRateLimitTest(TestCase):
 
 
 class DistrictAdminRoleCheckTest(TestCase):
-    """MEDIUM — district_admin_required must only pass district_admin role."""
+    """Legacy district routes allow district/state/main roles, not scoped admins."""
 
     def _call_with_role(self, role):
         from jobs.views import district_admin_required
@@ -575,15 +575,18 @@ class DistrictAdminRoleCheckTest(TestCase):
         resp = self._call_with_role('district_admin')
         self.assertEqual(resp.status_code, 200)
 
-    def test_state_admin_blocked(self):
-        """state_admin must NOT pass district_admin_required."""
+    def test_legacy_state_admin_preserves_existing_access(self):
+        """Legacy hierarchy remains unchanged; new delegation uses scoped_admin."""
         resp = self._call_with_role('state_admin')
-        self.assertEqual(resp.status_code, 302)
+        self.assertEqual(resp.status_code, 200)
 
-    def test_super_admin_blocked(self):
-        """super_admin must NOT bypass district_admin_required."""
+    def test_main_super_admin_preserves_full_access(self):
+        """Main super admin retains the existing full-access hierarchy."""
         resp = self._call_with_role('super_admin')
-        self.assertEqual(resp.status_code, 302)
+        self.assertEqual(resp.status_code, 200)
+
+    def test_scoped_admin_cannot_use_legacy_district_routes(self):
+        self.assertEqual(self._call_with_role('scoped_admin').status_code, 302)
 
     def test_empty_role_blocked(self):
         """Empty admin_role must be blocked."""

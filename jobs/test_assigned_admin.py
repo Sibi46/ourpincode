@@ -146,6 +146,7 @@ class AssignedAdminTests(TestCase):
         from coupons.models import Salesman, Shop
         from vouchers.models import Business
         from .models import AdPost, Flick, LocalOffer
+        from tuition.models import TeacherProfile
         self.profile.sections = list(SECTIONS)
         self.profile.save()
         owners = [self.owner, User.objects.create_user('delhi-owner', pincode='110001')]
@@ -158,7 +159,9 @@ class AssignedAdminTests(TestCase):
             objects = []
             for owner, pin in zip(owners, ('600001', '110001')):
                 common = {'title': f'{section} {pin}'}
-                if section == 'news':
+                if section == 'tuition':
+                    obj = TeacherProfile.objects.create(owner=owner, pincode=pin, mapped_pin=PinCode.objects.get(code=pin), name=common['title'])
+                elif section == 'news':
                     obj = NewsItem.objects.create(author=owner, pincode=PinCode.objects.get(code=pin), body='Local news', **common)
                 elif section == 'offers':
                     obj = LocalOffer.objects.create(owner=owner, business_name='Shop', discount_text='10%', is_active=False, **common)
@@ -188,7 +191,7 @@ class AssignedAdminTests(TestCase):
                     if section == 'news':
                         self.assertEqual(objects[0].status, 'published')
                         self.assertIsNotNone(objects[0].published_at)
-                    elif section in ('ads', 'vouchers'):
+                    elif section in ('ads', 'vouchers', 'tuition'):
                         self.assertEqual(objects[0].status, 'approved')
                     else:
                         self.assertTrue(objects[0].is_active)

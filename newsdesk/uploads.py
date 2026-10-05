@@ -31,7 +31,10 @@ def upload_path(instance, filename):
 def validate_photo(value):
     if value.size > 5 * 1024 * 1024:
         raise ValidationError('Photos must be 5 MB or smaller.')
+    was_closed = value.closed
     try:
+        if was_closed:
+            value.open('rb')
         value.seek(0)
         with Image.open(value) as photo:
             if photo.format not in {'JPEG', 'PNG', 'WEBP'} or photo.width * photo.height > 20_000_000:
@@ -40,15 +43,26 @@ def validate_photo(value):
     except (UnidentifiedImageError, OSError, Image.DecompressionBombError, ValueError):
         raise ValidationError('Upload a valid JPEG, PNG or WebP photo.')
     finally:
-        value.seek(0)
+        if was_closed:
+            value.close()
+        else:
+            value.seek(0)
 
 
 def validate_video(value):
     if value.size > 25 * 1024 * 1024:
         raise ValidationError('Videos must be 25 MB or smaller.')
-    value.seek(0)
-    header = value.read(4096)
-    value.seek(0)
+    was_closed = value.closed
+    try:
+        if was_closed:
+            value.open('rb')
+        value.seek(0)
+        header = value.read(4096)
+    finally:
+        if was_closed:
+            value.close()
+        else:
+            value.seek(0)
     extension = Path(value.name).suffix.lower()
     mp4 = extension == '.mp4' and len(header) >= 12 and header[4:8] == b'ftyp'
     webm = extension == '.webm' and header.startswith(b'\x1aE\xdf\xa3') and b'webm' in header

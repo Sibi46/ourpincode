@@ -989,7 +989,7 @@ def employer_dashboard(request):
     saved_candidates = SavedCandidate.objects.filter(employer=user).select_related('candidate')
 
     # ── Messages ──
-    user_convs       = Conversation.objects.filter(Q(user_a=user) | Q(user_b=user))
+    user_convs       = Conversation.objects.filter(Q(user_a=user) | Q(user_b=user), tuition_context__isnull=True)
     unread_msg_count = Message.objects.filter(conversation__in=user_convs, is_read=False).exclude(sender=user).count()
     recent_convs     = user_convs.select_related('user_a', 'user_b', 'job').order_by('-updated_at')[:8]
     recent_messages  = [{'conv': c, 'other': c.other_user(user),
@@ -1747,7 +1747,7 @@ def withdraw_application(request, pk):
 # ── MESSAGING ─────────────────────────────────────────────────────────────────
 def _get_or_create_conv(user1, user2, job=None):
     a, b = (user1, user2) if user1.pk < user2.pk else (user2, user1)
-    conv, _ = Conversation.objects.get_or_create(user_a=a, user_b=b, job=job)
+    conv, _ = Conversation.objects.filter(tuition_context__isnull=True).get_or_create(user_a=a, user_b=b, job=job)
     return conv
 
 
@@ -1785,7 +1785,7 @@ def _msg_to_dict(msg, me):
 
 def _sidebar_data(user):
     convs = Conversation.objects.filter(
-        Q(user_a=user) | Q(user_b=user)
+        Q(user_a=user) | Q(user_b=user), tuition_context__isnull=True
     ).select_related('user_a', 'user_b', 'job').order_by('-updated_at')
     rows = []
     for c in convs:
@@ -2895,15 +2895,15 @@ def admin_feedback(request):
         messages.success(request, 'Feedback updated.')
         return redirect('admin_feedback')
     status_filter = request.GET.get('status', '')
-    qs = Complaint.objects.select_related('submitted_by').order_by('-created_at')
+    qs = Complaint.objects.filter(tuition_context__isnull=True).select_related('submitted_by').order_by('-created_at')
     if status_filter:
         qs = qs.filter(status=status_filter)
     return render(request, 'admin_feedback.html', {
         'complaints': qs,
         'status_filter': status_filter,
-        'open_count':       Complaint.objects.filter(status='open').count(),
-        'in_review_count':  Complaint.objects.filter(status='in_review').count(),
-        'resolved_count':   Complaint.objects.filter(status='resolved').count(),
+        'open_count':       Complaint.objects.filter(tuition_context__isnull=True).filter(status='open').count(),
+        'in_review_count':  Complaint.objects.filter(tuition_context__isnull=True).filter(status='in_review').count(),
+        'resolved_count':   Complaint.objects.filter(tuition_context__isnull=True).filter(status='resolved').count(),
     })
 
 
@@ -3063,7 +3063,7 @@ def super_admin_dashboard(request):
     pending_adverts   = Advertiser.objects.filter(status='pending').count()
     from .models import AdPost
     pending_ad_posts  = AdPost.objects.filter(status='pending').count()
-    open_complaints = Complaint.objects.filter(status='open').count()
+    open_complaints = Complaint.objects.filter(tuition_context__isnull=True).filter(status='open').count()
     employer_count  = User.objects.filter(user_type__in=User.EMPLOYER_TYPES, admin_role='').count()
     jobseeker_count = User.objects.filter(user_type__in=['employee','individual','freelancer'], admin_role='').count()
     recent_users       = User.objects.order_by('-date_joined')[:8]
@@ -3593,7 +3593,7 @@ def state_admin_dashboard(request):
         user_type__in=User.EMPLOYER_TYPES, is_active=True
     ).count()
     state_jobs = Job.objects.filter(pincode__in=[]).count()
-    open_complaints = Complaint.objects.filter(status='open').count()
+    open_complaints = Complaint.objects.filter(tuition_context__isnull=True).filter(status='open').count()
     district_admins = AdminProfile.objects.filter(role='district_admin', state=state) if state else []
     return render(request, 'state_admin_dashboard.html', {
         'state': state, 'districts': districts,
@@ -3669,7 +3669,7 @@ def state_reports(request):
     total_jobs = Job.objects.count()
     total_applications = JobApplication.objects.count()
     total_employers = User.objects.filter(user_type__in=User.EMPLOYER_TYPES).count()
-    open_complaints = Complaint.objects.filter(status='open').count()
+    open_complaints = Complaint.objects.filter(tuition_context__isnull=True).filter(status='open').count()
     white_jobs = Job.objects.filter(collar_type='white').count()
     blue_jobs  = Job.objects.filter(collar_type='blue').count()
     recent_employers = User.objects.filter(user_type__in=User.EMPLOYER_TYPES).order_by('-date_joined')[:10]
@@ -3700,9 +3700,9 @@ def district_admin_dashboard(request):
     district = profile.district if profile else None
     pending_employers  = Advertiser.objects.filter(status='pending').count()
     pending_ads        = Advertisement.objects.filter(status='pending_review').count()
-    open_complaints    = Complaint.objects.filter(status='open', district=district).count()
+    open_complaints    = Complaint.objects.filter(tuition_context__isnull=True).filter(status='open', district=district).count()
     recent_jobs        = Job.objects.order_by('-created_at')[:8]
-    recent_complaints  = Complaint.objects.filter(district=district).order_by('-created_at')[:5]
+    recent_complaints  = Complaint.objects.filter(tuition_context__isnull=True).filter(district=district).order_by('-created_at')[:5]
     return render(request, 'district_admin_dashboard.html', {
         'district': district, 'pending_employers': pending_employers,
         'pending_ads': pending_ads, 'open_complaints': open_complaints,
@@ -3819,7 +3819,7 @@ def moderate_jobs(request):
 def handle_complaints(request):
     profile  = getattr(request.user, 'admin_profile', None)
     district = profile.district if profile else None
-    complaints = Complaint.objects.filter(district=district).order_by('-created_at')
+    complaints = Complaint.objects.filter(tuition_context__isnull=True).filter(district=district).order_by('-created_at')
     return render(request, 'handle_complaints.html', {'complaints': complaints, 'district': district})
 
 
@@ -3845,13 +3845,13 @@ def district_reports(request):
     total_jobs         = Job.objects.filter(pincode__in=pin_codes).count() if pin_codes else Job.objects.count()
     total_applications = JobApplication.objects.count()
     total_employers    = User.objects.filter(user_type__in=User.EMPLOYER_TYPES).count()
-    total_complaints   = Complaint.objects.filter(district=district).count()
+    total_complaints   = Complaint.objects.filter(tuition_context__isnull=True).filter(district=district).count()
     white_jobs = Job.objects.filter(collar_type='white').count()
     blue_jobs  = Job.objects.filter(collar_type='blue').count()
     from datetime import date, timedelta
     month_start = date.today().replace(day=1)
     recent_jobs = Job.objects.filter(created_at__date__gte=month_start).select_related('posted_by').order_by('-created_at')[:15]
-    complaints  = Complaint.objects.filter(district=district).order_by('-created_at')[:10]
+    complaints  = Complaint.objects.filter(tuition_context__isnull=True).filter(district=district).order_by('-created_at')[:10]
     return render(request, 'district_reports.html', {
         'district': district,
         'total_jobs': total_jobs,
@@ -3862,10 +3862,10 @@ def district_reports(request):
         'blue_jobs': blue_jobs,
         'recent_jobs': recent_jobs,
         'complaints': complaints,
-        'comp_open':        Complaint.objects.filter(district=district, status='open').count(),
-        'comp_in_progress': Complaint.objects.filter(district=district, status='in_progress').count(),
-        'comp_resolved':    Complaint.objects.filter(district=district, status='resolved').count(),
-        'comp_closed':      Complaint.objects.filter(district=district, status='closed').count(),
+        'comp_open':        Complaint.objects.filter(tuition_context__isnull=True).filter(district=district, status='open').count(),
+        'comp_in_progress': Complaint.objects.filter(tuition_context__isnull=True).filter(district=district, status='in_progress').count(),
+        'comp_resolved':    Complaint.objects.filter(tuition_context__isnull=True).filter(district=district, status='resolved').count(),
+        'comp_closed':      Complaint.objects.filter(tuition_context__isnull=True).filter(district=district, status='closed').count(),
     })
 
 
