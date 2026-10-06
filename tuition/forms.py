@@ -21,7 +21,17 @@ class TeacherForm(StyledForm):
 
     class Meta:
         model = m.TeacherProfile
-        fields = ['kind', 'name', 'description', 'qualifications', 'experience', 'subjects', 'min_age', 'max_age', 'mode', 'address', 'pincode', 'phone', 'email', 'latitude', 'longitude', 'location_source', 'radius_km', 'public_fees']
+        fields = ['kind', 'name', 'description', 'qualifications', 'experience', 'subjects', 'min_age', 'max_age', 'mode', 'address', 'pincode', 'phone', 'email', 'public_fees']
+        widgets = {name: forms.Textarea(attrs={'rows': 3}) for name in ('description', 'qualifications', 'address')}
+        labels = {'kind': 'Profile type', 'name': 'Teacher or academy name', 'experience': 'Experience (years)', 'min_age': 'Minimum student age', 'max_age': 'Maximum student age', 'pincode': 'PIN code', 'public_fees': 'Show lesson fees on my public profile'}
+
+    def sections(self):
+        for title, names in (
+            ('Your teaching profile', ('kind', 'name', 'description', 'qualifications', 'experience')),
+            ('What you teach', ('subjects', 'mode', 'min_age', 'max_age')),
+            ('Location & contact', ('address', 'pincode', 'service_pins', 'phone', 'email', 'public_fees')),
+        ):
+            yield title, [self[name] for name in names]
 
     def clean_service_pins(self):
         pins = set(x.strip() for x in self.cleaned_data['service_pins'].split(',') if x.strip())

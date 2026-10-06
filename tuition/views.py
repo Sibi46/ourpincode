@@ -25,7 +25,7 @@ def page(request, title, template='tuition/page.html', **context):
     return response
 
 
-def form_page(request, title, form, save):
+def form_page(request, title, form, save, template='tuition/page.html'):
     if request.method == 'POST' and form.is_valid():
         try:
             with transaction.atomic():
@@ -34,7 +34,7 @@ def form_page(request, title, form, save):
             return redirect(destination)
         except ValidationError as exc:
             form.add_error(None, ValidationError(exc.messages))
-    return page(request, title, form=form)
+    return page(request, title, template=template, form=form)
 
 
 def teacher_for(request, uid):
@@ -133,7 +133,7 @@ def register_teacher(request, uid=None):
             m.ServiceArea.objects.get_or_create(teacher=obj, pincode=pin)
         svc.audit(request.user, obj, 'profile_saved')
         return teacher_url(obj)
-    return form_page(request, 'Teacher / academy profile', form, save)
+    return form_page(request, 'Teacher / academy profile', form, save, template='tuition/register.html')
 
 
 @login_required
