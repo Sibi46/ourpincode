@@ -18,8 +18,8 @@ from . import models as m, forms as f, services as svc, permissions as perm
 from .storage import upload_image, storage
 
 
-def page(request, title, **context):
-    response = render(request, 'tuition/page.html', {'title': title, **context})
+def page(request, title, template='tuition/page.html', **context):
+    response = render(request, template, {'title': title, **context})
     response['Cache-Control'] = 'private, no-store'
     response['Referrer-Policy'] = 'no-referrer'
     return response
@@ -56,7 +56,7 @@ def discover(request):
         if d['q']:
             teachers = teachers.filter(Q(name__icontains=d['q']) | Q(lessons__name__icontains=d['q'], lessons__active=True))
         if d['pincode']:
-            teachers = teachers.filter(Q(pincode=d['pincode']) | Q(service_areas__pincode=d['pincode']))
+            teachers = teachers.filter(Q(pincode__in=d['pincode']) | Q(service_areas__pincode__in=d['pincode']))
         if d['kind']:
             teachers = teachers.filter(kind=d['kind'])
         if d['subject']:
@@ -102,7 +102,7 @@ def discover(request):
             teachers = teachers.distinct().order_by('name', 'pk')
     else:
         teachers = teachers.none()
-    return page(request, 'Find a teacher', search=form, teachers=Paginator(teachers, 20).get_page(request.GET.get('page')))
+    return page(request, 'Find a teacher', template='tuition/discover.html', search=form, teachers=Paginator(teachers, 20).get_page(request.GET.get('page')))
 
 
 def public_profile(request, slug):

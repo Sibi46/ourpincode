@@ -124,8 +124,10 @@ class PaymentForm(forms.Form):
 
 
 class SearchForm(forms.Form):
-    q = forms.CharField(required=False, label='Teacher, academy or lesson')
-    pincode = forms.RegexField(r'^[0-9]{6}$', required=False)
+    q = forms.CharField(required=False, label='Teacher, academy or lesson', widget=forms.TextInput(attrs={'placeholder': 'Try Maths, piano or an academy'}))
+    pincode = forms.CharField(required=False, max_length=64, label='PIN codes',
+        help_text='Up to 3 six-digit PIN codes, separated by commas or spaces.',
+        widget=forms.TextInput(attrs={'placeholder': '600001, 600002, 600003', 'aria-describedby': 'pin-help'}))
     subject = forms.ModelChoiceField(queryset=m.Subject.objects.filter(active=True), required=False)
     kind = forms.ChoiceField(choices=[('', 'Any'), ('teacher', 'Teacher'), ('academy', 'Academy')], required=False)
     mode = forms.ChoiceField(choices=[('', 'Any')] + m.MODES, required=False)
@@ -136,6 +138,16 @@ class SearchForm(forms.Form):
     latitude = forms.FloatField(min_value=-90, max_value=90, required=False)
     longitude = forms.FloatField(min_value=-180, max_value=180, required=False)
     radius = forms.FloatField(min_value=0.1, max_value=500, required=False, label='Straight-line distance (km)')
+
+    def clean_pincode(self):
+        import re
+        value = self.cleaned_data['pincode'].strip()
+        if not value:
+            return []
+        pins = [pin for pin in re.split(r'[\s,]+', value) if pin]
+        if not pins or len(pins) > 3 or any(not re.fullmatch(r'[0-9]{6}', pin) for pin in pins):
+            raise forms.ValidationError('Enter up to 3 complete six-digit PIN codes, separated by commas or spaces.')
+        return list(dict.fromkeys(pins))
 
     def clean(self):
         data = super().clean()

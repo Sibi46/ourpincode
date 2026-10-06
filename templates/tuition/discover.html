@@ -1,0 +1,43 @@
+{% extends 'base.html' %}{% load static %}
+{% block title %}Find a teacher · OURPINCODE{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'tuition/learning.css' %}"><link rel="stylesheet" href="{% static 'tuition/discover.css' %}">{% endblock %}
+{% block content %}
+<main class="learning tuition-discovery">
+  <nav class="discovery-nav" aria-label="Learning navigation">
+    <a class="discovery-brand" href="{% url 'tuition:discover' %}"><span aria-hidden="true">✦</span> Tuition &amp; learning</a>
+    <div><a href="{% url 'tuition:dashboard' %}">My learning</a><a href="{% url 'tuition:register' %}">Teach with us <span aria-hidden="true">↗</span></a></div>
+  </nav>
+  <section class="discovery-hero" aria-labelledby="discovery-title">
+    <div><p class="eyebrow">BIG DREAMS. LOCAL TEACHERS.</p><h1 id="discovery-title">A little closer.<br><span>A lot to learn.</span></h1><p>Find a teacher for school subjects, music and new skills. Start with your neighbourhood.</p><div class="hero-tags"><span>School subjects</span><span>Music &amp; arts</span><span>New skills</span></div></div>
+    <div class="learning-illustration" aria-hidden="true"><div class="illustration-orbit"></div><div class="subject-tile tile-maths"><span>01 / DISCOVER</span><strong>Aa</strong><small>Make room for curiosity</small></div><div class="subject-tile tile-music"><strong>♫</strong><small>Find your rhythm</small></div><div class="subject-tile tile-skills"><strong>π + ∞</strong><small>Grow at your own pace</small></div><span class="illustration-spark">✳</span></div>
+  </section>
+  <section class="discovery-search" aria-labelledby="search-title">
+    <div class="search-heading"><div><p class="eyebrow">START CLOSE TO HOME</p><h2 id="search-title">Where would you like to learn?</h2></div><span class="search-note">In person or online</span></div>
+    <form method="get">
+      {{ search.non_field_errors }}
+      <div class="primary-search">
+        <div class="search-field"><label for="{{ search.pincode.id_for_label }}">{{ search.pincode.label }}</label>{{ search.pincode }}{{ search.pincode.errors }}<small id="pin-help">{{ search.pincode.help_text }}</small></div>
+        <div class="search-field"><label for="{{ search.q.id_for_label }}">Teacher or lesson</label>{{ search.q }}{{ search.q.errors }}</div>
+        <button type="submit">Find teachers <span aria-hidden="true">→</span></button>
+      </div>
+      <details class="discovery-filters" {% if search.kind.value or search.subject.value or search.mode.value or search.age.value or search.weekday.value or search.start.value or search.end.value or search.errors %}open{% endif %}>
+        <summary>More filters <span>Subject, age, class type &amp; timings</span></summary>
+        <div class="filter-grid">{% for field in search %}{% if field.name != 'q' and field.name != 'pincode' and field.name != 'latitude' and field.name != 'longitude' and field.name != 'radius' %}<div class="search-field"><label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}{{ field.errors }}</div>{% endif %}{% endfor %}</div>
+      </details>
+      {% if search.latitude.errors or search.longitude.errors or search.radius.errors %}<div class="legacy-search-errors">{{ search.latitude.errors }}{{ search.longitude.errors }}{{ search.radius.errors }}</div>{% endif %}
+      <div class="search-footer"><p>Match teacher locations and the areas they serve.</p><a href="{% url 'tuition:discover' %}">Clear filters</a></div>
+    </form>
+  </section>
+  <section class="discovery-results" aria-labelledby="results-title">
+    <div class="results-heading"><div><p class="eyebrow">YOUR NEXT CHAPTER</p><h2 id="results-title">Teachers &amp; academies</h2></div><span class="result-count">{{ teachers.paginator.count }} result{{ teachers.paginator.count|pluralize }}</span></div>
+    <div class="teacher-grid">{% for item in teachers %}<article class="teacher-result">
+      <div class="teacher-top"><span class="teacher-monogram" aria-hidden="true">{{ item.name|first|upper }}</span><span class="teacher-kind">{{ item.get_kind_display }}</span></div>
+      <h3><a href="{% url 'tuition:profile' item.slug %}">{{ item.name }}</a></h3><p class="teacher-area">PIN {{ item.pincode }} · {{ item.get_mode_display }}</p><p class="teacher-description">{{ item.description|truncatewords:24 }}</p>
+      <div class="teacher-subjects">{% for subject in item.subjects.all|slice:':3' %}<span>{{ subject.name }}</span>{% endfor %}</div>
+      <div class="teacher-bottom"><span>Ages {{ item.min_age }}–{{ item.max_age }}{% if item.distance != None %} · {{ item.distance }} km{% endif %}</span><a href="{% url 'tuition:profile' item.slug %}" aria-label="View {{ item.name }} profile">View profile <span aria-hidden="true">↗</span></a></div>
+    </article>{% empty %}<div class="discovery-empty"><span class="empty-symbol" aria-hidden="true">⌕</span><h3>Your next teacher could be nearby</h3><p>No teachers match this search yet. Try another PIN code or clear a filter.</p><a href="{% url 'tuition:register' %}">Are you a teacher? Create your profile <span aria-hidden="true">→</span></a></div>{% endfor %}</div>
+    {% if teachers.has_other_pages %}<nav class="discovery-pagination" aria-label="Teacher search pages">{% if teachers.has_previous %}<a href="{% querystring page=teachers.previous_page_number %}">← Previous</a>{% endif %}<span>Page {{ teachers.number }} of {{ teachers.paginator.num_pages }}</span>{% if teachers.has_next %}<a href="{% querystring page=teachers.next_page_number %}">Next →</a>{% endif %}</nav>{% endif %}
+  </section>
+  <aside class="teacher-invite"><div><p class="eyebrow">SHARE WHAT YOU KNOW</p><h2>Your neighbourhood needs your skills.</h2><p>Create a teaching profile and help more learners find you.</p></div><a href="{% url 'tuition:register' %}">Become a teacher <span aria-hidden="true">↗</span></a></aside>
+</main>
+{% endblock %}
