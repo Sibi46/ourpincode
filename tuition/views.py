@@ -139,7 +139,7 @@ def register_teacher(request, uid=None):
 @login_required
 def dashboard(request):
     perm.active(request.user)
-    return page(request, 'Your learning space', owned=m.TeacherProfile.objects.filter(owner=request.user), learners=perm.learners(request.user), claimable=m.Application.objects.filter(uid__in=request.session.get('tuition_receipts', []), applicant__isnull=True),
+    return page(request, 'Your learning space', template='tuition/learn.html', owned=m.TeacherProfile.objects.filter(owner=request.user), learners=perm.learners(request.user), claimable=m.Application.objects.filter(uid__in=request.session.get('tuition_receipts', []), applicant__isnull=True),
         guardian_requests=m.GuardianLink.objects.filter(user=request.user), applications=m.Application.objects.filter(applicant=request.user),
         notifications=request.user.notifications.filter(link__startswith='/tuition/').order_by('-created_at')[:30])
 
@@ -222,6 +222,17 @@ def batch_detail(request, uid):
 
 
 @login_required
+def group_leave(request, uid):
+    batch = get_object_or_404(m.Batch, uid=uid)
+    perm.own(request.user, batch.lesson.teacher)
+    form = f.GroupLeaveForm(request.POST or None, batch=batch)
+    def save(form):
+        svc.record_group_leave(request.user, batch, **form.cleaned_data)
+        return reverse('tuition:batch', args=[batch.uid])
+    return form_page(request, batch.name + ' — Student leave / absence', form, save)
+
+
+@login_required
 def availability(request, uid):
     teacher = teacher_for(request, uid)
     form = f.AvailabilityForm(request.POST or None, instance=m.Availability(teacher=teacher))
@@ -255,7 +266,7 @@ def learner_create(request, uid=None):
             m.GuardianLink.objects.create(learner=obj, user=request.user, relationship=form.cleaned_data['relationship'], attestation=form.cleaned_data['attestation'])
         svc.audit(request.user, obj, 'learner_created')
         return 'tuition:dashboard'
-    return form_page(request, 'Add yourself or a child', form, save)
+    return form_page(request, 'Add yourself or a child', form, save, template='tuition/learner_form.html')
 
 
 @login_required

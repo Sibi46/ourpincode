@@ -1,0 +1,54 @@
+from django.test import TestCase
+from django.urls import reverse
+from . import tests as fixtures, forms, models as m
+
+
+class LearnerUITests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        fixtures.TuitionTests.setUpTestData.__func__(cls)
+
+    def test_dashboard_preserves_authorized_links_and_privacy(self):
+        self.client.force_login(self.parent)
+        response = self.client.get(reverse('tuition:dashboard'))
+        self.assertTemplateUsed(response, 'tuition/learn.html')
+        self.assertContains(response, reverse('tuition:learner', args=[self.child.uid]))
+        self.assertEqual(response['Referrer-Policy'], 'same-origin')
+        self.client.force_login(self.other)
+        response = self.client.get(reverse('tuition:dashboard'))
+        self.assertNotContains(response, reverse('tuition:learner', args=[self.child.uid]))
+        self.assertContains(response, 'Add your first learner')
+
+    def test_form_validation_and_guardian_request(self):
+        self.client.force_login(self.other)
+        url = reverse('tuition:learner_create')
+        response = self.client.get(url)
+        self.assertTemplateUsed(response, 'tuition/learner_form.html')
+        form = forms.LearnerForm()
+        self.assertEqual(set(form.fields), {field.name for _, fields in form.sections() for field in fields})
+        data = dict(name='New child', age=10, pincode='600001')
+        response = self.client.post(url, data)
+        self.assertContains(response, 'Please check the highlighted fields')
+        self.assertContains(response, 'Guardian requests require relationship and attestation.')
+        response = self.client.post(url, {**data, 'relationship': 'Parent', 'attestation': 'I am the parent'})
+        self.assertRedirects(response, reverse('tuition:dashboard'))
+        self.assertEqual(m.GuardianLink.objects.get(user=self.other).status, 'pending')
+
+    def test_edit_omits_registration_only_fields(self):
+        self.client.force_login(self.parent)
+        response = self.client.get(reverse('tuition:learner_edit', args=[self.child.uid]))
+        self.assertContains(response, 'Update learner profile')
+        self.assertNotContains(response, 'name="attestation"')
+        self.assertNotContains(response, 'name="self_registration"')
+
+    def test_export_synthetic_preview(self):
+        import os
+        if os.environ.get('TUITION_AUDIT_UI') != '1':
+            self.skipTest('Optional synthetic browser preview')
+        from pathlib import Path
+        root = Path('.audit-tools/ui')
+        root.mkdir(parents=True, exist_ok=True)
+        self.client.force_login(self.parent)
+        for name, route in [('learn', 'dashboard'), ('learner-form', 'learner_create')]:
+            response = self.client.get(reverse('tuition:' + route))
+            (root / (name + '.html')).write_bytes(response.content)

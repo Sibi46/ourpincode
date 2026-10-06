@@ -87,6 +87,12 @@ Migrations were applied forward only in isolated SQLite tests. No reverse migrat
 Final verification on 2026-10-04: **145/145 tests passed**, Django checks reported 0 issues, migration drift reported no changes, and integration diff whitespace checks passed. This is isolated SQLite evidence, not production/MySQL/video-codec validation. Checklist items 12, 15, 16 and 22 remain explicitly verification-gated.
 
 
+### Group leave / absence dates
+
+Teachers open a batch and select **Record leave / absence dates**, then choose an active enrolled student, inclusive dates, status and reason. Approved owners only can submit. `excused` means leave (including future scheduled classes); `absent` requires the class to have started. Existing attendance cannot be overwritten through the date-range form; corrections use the individual class attendance form. Membership and enrolment end dates are unchanged.
+
+This reuses Attendance and SessionParticipant, including audit and points handling; no migration is needed. Only already-generated scheduled classes are covered, not future timetable additions. Create the timetable before recording leave. An invalid range is rolled back as a whole. This is teacher-recorded leave, not a parent leave-request approval workflow.
+
 ### Phase 4 changed-file inventory
 
 - Added: `tuition/activities.py`, `activity_forms.py`, `activity_views.py`, `activity_storage.py`, `messaging.py`, `moderation.py`, `test_activities.py`; migrations `0004_achievement_announcement_assignment_and_more.py`, `0005_media_consent.py`, `0006_integrations.py`.

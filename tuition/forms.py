@@ -40,6 +40,24 @@ class TeacherForm(StyledForm):
         return pins
 
 
+class GroupLeaveForm(forms.Form):
+    enrolment = forms.ModelChoiceField(queryset=m.Enrolment.objects.none(), label='Student')
+    start_date = forms.DateField(widget=forms.DateInput(attrs={'type': 'date'}))
+    end_date = forms.DateField(widget=forms.DateInput(attrs={'type': 'date'}), help_text='Both dates are included. Only classes already in this group timetable are affected.')
+    status = forms.ChoiceField(choices=[('excused', 'Leave (excused)'), ('absent', 'Absent')], help_text='Leave can be recorded in advance. Absence can only be recorded after class starts.')
+    note = forms.CharField(max_length=250, label='Reason / note', widget=forms.Textarea(attrs={'rows': 3}))
+
+    def __init__(self, *args, batch, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['enrolment'].queryset = m.Enrolment.objects.filter(membership__batch=batch, status='active').select_related('learner', 'lesson')
+
+    def clean(self):
+        data = super().clean()
+        if data.get('start_date') and data.get('end_date') and data['end_date'] < data['start_date']:
+            raise forms.ValidationError('End date must be on or after start date.')
+        return data
+
+
 class LessonForm(StyledForm):
     class Meta:
         model = m.Lesson
@@ -60,12 +78,24 @@ class AvailabilityForm(StyledForm):
 
 class LearnerForm(StyledForm):
     relationship = forms.CharField(required=False, help_text='For a child/dependant, state your relationship.')
-    attestation = forms.CharField(required=False, widget=forms.Textarea, help_text='Explain your authority to act for this learner. An administrator reviews guardian access.')
+    attestation = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows': 3}), help_text='For a child or dependant, explain your authority to act for this learner. An administrator reviews guardian access.')
     self_registration = forms.BooleanField(required=False, label='I am registering myself and am at least 18')
 
     class Meta:
         model = m.Learner
         fields = ['name', 'dob', 'age', 'guardian_name', 'phone', 'email', 'address', 'pincode', 'interests']
+        labels = {'dob': 'Date of birth', 'name': 'Learner name', 'pincode': 'PIN code'}
+        widgets = {'address': forms.Textarea(attrs={'rows': 3})}
+
+    def sections(self):
+        for title, names in (
+            ('Learner details', ('self_registration', 'name', 'dob', 'age', 'interests')),
+            ('Contact & location', ('guardian_name', 'phone', 'email', 'address', 'pincode')),
+            ('Guardian verification', ('relationship', 'attestation')),
+        ):
+            fields = [self[name] for name in names if name in self.fields]
+            if fields:
+                yield title, fields
 
     def clean(self):
         data = super().clean()

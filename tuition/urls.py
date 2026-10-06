@@ -72,6 +72,7 @@ urlpatterns = [
     path('batches/<uuid:uid>/', v.batch_detail, name='batch'),
     path('batches/<uuid:uid>/edit/', v.batch_edit, name='batch_edit'),
     path('batches/<uuid:uid>/schedule/', v.schedule, name='schedule'),
+    path('batches/<uuid:uid>/leave/', v.group_leave, name='group_leave'),
     path('rules/<uuid:uid>/stop/', v.stop_rule, name='stop_rule'),
     path('batches/<uuid:batch_id>/classes/add/', v.session_edit, name='session_create'),
     path('classes/<uuid:uid>/', v.session_detail, name='session'),

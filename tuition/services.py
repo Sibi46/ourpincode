@@ -195,8 +195,8 @@ def generate(rule, until=None):
 def mark_attendance(user, participant, status, note=''):
     lock_teacher(user, participant.session.batch.lesson.teacher)
     participant = SessionParticipant.objects.select_for_update().select_related('session').get(pk=participant.pk)
-    if not participant.eligible or participant.session.status == 'cancelled' or participant.session.start > timezone.now():
-        raise ValidationError('Attendance is available only for eligible students in classes that have started.')
+    if not participant.eligible or participant.session.status == 'cancelled' or (participant.session.start > timezone.now() and status != 'excused'):
+        raise ValidationError('Attendance requires an eligible student and a class that has started. Only excused leave can be recorded in advance.')
     obj, _ = Attendance.objects.get_or_create(participant=participant, defaults={'status': status, 'marked_by': user})
     obj.status, obj.note, obj.marked_by = status, note, user
     obj.full_clean()
@@ -205,6 +205,27 @@ def mark_attendance(user, participant, status, note=''):
     from .activities import award
     award(participant.enrolment, 'attendance', 'attendance', obj, status in ('present', 'late'), obj.updated_at.isoformat())
     return obj
+
+
+@transaction.atomic
+def record_group_leave(user, batch, enrolment, start_date, end_date, status, note):
+    teacher = lock_teacher(user, batch.lesson.teacher)
+    if teacher.status != 'approved':
+        raise ValidationError('Teacher approval is required.')
+    if status not in ('excused', 'absent') or start_date > end_date:
+        raise ValidationError('Choose a valid leave/absence status and date range.')
+    if not Enrolment.objects.filter(pk=enrolment.pk, lesson=batch.lesson, membership__batch=batch, status='active').exists():
+        raise ValidationError('Select an active student in this group.')
+    people = list(SessionParticipant.objects.select_for_update().filter(
+        enrolment=enrolment, eligible=True, session__batch=batch, session__status='scheduled',
+        session__start__date__gte=start_date, session__start__date__lte=end_date).select_related('session'))
+    if not people:
+        raise ValidationError('No scheduled classes for this student in these dates. Create the timetable first.')
+    if Attendance.objects.filter(participant__in=people).exists():
+        raise ValidationError('Some classes already have attendance or leave. Review and update those classes individually.')
+    for person in people:
+        mark_attendance(user, person, status, note)
+    return len(people)
 
 
 @transaction.atomic
