@@ -1,0 +1,14 @@
+{% for profile in timetable_profiles %}
+<section class="card" aria-label="Teacher timetable setup">
+  <p class="eyebrow">TEACHER TOOLS · {{ profile.name }}</p><h2>Create timetable</h2>
+  {% if profile.status == 'approved' %}
+    <p>Choose a group below to set its class days and times. Start by adding a lesson if you have not created one.</p>
+    <a class="button" href="{% url 'tuition:lesson_create' profile.uid %}">+ Add lesson / subject</a>
+    {% for lesson in profile.lessons.all %}<div class="card"><h3>{{ lesson.name }}</h3><a href="{% url 'tuition:batch_create' lesson.uid %}">+ Create group / batch</a>
+      {% for group in lesson.batches.all %}<div class="card"><strong>{{ group.name }}</strong> · {{ group.get_status_display }}
+        <nav aria-label="Group timetable actions">{% if group.status == 'active' %}<a class="button" href="{% url 'tuition:schedule' group.uid %}">Set class days &amp; time</a><a href="{% url 'tuition:session_create' group.uid %}">Add one-time class</a>{% endif %}<a href="{% url 'tuition:batch' group.uid %}">View group &amp; timetable</a></nav>
+      </div>{% empty %}<p>No groups yet. Create a group, then set its class days and time.</p>{% endfor %}
+    </div>{% empty %}<p>No lessons yet. Add your first lesson, then create a group and set its timetable.</p>{% endfor %}
+  {% else %}<p>Profile status: {{ profile.get_status_display }}. An approved teacher profile is needed to begin timetable setup.</p>{% endif %}
+</section>
+{% endfor %}

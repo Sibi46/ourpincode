@@ -41,6 +41,25 @@ class LearnerUITests(TestCase):
         self.assertNotContains(response, 'name="attestation"')
         self.assertNotContains(response, 'name="self_registration"')
 
+    def test_teacher_has_direct_timetable_setup_links(self):
+        self.client.force_login(self.owner)
+        link = reverse('tuition:schedule', args=[self.batch.uid])
+        for url in (reverse('tuition:dashboard'), reverse('tuition:teacher', args=[self.teacher.uid])):
+            response = self.client.get(url)
+            self.assertContains(response, 'Create timetable')
+            self.assertContains(response, link)
+            self.assertContains(response, 'Set class days &amp; time')
+        self.client.force_login(self.parent)
+        self.assertNotContains(self.client.get(reverse('tuition:dashboard')), link)
+        self.assertEqual(self.client.get(link).status_code, 403)
+
+    def test_pending_profile_explains_missing_setup(self):
+        self.teacher.status = 'pending'; self.teacher.save()
+        self.client.force_login(self.owner)
+        response = self.client.get(reverse('tuition:dashboard'))
+        self.assertContains(response, 'An approved teacher profile is needed')
+        self.assertNotContains(response, reverse('tuition:schedule', args=[self.batch.uid]))
+
     def test_export_synthetic_preview(self):
         import os
         if os.environ.get('TUITION_AUDIT_UI') != '1':

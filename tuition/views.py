@@ -139,7 +139,8 @@ def register_teacher(request, uid=None):
 @login_required
 def dashboard(request):
     perm.active(request.user)
-    return page(request, 'Your learning space', template='tuition/learn.html', owned=m.TeacherProfile.objects.filter(owner=request.user), learners=perm.learners(request.user), claimable=m.Application.objects.filter(uid__in=request.session.get('tuition_receipts', []), applicant__isnull=True),
+    owned = m.TeacherProfile.objects.filter(owner=request.user).prefetch_related('lessons__batches')
+    return page(request, 'Your learning space', template='tuition/learn.html', owned=owned, timetable_profiles=owned, learners=perm.learners(request.user), claimable=m.Application.objects.filter(uid__in=request.session.get('tuition_receipts', []), applicant__isnull=True),
         guardian_requests=m.GuardianLink.objects.filter(user=request.user), applications=m.Application.objects.filter(applicant=request.user),
         notifications=request.user.notifications.filter(link__startswith='/tuition/').order_by('-created_at')[:30])
 
@@ -149,7 +150,7 @@ def teacher_dashboard(request, uid):
     teacher = teacher_for(request, uid)
     enrolments = m.Enrolment.objects.filter(lesson__teacher=teacher).select_related('learner', 'lesson')
     invoices = m.Invoice.objects.filter(agreement__enrolment__lesson__teacher=teacher, state='open')
-    return page(request, teacher.name, teacher=teacher, lessons=teacher.lessons.all(), enrolments=enrolments,
+    return page(request, teacher.name, teacher=teacher, timetable_profiles=[teacher], lessons=teacher.lessons.all(), enrolments=enrolments,
         student_total=enrolments.filter(status='active').values('learner_id').distinct().count(),
         active_batches=m.Batch.objects.filter(lesson__teacher=teacher, status='active').count(),
         upcoming_events=teacher.events.filter(start__gte=timezone.now()).exclude(status='cancelled').order_by('start')[:10],
