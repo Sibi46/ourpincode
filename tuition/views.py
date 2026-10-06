@@ -21,7 +21,7 @@ from .storage import upload_image, storage
 def page(request, title, template='tuition/page.html', **context):
     response = render(request, template, {'title': title, **context})
     response['Cache-Control'] = 'private, no-store'
-    response['Referrer-Policy'] = 'no-referrer'
+    response['Referrer-Policy'] = 'same-origin'
     return response
 
 

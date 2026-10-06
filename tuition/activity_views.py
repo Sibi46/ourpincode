@@ -21,7 +21,7 @@ from .views import form_page, teacher_for
 def page(request, title, **context):
     response = render(request, 'tuition/activities.html', {'title': title, **context})
     response['Cache-Control'] = 'private, no-store'
-    response['Referrer-Policy'] = 'no-referrer'
+    response['Referrer-Policy'] = 'same-origin'
     return response
 
 
