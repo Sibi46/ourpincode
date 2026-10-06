@@ -21,7 +21,7 @@
 
   {% if coupon %}
   <div class="opc-card">
-    <div style="font-size:24px;font-family:monospace;font-weight:900;color:#4f46e5;margin-bottom:16px;letter-spacing:.05em">{{ coupon.code }}</div>
+    <div style="font-size:24px;font-family:monospace;font-weight:900;color:#4f46e5;margin-bottom:16px;letter-spacing:.05em">{{ coupon.code }} - {{ coupon.get_category_display }}</div>
 
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
       <div>

@@ -1,0 +1,48 @@
+{% extends 'admin_base.html' %}
+{% block title %}Smart Marketing Agents{% endblock %}
+{% block extra_css %}
+<style>
+.ma-page{max-width:1200px;margin:auto;color:#17243b}.ma-page *{box-sizing:border-box}.ma-back{display:inline-flex;gap:8px;align-items:center;color:#64748b;text-decoration:none;font-size:13px;margin-bottom:20px}.ma-heading{display:flex;justify-content:space-between;gap:20px;align-items:center;margin-bottom:26px}.ma-eyebrow{color:#6366f1;font-size:11px;font-weight:800;letter-spacing:1.6px;text-transform:uppercase}.ma-heading h1{font-size:28px;letter-spacing:-.8px;margin:8px 0}.ma-heading p{color:#64748b;font-size:14px;line-height:1.6;margin:0}.ma-count{background:#eef2ff;border:1px solid #e0e7ff;padding:15px 22px;border-radius:14px;white-space:nowrap;font-size:13px;color:#4f46e5}.ma-count strong{font-size:24px;margin-right:8px}.ma-grid{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(240px,1fr);gap:22px;align-items:start}.ma-card{background:#fff;border:1px solid #e2e8f0;border-radius:18px;box-shadow:0 4px 20px #0f172a04;overflow:hidden;scroll-margin-top:90px}.ma-card-head{padding:24px 26px;border-bottom:1px solid #edf1f7;display:flex;gap:13px;align-items:center}.ma-icon{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;background:#eef2ff;color:#4f46e5;flex-shrink:0}.ma-card h2{font-size:17px;margin:0 0 5px}.ma-card-head p{font-size:13px;color:#64748b;margin:0;line-height:1.5}.ma-form{padding:24px 26px}.ma-fields{display:grid;grid-template-columns:1fr 1fr;gap:20px}.ma-field:first-child{grid-column:1/-1}.ma-field label{display:block;font-size:13px;font-weight:700;margin-bottom:8px}.ma-field input{width:100%;border:1px solid #cbd5e1;border-radius:10px;background:#fbfcfe;padding:12px 13px;font:inherit;font-size:14px;color:#17243b;min-height:46px}.ma-field input:focus{outline:3px solid #e0e7ff;border-color:#6366f1;background:white}.ma-help{font-size:11px;color:#64748b;line-height:1.65;margin-top:8px}.ma-help ul{padding-left:17px;margin:4px 0}.ma-form .errorlist{font-size:12px;color:#b91c1c;line-height:1.5;padding-left:17px}.ma-required{color:#6366f1}.ma-submit{margin-top:24px;border-top:1px solid #edf1f7;padding-top:22px;display:flex;gap:16px;align-items:center;justify-content:space-between}.ma-submit span{font-size:12px;color:#64748b}.ma-button{display:inline-flex;align-items:center;justify-content:center;gap:9px;border:0;border-radius:10px;background:#4f46e5;color:white;padding:13px 19px;font:inherit;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap}.ma-button:hover{background:#4338ca}.ma-guide{padding:26px;background:linear-gradient(145deg,#f0f3ff,#fff)}.ma-guide h2{margin:16px 0 20px;font-size:18px}.ma-steps{list-style:none;margin:0;padding:0;counter-reset:step}.ma-steps li{counter-increment:step;position:relative;padding:0 0 24px 38px}.ma-steps li:before{content:counter(step);position:absolute;left:0;top:0;width:25px;height:25px;border-radius:50%;background:#e0e7ff;color:#4338ca;display:grid;place-items:center;font-size:12px;font-weight:800}.ma-steps strong{display:block;font-size:13px;margin-bottom:6px}.ma-steps p{font-size:12px;line-height:1.7;color:#64748b;margin:0}.ma-note{font-size:12px;line-height:1.7;color:#475569;border-top:1px solid #e0e7ff;padding-top:18px}.ma-list{margin-top:24px}.ma-table-wrap{overflow-x:auto}.ma-table{border-collapse:collapse;width:100%;text-align:left;font-size:13px}.ma-table th{background:#f8fafc;color:#64748b;font-size:11px;text-transform:uppercase;letter-spacing:.7px;padding:14px 26px}.ma-table td{padding:17px 26px;border-top:1px solid #f1f5f9;white-space:nowrap}.ma-person{display:flex;align-items:center;gap:11px;font-weight:700}.ma-avatar{display:grid;place-items:center;width:34px;height:34px;border-radius:10px;background:#eef2ff;color:#4f46e5;font-size:13px}.ma-status{border-radius:20px;padding:5px 10px;background:#ecfdf5;color:#047857;font-size:11px;font-weight:700}.ma-status.off{background:#f1f5f9;color:#64748b}.ma-empty{text-align:center;padding:40px 20px;color:#64748b}.ma-empty .ma-icon{margin:0 auto 14px}.ma-empty h3{font-size:15px;color:#17243b;margin:0 0 7px}.ma-empty p{font-size:13px;margin:0;line-height:1.6}@media(max-width:1050px){.ma-grid{grid-template-columns:1fr}.ma-guide{padding:22px}}@media(max-width:600px){.ma-heading{align-items:flex-start;flex-direction:column;gap:14px}.ma-heading h1{font-size:24px}.ma-count{padding:10px 16px}.ma-fields{grid-template-columns:1fr}.ma-card-head,.ma-form{padding:20px}.ma-submit{align-items:stretch;flex-direction:column}.ma-table th,.ma-table td{padding:14px 18px}}
+</style>
+{% endblock %}
+{% block content %}
+<div class="ma-page">
+  <a class="ma-back" href="{% url 'super_admin_dashboard' %}"><i class="fas fa-arrow-left" aria-hidden="true"></i> Back to dashboard</a>
+  <header class="ma-heading">
+    <div><div class="ma-eyebrow">Business growth</div><h1>Smart Marketing Agents</h1><p>Build your team to help local shops manage their marketing.</p></div>
+    <div class="ma-count"><strong>{{ agents|length }}</strong> Agent{{ agents|length|pluralize }}</div>
+  </header>
+  <div class="ma-grid">
+    <section class="ma-card" id="create-agent" aria-labelledby="create-agent-title">
+      <div class="ma-card-head"><span class="ma-icon"><i class="fas fa-user-plus" aria-hidden="true"></i></span><div><h2 id="create-agent-title">Create an agent</h2><p>Set up their profile and sign-in details.</p></div></div>
+      <form method="post" class="ma-form">
+        {% csrf_token %}{{ form.non_field_errors }}
+        <div class="ma-fields">
+          {% for field in form %}<div class="ma-field">
+            <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} <span class="ma-required" aria-hidden="true">*</span>{% endif %}</label>
+            {{ field }}
+            {% if field.help_text %}<div class="ma-help" id="{{ field.auto_id }}_helptext">{{ field.help_text|safe }}</div>{% endif %}
+            {{ field.errors }}
+          </div>{% endfor %}
+        </div>
+        <div class="ma-submit"><span><i class="fas fa-lock" aria-hidden="true"></i> Passwords are stored securely.</span><button type="submit" class="ma-button"><i class="fas fa-plus" aria-hidden="true"></i> Create agent</button></div>
+      </form>
+    </section>
+    <aside class="ma-card ma-guide" aria-labelledby="agent-guide-title">
+      <span class="ma-icon"><i class="fas fa-store" aria-hidden="true"></i></span><h2 id="agent-guide-title">From account to shop access</h2>
+      <ol class="ma-steps">
+        <li><strong>Create the account</strong><p>The agent signs in with their username or phone number and password.</p></li>
+        <li><strong>Get shop authorization</strong><p>The shop owner grants access using the agent's username.</p></li>
+        <li><strong>Start managing</strong><p>The agent selects a shop and verifies its phone number and password.</p></li>
+      </ol>
+      <div class="ma-note"><strong>What can agents manage?</strong><br>Offers, gift vouchers, video posts and coupon tools for authorized shops.</div>
+    </aside>
+  </div>
+  <section class="ma-card ma-list" id="agent-list" aria-labelledby="agent-list-title">
+    <div class="ma-card-head"><span class="ma-icon"><i class="fas fa-users" aria-hidden="true"></i></span><div><h2 id="agent-list-title">Your agents</h2><p>Registered marketing agents and their contact details.</p></div></div>
+    {% if agents %}<div class="ma-table-wrap"><table class="ma-table"><thead><tr><th scope="col">Agent</th><th scope="col">Phone number</th><th scope="col">Pincode</th><th scope="col">Status</th></tr></thead><tbody>
+      {% for agent in agents %}<tr><td><div class="ma-person"><span class="ma-avatar" aria-hidden="true">{{ agent.username|first|upper }}</span>{{ agent.username }}</div></td><td>{{ agent.phone|default:'—' }}</td><td>{{ agent.pincode|default:'—' }}</td><td>{% if agent.is_active %}<span class="ma-status">Active</span>{% else %}<span class="ma-status off">Inactive</span>{% endif %}</td></tr>{% endfor %}
+    </tbody></table></div>{% else %}<div class="ma-empty"><span class="ma-icon"><i class="fas fa-user-friends" aria-hidden="true"></i></span><h3>Your team starts here</h3><p>Create your first agent using the form above.<br>They will appear here once their account is ready.</p></div>{% endif %}
+  </section>
+</div>
+{% endblock %}

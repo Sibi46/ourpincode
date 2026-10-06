@@ -2,6 +2,7 @@
 {% block title %}Super Admin Dashboard{% endblock %}
 
 {% block extra_css %}
+{% include "assigned_admin/styles.html" %}
 <style>
 .sa-section {
   background: #fff;
@@ -81,32 +82,12 @@
 }
 .sa-badge.warn { background: #F59E0B; }
 .sa-badge.info { background: #2563EB; }
+.sa-section{border:1px solid #dce6e1;box-shadow:none;border-radius:16px}.sa-section-head{padding:18px 22px;background:#f9fbfa;border-bottom:1px solid #e8efeb}.sa-section-title{font-size:15px;color:#183e33}.sa-action-grid{grid-template-columns:repeat(auto-fill,minmax(180px,1fr));padding:20px;gap:12px}.sa-action{flex-direction:row;text-align:left;justify-content:flex-start;padding:16px;border:1px solid #e2eae5;background:#fff;border-radius:12px;gap:12px}.sa-action i{font-size:19px;min-width:24px}.sa-action:hover{border-color:#529980;background:#f0f8f3;box-shadow:none}.sa-action .sa-badge{margin-left:auto}.ap-main{background:#f3f6f4}.ap-stat-card{box-shadow:none!important;border:1px solid #dce6e1!important}@media(max-width:560px){.sa-action-grid{grid-template-columns:repeat(2,minmax(0,1fr));padding:12px;gap:8px}.sa-action{font-size:11px;flex-direction:column;text-align:center;padding:14px 8px}}
 </style>
 {% endblock %}
 
 {% block content %}
-
-<!-- ── PAGE HEADER ── -->
-<div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:22px">
-  <div>
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
-      <div style="width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,#F59E0B,#EF4444);display:flex;align-items:center;justify-content:center">
-        <i class="fas fa-crown" style="color:#fff;font-size:16px"></i>
-      </div>
-      <h1 style="font-size:20px;font-weight:900;color:#0F172A;margin:0;letter-spacing:-.3px">National Dashboard</h1>
-    </div>
-    <p style="color:#64748B;font-size:13px;margin:0 0 0 42px">Full control over the OUR PINCODE platform</p>
-  </div>
-  <div style="display:flex;gap:8px;flex-wrap:wrap">
-    <a href="/super-admin/analytics/" style="background:#EEF2FF;color:#4F46E5;padding:8px 14px;border-radius:9px;font-size:12px;font-weight:700;text-decoration:none;display:flex;align-items:center;gap:6px;border:1.5px solid #C7D2FE">
-      <i class="fas fa-chart-bar"></i> Analytics
-    </a>
-    <a href="/super-admin/notifications/" style="background:#FFFBEB;color:#92400E;padding:8px 14px;border-radius:9px;font-size:12px;font-weight:700;text-decoration:none;display:flex;align-items:center;gap:6px;border:1.5px solid #FDE68A">
-      <i class="fas fa-bell"></i> Notifications
-    </a>
-  </div>
-</div>
-
+{% include "assigned_admin/main_overview.html" %}
 <!-- ── NEEDS ATTENTION BANNER ── -->
 {% if pending_jobs_count or paid_verify_count or pending_ad_posts or community_pending_count or voucher_biz_pending or voucher_slot_pending or pending_offers_count %}
 <div style="background:linear-gradient(135deg,#FEF3C7,#FEF9C3);border:1.5px solid #FCD34D;border-radius:14px;padding:14px 18px;margin-bottom:20px;display:flex;flex-wrap:wrap;gap:10px;align-items:center">
@@ -196,6 +177,45 @@
     <p>Job Seekers</p>
   </a>
 </div>
+
+
+
+<section class="sa-section" id="news-management" aria-labelledby="news-management-heading">
+  <div class="sa-section-head">
+    <h2 class="sa-section-title" id="news-management-heading">
+      <span class="sa-section-icon" style="background:#FFF7ED;color:#9A3412"><i class="fas fa-newspaper" aria-hidden="true"></i></span>
+      News &amp; Local Stories
+    </h2>
+  </div>
+  <p style="margin:14px 18px;color:#64748B;font-size:13px">Publish local news and events, manage stories, and assign news agents to pincodes.</p>
+  <div class="sa-action-grid">
+    <a href="{% url 'tuition:admin_hub' %}" class="sa-action">Tuition &amp; Learning</a>
+    <a href="{% url 'newsdesk:manage' %}" class="sa-action"><i class="fas fa-newspaper" style="color:#9A3412" aria-hidden="true"></i> Manage News</a>
+    <a href="{% url 'newsdesk:create' %}" class="sa-action"><i class="fas fa-pen" style="color:#4F46E5" aria-hidden="true"></i> Post News</a>
+    <a href="{% url 'newsdesk:agents' %}" class="sa-action"><i class="fas fa-user-plus" style="color:#059669" aria-hidden="true"></i> Assign News Agents</a>
+    <a href="{% url 'newsdesk:feed' %}" class="sa-action"><i class="fas fa-book-open" style="color:#64748B" aria-hidden="true"></i> View Newspaper</a>
+  </div>
+</section>
+
+<section class="sa-section" id="smart-marketing-agents" aria-labelledby="marketing-agents-heading">
+  <div class="sa-section-head">
+    <h2 class="sa-section-title" id="marketing-agents-heading">
+      <span class="sa-section-icon" style="background:#EEF2FF;color:#4F46E5"><i class="fas fa-user-tie" aria-hidden="true"></i></span>
+      Smart Marketing Agents
+    </h2>
+  </div>
+  <p style="margin:14px 18px;color:#64748B;font-size:13px">Create agents with a username, phone number, pincode and password. Shop owners can authorize them to manage offers, gift vouchers, videos and coupons.</p>
+  <div class="sa-action-grid">
+    <a href="{% url 'marketing_admin' %}#create-agent" class="sa-action">
+      <i class="fas fa-user-plus" style="color:#4F46E5" aria-hidden="true"></i>
+      Create Smart Marketing Agent
+    </a>
+    <a href="{% url 'marketing_admin' %}#agent-list" class="sa-action">
+      <i class="fas fa-users" style="color:#059669" aria-hidden="true"></i>
+      View Smart Marketing Agents
+    </a>
+  </div>
+</section>
 
 <!-- ══════════════════════════════════════════════
      SECTION: JOBS
@@ -638,25 +658,7 @@
 </div>
 
 <!-- ── ACTIVE NOTIFICATIONS ── -->
-{% if notifications %}
-<div class="ap-card">
-  <div class="ap-card-header">
-    <h3><i class="fas fa-bell" style="color:#F59E0B"></i> Active Notifications</h3>
-    <a href="/super-admin/notifications/" class="ap-btn ap-btn-primary">Manage</a>
-  </div>
-  {% for n in notifications %}
-  <div style="padding:10px 0;border-bottom:1px solid #F1F5F9;display:flex;gap:12px;align-items:flex-start">
-    <span class="status-pill {% if n.notif_type == 'info' %}pill-active{% elif n.notif_type == 'warning' %}pill-pending{% elif n.notif_type == 'success' %}pill-approved{% else %}pill-suspended{% endif %}" style="margin-top:1px;flex-shrink:0">
-      {{ n.get_notif_type_display }}
-    </span>
-    <div>
-      <div style="font-weight:700;font-size:13px;color:#0F172A">{{ n.title }}</div>
-      <div style="font-size:12px;color:#64748B;margin-top:2px">{{ n.message|truncatechars:80 }}</div>
-    </div>
-  </div>
-  {% endfor %}
-</div>
-{% endif %}
+
 
 <!-- ══════════════════════════════════════════════
      SECTION: OPC COUPON SYSTEM

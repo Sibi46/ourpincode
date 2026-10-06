@@ -1,23 +1,15 @@
-﻿{% load static %}
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    {% include "includes/ga4.html" %}
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="OUR PINCODE — Business, Opportunity, Job at Near You. Find Jobs Near You. Hire People Near You. India's PIN-code based hyperlocal job portal.">
-    <title>{% block title %}OUR PINCODE{% endblock %}</title>
+    {% include "includes/seo.html" %}
+    <title>{% if seo.indexable %}{{ seo.title }}{% else %}{% block title %}OUR PINCODE{% endblock %}{% endif %}</title>
     <link rel="stylesheet" href="{% static 'css/style.css' %}?v=5">
     <link rel="stylesheet" href="/static/fontawesome/css/all.min.css">
     {% block extra_css %}{% endblock %}
-
-    <!-- Google Analytics -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-SPHLTP6M4P"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-SPHLTP6M4P');
-    </script>
 
 </head>
 <body>
@@ -26,6 +18,8 @@
     <div class="nav-container">
         <a href="/" class="nav-logo"><img src="/static/images/ourpincod.jpeg" alt="OUR PINCODE" style="height:40px;width:auto;max-width:140px;object-fit:contain;display:block;"></a>
         <div class="nav-links">
+            <a href="{% url 'newsdesk:feed' %}"><i class="fas fa-newspaper"></i> News Desk</a>
+            <a href="{% url 'network_feed' %}"><i class="fas fa-user-friends"></i> Network</a>
             {% if '/vouchers' in request.path %}
             {# ── VOUCHER SECTION NAV ── #}
             {# hidden until launch — footer icon still active #}
@@ -195,6 +189,8 @@
         <div class="hamburger" onclick="toggleMenu()"><i class="fas fa-bars"></i></div>
     </div>
     <div class="mobile-menu" id="mobileMenu">
+        <a href="{% url 'newsdesk:feed' %}"><i class="fas fa-newspaper"></i> News Desk</a>
+        <a href="{% url 'network_feed' %}"><i class="fas fa-user-friends"></i> Network</a>
         {% if '/advertise' in request.path %}
         {# ── ADVERTISER PAGES: minimal menu ── #}
         {% if request.user.is_authenticated %}
@@ -434,6 +430,7 @@ document.addEventListener('click',function(){
 </script>
 {% endif %}
 
+{% if request.marketing_agent %}<p style="padding:16px;background:#eef2ff">Managing this shop as {{ request.marketing_agent.username }} · <a href="{% url 'marketing_workspace' %}">Shop tools</a> · <a href="{% url 'marketing_dashboard' %}">Switch shop</a></p>{% endif %}
 {% block content %}{% endblock %}
 
 {% if ads_by_type.sidebar or ads_by_type.dashboard_banner %}
@@ -744,6 +741,7 @@ if(document.addEventListener)document.addEventListener('keydown',function(e){if(
 {% block site_bottom_nav %}
 <nav class="bottom-nav">
   <div class="bottom-nav-inner">
+    <a href="{% url 'network_feed' %}" class="bn-item {% if '/network/' in request.path %}active{% endif %}"><i class="fas fa-user-friends"></i><span>Network</span></a>
     <a href="/" class="bn-item {% if request.path == '/' %}active{% endif %}">
       <i class="fas fa-home"></i><span>Home</span>
     </a>
@@ -761,9 +759,11 @@ if(document.addEventListener)document.addEventListener('keydown',function(e){if(
     </a>
   </div>
 </nav>
+{% block register_business_button %}
 <a href="/register/?type=company" class="bn-plus-btn" title="Register Business">
   <i class="fas fa-plus"></i>
 </a>
+{% endblock register_business_button %}
 {% endblock site_bottom_nav %}
 
 <style>

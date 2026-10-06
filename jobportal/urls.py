@@ -3,8 +3,18 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from jobs import views
+from django.contrib.sitemaps import views as sitemap_views
+from .seo import SITEMAPS, robots, sitemap_index
 
 urlpatterns = [
+    path('tuition/', include('tuition.urls')),
+    path('', include('jobs.assigned_admin')),
+    path('marketing/', include('jobs.marketing')),
+    path('robots.txt', robots, name='robots'),
+    path('sitemap.xml', sitemap_index, name='sitemap'),
+    path('sitemaps/<section>.xml', sitemap_views.sitemap, {'sitemaps': SITEMAPS}, name='seo_sitemap'),
+    path('news/', include('newsdesk.urls')),
+    path('network/', include('portal.network_urls')),
     path('admin/',                  admin.site.urls),
     path('',                        views.home,               name='home'),
     path('favicon.ico',             views.favicon,            name='favicon'),

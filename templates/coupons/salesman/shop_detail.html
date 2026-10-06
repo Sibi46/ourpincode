@@ -28,7 +28,7 @@
       <div style="font-size:13px;font-weight:700">{{ b.quantity }} coupons given</div>
       <div style="font-size:11px;color:#94a3b8">{{ b.created_at|date:"d M Y" }}</div>
     </div>
-    <div style="font-size:13px;font-family:monospace;font-weight:700;color:#4f46e5">{{ b.start_code }} → {{ b.end_code }}</div>
+    <div style="font-size:13px;font-family:monospace;font-weight:700;color:#4f46e5">{{ b.start_code }} → {{ b.end_code }} / {{ b.get_category_display|default:"Standard" }}</div>
   </div>
   {% endfor %}
   {% else %}

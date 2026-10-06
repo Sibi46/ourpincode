@@ -91,6 +91,14 @@ class InterviewAdmin(admin.ModelAdmin):
 
 @admin.register(Message)
 class MessageAdmin(admin.ModelAdmin):
+    def get_queryset(self, request):
+        return super().get_queryset(request).filter(conversation__tuition_context__isnull=True)
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == 'conversation':
+            kwargs['queryset'] = db_field.remote_field.model.objects.filter(tuition_context__isnull=True)
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
     list_display  = ('sender', 'receiver', 'job', 'sent_at', 'is_read')
     list_filter   = ('is_read',)
     search_fields = ('sender__username', 'receiver__username')
@@ -222,6 +230,9 @@ class DiscountAdmin(admin.ModelAdmin):
 
 @admin.register(Complaint)
 class ComplaintAdmin(admin.ModelAdmin):
+    def get_queryset(self, request):
+        return super().get_queryset(request).filter(tuition_context__isnull=True)
+
     list_display  = ('subject', 'complaint_type', 'submitted_by', 'district', 'status', 'created_at')
     list_filter   = ('complaint_type', 'status')
     search_fields = ('subject', 'submitted_by__username')

@@ -27,6 +27,9 @@ try:
 except ImportError:
     pass
 
+GA4_MEASUREMENT_ID = os.environ.get('GA4_MEASUREMENT_ID', '').strip()
+
+
 def env_bool(name, default):
     value = os.environ.get(name, str(default)).strip().lower()
     if value in {'true', '1', 'yes', 'on'}:
@@ -122,6 +125,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sitemaps',
     'jobs',
     'health',
     'vouchers',
@@ -130,6 +134,8 @@ INSTALLED_APPS = [
     'portal',
     'coupons',
     'quiz',
+    'newsdesk',
+    'tuition',
 ]
 
 AUTH_USER_MODEL = 'jobs.User'
@@ -146,10 +152,14 @@ LOGOUT_REDIRECT_URL = '/'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'jobportal.seo.SEOMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'jobs.assigned_admin.AssignedAdminMiddleware',
+    'jobs.marketing.MarketingMiddleware',
+    'tuition.messaging.LegacyGuardMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'jobportal.middleware.LoginRequiredMiddleware',
@@ -170,6 +180,7 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'jobs.context_processors.site_ads',
                 'jobportal.context_processors.site_branding',
+                'jobportal.seo.seo_context',
             ],
         },
     },
@@ -238,6 +249,9 @@ STATICFILES_DIRS = [BASE_DIR / 'static']
 
 MEDIA_URL  = '/media/'
 MEDIA_ROOT = env_path('MEDIA_ROOT', _storage_base / 'media')
+TUITION_PRIVATE_ROOT = env_path('TUITION_PRIVATE_ROOT', _storage_base / 'tuition-private')
+TUITION_MEETING_HOSTS = ('meet.google.com', 'zoom.us', 'teams.microsoft.com')
+TUITION_FFPROBE = os.getenv('TUITION_FFPROBE', '').strip()
 for _name, _path in (('STATIC_ROOT', STATIC_ROOT), ('MEDIA_ROOT', MEDIA_ROOT)):
     if paths_overlap(_path, BASE_DIR):
         raise ImproperlyConfigured(f'{_name} must not overlap the project checkout.')

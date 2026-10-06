@@ -5,6 +5,44 @@ from django.utils.text import slugify
 
 User = get_user_model()
 import secrets, re
+from .network_activities import ACTIVITY_CHOICES, activity_emoji, network_name
+
+
+class NetworkPost(models.Model):
+    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='network_posts')
+    pincode = models.CharField(max_length=6)
+    text = models.CharField(max_length=500)
+    activity = models.CharField(max_length=20, choices=ACTIVITY_CHOICES, default='social')
+    is_open = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    closed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ['-created_at', '-pk']
+        indexes = [models.Index(fields=['pincode', 'is_open', '-created_at'], name='network_local_open_idx')]
+
+    @property
+    def emoji(self):
+        return activity_emoji(self.activity)
+
+    @property
+    def author_name(self):
+        return network_name(self.author)
+
+
+class NetworkConnection(models.Model):
+    post = models.ForeignKey(NetworkPost, on_delete=models.CASCADE, related_name='connections')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='network_connections')
+    conversation = models.ForeignKey('jobs.Conversation', null=True, on_delete=models.SET_NULL,
+                                     related_name='network_connections')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['post', 'user'], name='unique_network_post_connection')]
+
+    @property
+    def member_name(self):
+        return network_name(self.user)
 
 
 def _initials(name):

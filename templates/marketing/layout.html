@@ -1,0 +1,24 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% include "includes/ga4.html" %}
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>{% block title %}Smart Marketing{% endblock %} · OUR PINCODE</title>
+<link rel="stylesheet" href="{% static 'fontawesome/css/all.min.css' %}">
+{% include 'marketing/styles.html' %}
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="topbar"><div class="topbar-inner">
+<a href="{% url 'dashboard' %}" class="brand"><span class="brand-icon"><i class="fas fa-store" aria-hidden="true"></i></span><span>OUR PINCODE<small>Smart Marketing</small></span></a>
+<nav aria-label="Account navigation">{% if request.user.user_type == 'marketing_agent' %}<a href="{% url 'marketing_dashboard' %}" class="nav-shops">My shops</a>{% else %}<a href="{% url 'dashboard' %}" class="nav-shops">Dashboard</a>{% endif %}<span class="identity"><i class="fas fa-user-circle" aria-hidden="true"></i> {{ request.user.username }}</span><a href="{% url 'logout' %}" class="signout">Sign out <i class="fas fa-sign-out-alt" aria-hidden="true"></i></a></nav>
+</div></header>
+<main id="main" class="page">
+{% for message in messages %}<div class="notice {{ message.tags }}" role="status">{{ message }}</div>{% endfor %}
+{% block marketing_content %}{% endblock %}
+</main>
+<footer class="footer">OUR PINCODE <span>Local shops. Stronger connections.</span></footer>
+{% block marketing_scripts %}{% endblock %}
+</body></html>

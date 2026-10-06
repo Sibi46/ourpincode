@@ -7,4 +7,5 @@ def site_branding(request):
         'SITE_NAME': settings.SITE_NAME,
         'SITE_URL': settings.SITE_URL,
         'SITE_TAGLINE': settings.SITE_TAGLINE,
+        'GA4_MEASUREMENT_ID': settings.GA4_MEASUREMENT_ID,
     }

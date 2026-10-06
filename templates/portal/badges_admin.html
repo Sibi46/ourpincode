@@ -9,57 +9,7 @@
     <div style="font-size:12px;opacity:.8;margin-top:3px">{{ community.name }}</div>
   </div>
 
-  <!-- Create Badge -->
-  <div style="background:#fff;border-radius:16px;border:1.5px solid #e5e7eb;margin-bottom:14px;overflow:hidden">
-    <div style="padding:12px 16px;border-bottom:1px solid #f1f5f9;font-size:14px;font-weight:800;color:#0f172a">➕ Create New Badge</div>
-    <form method="post" enctype="multipart/form-data" style="padding:16px">
-      {% csrf_token %}
-      <input type="hidden" name="action" value="create">
-      <label>Sample badges
-        <select onchange="if(this.value){this.form.elements.icon.value=this.value;this.form.elements.name.value=this.options[this.selectedIndex].text}">
-          <option value="">Choose a sample (optional)</option>
-          <option value="??">Event Champion</option><option value="?">Star Contributor</option>
-          <option value="??">Community Helper</option><option value="??">Green Hero</option>
-        </select>
-      </label>
-      <p><label>Upload icon <input type="file" name="icon_image" accept="image/png,image/jpeg,image/webp,image/gif"></label></p>
-      <p><label>Badge image <input type="file" name="image" accept="image/png,image/jpeg,image/webp,image/gif"></label></p>
-      <p>Optional images, up to 2 MB each. Your selected icon is used when no icon is uploaded.</p>
-      <div style="display:grid;grid-template-columns:60px 1fr;gap:10px;margin-bottom:10px">
-        <div>
-          <label style="font-size:12px;font-weight:700;color:#374151;display:block;margin-bottom:4px">Icon</label>
-          <input type="text" name="icon" value="🏅" maxlength="4"
-            style="width:100%;padding:8px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:18px;text-align:center;box-sizing:border-box">
-        </div>
-        <div>
-          <label style="font-size:12px;font-weight:700;color:#374151;display:block;margin-bottom:4px">Badge Name *</label>
-          <input type="text" name="name" required placeholder="e.g. Event Champion"
-            style="width:100%;padding:8px 10px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:13px;box-sizing:border-box">
-        </div>
-      </div>
-      <div style="margin-bottom:10px">
-        <label style="font-size:12px;font-weight:700;color:#374151;display:block;margin-bottom:4px">Description</label>
-        <textarea name="description" rows="2" placeholder="What earns this badge?"
-          style="width:100%;padding:8px 10px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:13px;resize:none;box-sizing:border-box"></textarea>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
-        <div>
-          <label style="font-size:12px;font-weight:700;color:#374151;display:block;margin-bottom:4px">Award Criteria</label>
-          <select name="criteria_type" style="width:100%;padding:8px 10px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:13px">
-            {% for val, lbl in criteria_choices %}
-            <option value="{{ val }}">{{ lbl }}</option>
-            {% endfor %}
-          </select>
-        </div>
-        <div>
-          <label style="font-size:12px;font-weight:700;color:#374151;display:block;margin-bottom:4px">Threshold Value</label>
-          <input type="number" name="criteria_value" value="0" min="0"
-            style="width:100%;padding:8px 10px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:13px;box-sizing:border-box">
-        </div>
-      </div>
-      <button type="submit" style="background:#f59e0b;color:#fff;border:none;padding:10px 20px;border-radius:10px;font-size:13px;font-weight:800;cursor:pointer">Create Badge</button>
-    </form>
-  </div>
+  {% include 'portal/badge_create_panel.html' %}
 
   <!-- Award Badge Manually -->
   <div style="background:#fff;border-radius:16px;border:1.5px solid #e5e7eb;margin-bottom:14px;overflow:hidden">

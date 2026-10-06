@@ -1,0 +1,14 @@
+{% extends 'base.html' %}{% load static %}
+{% block title %}OURPINCODE News Desk{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'newsdesk/newsdesk.css' %}">{% endblock %}
+{% block content %}
+<main class="nd">
+  <header class="nd-header">
+    <a class="nd-brand" href="{% url 'newsdesk:feed' %}"><span class="nd-mark" aria-hidden="true">N<span>•</span></span><span><small>OURPINCODE</small><strong>News Desk</strong></span></a>
+    <nav aria-label="News Desk"><a href="{% url 'newsdesk:feed' %}">Local stories</a><a href="{% url 'newsdesk:birthday' %}">Birthday cards</a>{% if can_manage %}<a class="nd-btn nd-btn-small" href="{% url 'newsdesk:manage' %}">My desk ↗</a>{% endif %}</nav>
+  </header>
+  {% block news_content %}{% endblock %}
+  <footer class="nd-footer"><strong>Your pincode. Your people. Your stories.</strong><span>OURPINCODE News Desk</span></footer>
+</main>
+{% endblock %}
+{% block extra_js %}<script src="{% static 'newsdesk/newsdesk.js' %}" defer></script>{% endblock %}
