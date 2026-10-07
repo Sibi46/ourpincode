@@ -18,6 +18,7 @@ class GroupWorkflowTests(TestCase):
             capacity=10, start_date=self.date, end_date=self.date+timedelta(days=6),
             weekdays=[str(self.date.weekday())], start_time='17:00', new_subjects='Maths')
         self.url = reverse('tuition:group_create', args=[self.teacher.uid])
+        self.data[f'day_date_{self.date.weekday()}'] = self.date
 
     def test_create_multiple_groups_with_subjects_and_timetable(self):
         for index, time in enumerate(('17:00', '18:00')):

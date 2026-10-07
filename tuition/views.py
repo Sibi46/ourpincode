@@ -175,7 +175,7 @@ def group_create(request, uid):
             mode=lesson.mode, location=lesson.location)
         for day in form.cleaned_data['weekdays']:
             rule = m.ScheduleRule(batch=batch, weekday=int(day), start_time=form.cleaned_data['start_time'],
-                duration_minutes=lesson.duration_minutes, start_date=lesson.start_date, end_date=lesson.end_date,
+                duration_minutes=lesson.duration_minutes, start_date=form.cleaned_data[f'day_date_{day}'], end_date=lesson.end_date,
                 timezone_name='Asia/Kolkata', meeting_url=form.cleaned_data['meeting_url'])
             rule.full_clean(); rule.save()
             svc.generate(rule)
@@ -521,12 +521,17 @@ def attendance(request, pk):
 @login_required
 def timetable(request):
     perm.active(request.user)
+    from .calendar_ui import month_start, bounds, build_month
+    first = month_start(request.GET.get('month'))
     sessions = m.ClassSession.objects.filter(Q(batch__lesson__teacher__owner=request.user) | Q(participants__enrolment__learner__in=perm.learners(request.user), participants__eligible=True)).distinct()
     if request.GET.get('today'):
         sessions = sessions.filter(start__date=timezone.localdate())
-    else:
-        sessions = sessions.filter(end__gte=timezone.now())
-    return page(request, 'Timetable', sessions=sessions.order_by('start')[:200])
+        return page(request, 'Timetable', sessions=sessions.order_by('start')[:200])
+    start, end = bounds(first)
+    sessions = list(sessions.filter(start__lt=end, end__gt=start).select_related('batch__lesson__teacher').order_by('start'))
+    profiles = m.TeacherProfile.objects.filter(owner=request.user)
+    hours = list(m.Availability.objects.filter(teacher__in=profiles))
+    return page(request, 'Timetable', template='tuition/calendar.html', calendar=build_month(first, sessions, hours), teacher_profiles=profiles, has_hours=bool(hours))
 
 
 @login_required

@@ -122,10 +122,29 @@ class GroupCreateForm(LessonForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['end_date'].required = True
+        for day, label in m.DAYS:
+            self.fields[f'day_date_{day}'] = forms.DateField(required=False, label=f'{label} first class date', widget=forms.DateInput(attrs={'type': 'date', 'data-weekday': str(day)}))
         self.order_fields(['name', 'new_subjects', 'subjects', 'location', 'description', 'mode', 'min_age', 'max_age', 'capacity', 'fee', 'billing_period', 'start_date', 'end_date', 'start_time', 'duration_minutes', 'meeting_url', 'weekdays'])
+
+    def day_rows(self):
+        return [(checkbox, self[f'day_date_{checkbox.data["value"]}']) for checkbox in self['weekdays']]
+
+    def main_fields(self):
+        return [field for field in self if field.name != 'weekdays' and not field.name.startswith('day_date_')]
 
     def clean(self):
         data = super().clean()
+        for day in data.get('weekdays', []):
+            key = f'day_date_{day}'
+            selected = data.get(key)
+            if selected is None:
+                self.add_error(key, 'Choose the first class date for this day.')
+            elif selected.weekday() != int(day):
+                self.add_error(key, 'The date must match the selected weekday.')
+            elif (data.get('start_date') and selected < data['start_date']) or (data.get('end_date') and selected > data['end_date']):
+                self.add_error(key, 'Choose a date within the group start and end dates.')
+            elif selected < timezone.localdate():
+                self.add_error(key, 'Choose today or a future date.')
         if data.get('end_date') and data['end_date'] < timezone.localdate():
             self.add_error('end_date', 'Choose today or a future end date.')
         if data.get('mode') in ('offline', 'hybrid') and not data.get('location'):
