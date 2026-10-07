@@ -111,50 +111,49 @@ class LessonForm(SubjectEntryForm):
 
 class GroupCreateForm(LessonForm):
     weekdays = forms.MultipleChoiceField(choices=m.DAYS, label='Class days', widget=forms.CheckboxSelectMultiple)
-    start_time = forms.TimeField(widget=forms.TimeInput(attrs={'type': 'time'}), label='Class start time (India)')
     meeting_url = forms.URLField(required=False, validators=[m.meeting_url], label='Online meeting link')
 
     class Meta(LessonForm.Meta):
-        fields = ['name', 'description', 'subjects', 'min_age', 'max_age', 'mode', 'location', 'fee', 'billing_period', 'duration_minutes', 'capacity', 'start_date', 'end_date']
-        labels = {'name': 'Group name', 'fee': 'Advertised fee', 'capacity': 'Maximum students', 'location': 'Class address', 'duration_minutes': 'Class duration (minutes)'}
-        help_texts = {'fee': 'Shown with the group. Student fee agreements and payments are managed separately.'}
+        fields = ['name', 'description', 'subjects', 'mode', 'location', 'fee', 'billing_period', 'capacity']
+        labels = {'name': 'Group name', 'fee': 'Advertised fee', 'capacity': 'Maximum students', 'location': 'Class address'}
+        widgets = {name: forms.Textarea(attrs={'rows': 2}) for name in ('description', 'location')}
+        help_texts = {'fee': 'Student fee agreements and payments are managed separately.'}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['end_date'].required = True
+        self.fields.pop('subjects')
         for day, label in m.DAYS:
-            self.fields[f'day_date_{day}'] = forms.DateField(required=False, label=f'{label} first class date', widget=forms.DateInput(attrs={'type': 'date', 'data-weekday': str(day)}))
-        self.order_fields(['name', 'new_subjects', 'subjects', 'location', 'description', 'mode', 'min_age', 'max_age', 'capacity', 'fee', 'billing_period', 'start_date', 'end_date', 'start_time', 'duration_minutes', 'meeting_url', 'weekdays'])
+            for part in ('start', 'end'):
+                self.fields[f'day_{part}_{day}'] = forms.TimeField(required=False, label=f'{label} {part} time', widget=forms.TimeInput(attrs={'type': 'time', 'step': '60', 'data-weekday': str(day)}))
+        self.order_fields(['name', 'new_subjects', 'description', 'mode', 'location', 'meeting_url', 'capacity', 'fee', 'billing_period', 'weekdays'])
 
     def day_rows(self):
-        return [(checkbox, self[f'day_date_{checkbox.data["value"]}']) for checkbox in self['weekdays']]
+        return [(checkbox, self[f'day_start_{checkbox.data["value"]}'], self[f'day_end_{checkbox.data["value"]}']) for checkbox in self['weekdays']]
 
     def main_fields(self):
-        return [field for field in self if field.name != 'weekdays' and not field.name.startswith('day_date_')]
+        return [field for field in self if field.name != 'weekdays' and not field.name.startswith('day_')]
 
     def clean(self):
         data = super().clean()
+        slots = []
         for day in data.get('weekdays', []):
-            key = f'day_date_{day}'
-            selected = data.get(key)
-            if selected is None:
-                self.add_error(key, 'Choose the first class date for this day.')
-            elif selected.weekday() != int(day):
-                self.add_error(key, 'The date must match the selected weekday.')
-            elif (data.get('start_date') and selected < data['start_date']) or (data.get('end_date') and selected > data['end_date']):
-                self.add_error(key, 'Choose a date within the group start and end dates.')
-            elif selected < timezone.localdate():
-                self.add_error(key, 'Choose today or a future date.')
-        if data.get('end_date') and data['end_date'] < timezone.localdate():
-            self.add_error('end_date', 'Choose today or a future end date.')
+            start, end = data.get(f'day_start_{day}'), data.get(f'day_end_{day}')
+            if not start: self.add_error(f'day_start_{day}', 'Enter start time.')
+            if not end: self.add_error(f'day_end_{day}', 'Enter end time.')
+            if start and end:
+                if end <= start or start.second or end.second:
+                    self.add_error(f'day_end_{day}', 'End time must be after start time on the same day, in whole minutes.')
+                else:
+                    slots.append((int(day), start, (end.hour*60+end.minute)-(start.hour*60+start.minute)))
+        data['slots'] = slots
         if data.get('mode') in ('offline', 'hybrid') and not data.get('location'):
             self.add_error('location', 'Enter the class address.')
+        if data.get('mode') == 'offline':
+            data['meeting_url'] = ''
+        if data.get('mode') == 'online':
+            data['location'] = ''
         if data.get('mode') in ('online', 'hybrid') and not data.get('meeting_url'):
             self.add_error('meeting_url', 'Enter an approved online meeting link.')
-        if data.get('start_time') and data.get('duration_minutes'):
-            time = data['start_time']
-            if time.hour * 60 + time.minute + data['duration_minutes'] >= 1440:
-                self.add_error('duration_minutes', 'Classes must finish before midnight.')
         return data
 
 

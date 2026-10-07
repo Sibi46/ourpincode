@@ -89,6 +89,8 @@ Final verification on 2026-10-04: **145/145 tests passed**, Django checks report
 
 ### Group leave / absence dates
 
+Group creation now accepts a start/end time for each selected weekday, rather than calendar-date or shared-time inputs. New groups inherit the teacher's age range and schedule weekly from the next occurrence for 365 days (disclosed on the form); existing groups are unchanged. Each rule stores its own duration. In-person groups require an address, online groups require an approved meeting URL, and hybrid groups require both. Standard 90-day generation and the existing scheduler still apply. No schema migration is required.
+
 Teachers now start with **Create group** from My Learning or their teacher dashboard. One transaction creates the internal lesson, batch, typed/selected subjects and recurring rules (India timezone), and generates the existing scheduling horizon. Existing groups/data remain intact; no schema migration or fixed group-count limit is introduced. Teacher approval and ownership are required. Scheduling conflicts roll back the whole group.
 
 **Add students** accepts an authorized learner's application and assigns the enrolment atomically, or assigns an existing active enrolment for that group's underlying lesson. Existing age, guardian, capacity and notification checks remain in place. New students use the group application link or teacher invitation; there is no unrestricted lookup of private learners. Group fees are advertised amounts; per-student agreements/invoices remain separate. Existing scheduler configuration is still required to extend recurring classes beyond the generated horizon.

@@ -43,27 +43,38 @@ class CalendarWorkflowTests(TestCase):
         self.assertNotContains(response,reverse('tuition:session',args=[session.uid]))
         self.assertEqual(response.context['calendar']['busy_days'],0)
 
-    def test_selected_date_used_and_wrong_weekday_rejected(self):
+    def test_weekday_times_saved_and_invalid_slot_rejected(self):
         from .test_groups import GroupWorkflowTests
         fixture = GroupWorkflowTests()
         fixture.owner=self.owner; fixture.teacher=self.teacher; fixture.client=self.client
         fixture.setUp()
-        chosen=fixture.date+timedelta(days=7)
-        data={**fixture.data,'end_date':chosen+timedelta(days=6),f'day_date_{chosen.weekday()}':chosen}
+        day=fixture.date.weekday()
+        data={**fixture.data, f'day_start_{day}':'10:00', f'day_end_{day}':'11:30'}
         response=self.client.post(fixture.url,data)
         self.assertEqual(response.status_code,302)
-        batch=m.Batch.objects.get(name='Evening group')
-        self.assertEqual(batch.rules.get().start_date,chosen)
-        self.assertEqual(timezone.localtime(batch.sessions.first().start,ZONE).date(),chosen)
-        data[f'day_date_{chosen.weekday()}']=chosen+timedelta(days=1)
+        rule=m.Batch.objects.get(name='Evening group').rules.get()
+        self.assertEqual(rule.start_time,time(10))
+        self.assertEqual(rule.duration_minutes,90)
+        self.assertEqual(rule.start_date.weekday(),day)
+        data[f'day_end_{day}']='09:00'
         form=forms.GroupCreateForm(data,instance=m.Lesson(teacher=self.teacher))
         self.assertFalse(form.is_valid())
-        self.assertIn(f'day_date_{chosen.weekday()}',form.errors)
+        self.assertIn(f'day_end_{day}',form.errors)
 
-    def test_missing_selected_date_is_rejected(self):
+    def test_missing_selected_times_rejected(self):
         form=forms.GroupCreateForm({'weekdays':['0']})
         self.assertFalse(form.is_valid())
-        self.assertIn('day_date_0',form.errors)
+        self.assertIn('day_start_0',form.errors)
+        self.assertIn('day_end_0',form.errors)
+
+    def test_removed_controls_and_online_fields(self):
+        self.client.force_login(self.owner)
+        response=self.client.get(reverse('tuition:group_create',args=[self.teacher.uid]))
+        for name in ('start_date','end_date','start_time','min_age','max_age','subjects','day_date_0'):
+            self.assertNotContains(response,'name="'+name+'"')
+        self.assertContains(response,'name="day_start_0"')
+        self.assertContains(response,'name="day_end_0"')
+        self.assertContains(response,'data-field="meeting_url"')
 
     def test_export_calendar_and_group_preview(self):
         import os

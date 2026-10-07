@@ -1,21 +1,24 @@
 (() => {
   const form = document.getElementById('group-form');
   if (!form) return;
-  const start = form.querySelector('[name="start_date"]'), end = form.querySelector('[name="end_date"]');
-  function updateDates() {
+  function updateSlots() {
     form.querySelectorAll('[data-weekday]').forEach(el => {
       const checked = form.querySelector('[name="weekdays"][value="'+el.dataset.weekday+'"]').checked;
       el.disabled = !checked; el.required = checked;
-      el.min = start.value; el.max = end.value;
-      if (checked && !el.value && start.value && end.value) {
-        const day = new Date(start.value + 'T00:00:00Z');
-        day.setUTCDate(day.getUTCDate() + (Number(el.dataset.weekday) - (day.getUTCDay()+6)%7 + 7)%7);
-        if(day <= new Date(end.value+'T00:00:00Z')) el.value = day.toISOString().slice(0,10);
-      }
-      const selectedDay = el.value ? (new Date(el.value+'T00:00:00Z').getUTCDay()+6)%7 : null;
-      el.setCustomValidity(checked && el.value && selectedDay !== Number(el.dataset.weekday) ? 'Choose a date matching this weekday.' : '');
+      const start = form.querySelector('[name="day_start_'+el.dataset.weekday+'"]');
+      el.setCustomValidity(checked && el.name.startsWith('day_end_') && start.value && el.value && el.value <= start.value ? 'End time must be after start time.' : '');
     });
   }
-  form.querySelectorAll('[name="weekdays"],[data-weekday]').forEach(el => el.addEventListener('change', updateDates));
-  start.addEventListener('input', updateDates); end.addEventListener('input', updateDates); updateDates();
+  function updateMode() {
+    const mode = form.querySelector('[name="mode"]').value;
+    for(const name of ['meeting_url', 'location']) {
+      const show = name === 'meeting_url' ? ['online','hybrid'].includes(mode) : ['offline','hybrid'].includes(mode);
+      const field = form.querySelector('[name="'+name+'"]');
+      form.querySelector('[data-field="'+name+'"]').hidden = !show;
+      field.disabled = !show; field.required = show;
+    }
+  }
+  form.querySelectorAll('[name="weekdays"],[data-weekday]').forEach(el => el.addEventListener('input', updateSlots));
+  form.querySelector('[name="mode"]').addEventListener('change',updateMode);
+  updateSlots(); updateMode();
 })();

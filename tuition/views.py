@@ -164,18 +164,24 @@ def group_create(request, uid):
     teacher = teacher_for(request, uid)
     if teacher.status != 'approved':
         raise PermissionDenied('Teacher approval is required to create groups.')
-    form = f.GroupCreateForm(request.POST or None, instance=m.Lesson(teacher=teacher),
-        initial={'mode': teacher.mode, 'location': teacher.address, 'start_date': timezone.localdate()})
+    today = timezone.localdate()
+    form = f.GroupCreateForm(request.POST or None, instance=m.Lesson(teacher=teacher, start_date=today,
+        end_date=today + timedelta(days=365), min_age=teacher.min_age, max_age=teacher.max_age),
+        initial={'mode': teacher.mode, 'location': teacher.address})
     def save(form):
         teacher = svc.lock_teacher(request.user, form.instance.teacher)
         if teacher.status != 'approved':
             raise PermissionDenied
+        form.instance.duration_minutes = form.cleaned_data['slots'][0][2]
         lesson = form.save()
         batch = m.Batch.objects.create(lesson=lesson, name=lesson.name, capacity=lesson.capacity,
             mode=lesson.mode, location=lesson.location)
-        for day in form.cleaned_data['weekdays']:
-            rule = m.ScheduleRule(batch=batch, weekday=int(day), start_time=form.cleaned_data['start_time'],
-                duration_minutes=lesson.duration_minutes, start_date=form.cleaned_data[f'day_date_{day}'], end_date=lesson.end_date,
+        for day, start_time, duration in form.cleaned_data['slots']:
+            first_day = today + timedelta(days=(day - today.weekday()) % 7)
+            if first_day == today and start_time <= timezone.localtime().time().replace(tzinfo=None):
+                first_day += timedelta(days=7)
+            rule = m.ScheduleRule(batch=batch, weekday=day, start_time=start_time,
+                duration_minutes=duration, start_date=first_day, end_date=lesson.end_date,
                 timezone_name='Asia/Kolkata', meeting_url=form.cleaned_data['meeting_url'])
             rule.full_clean(); rule.save()
             svc.generate(rule)
