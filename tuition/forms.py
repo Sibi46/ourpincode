@@ -16,7 +16,42 @@ class StyledForm(forms.ModelForm):
                 field.widget = forms.TimeInput(attrs={'type': 'time'})
 
 
-class TeacherForm(StyledForm):
+class SubjectEntryForm(StyledForm):
+    new_subjects = forms.CharField(required=False, max_length=1000, label='Type subject names',
+        help_text='Separate names with commas, for example: Maths, English, Piano. Up to 10 names.',
+        widget=forms.TextInput(attrs={'placeholder': 'Maths, English, Piano'}))
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['subjects'].label = 'Or select existing subjects'
+        names = [name for name in self.fields if name != 'new_subjects']
+        names.insert(names.index('subjects'), 'new_subjects')
+        self.order_fields(names)
+
+    def clean_new_subjects(self):
+        names = list(dict.fromkeys(' '.join(name.split()) for name in self.cleaned_data['new_subjects'].split(',') if name.strip()))
+        if len(names) > 10 or any(len(name) > 100 for name in names):
+            raise forms.ValidationError('Enter up to 10 subjects, each no longer than 100 characters.')
+        for name in names:
+            if m.Subject.objects.filter(name__iexact=name, active=False).exists():
+                raise forms.ValidationError('A subject with this name is disabled. Contact the administrator.')
+        return names
+
+    def _save_m2m(self):
+        # Called only after the parent profile/lesson is saved, inside the view's transaction.
+        super()._save_m2m()
+        import hashlib
+        for name in self.cleaned_data.get('new_subjects', []):
+            subject = m.Subject.objects.filter(name__iexact=name).first()
+            if subject is None:
+                slug = 'teacher-' + hashlib.sha256(name.casefold().encode()).hexdigest()[:40]
+                subject, _ = m.Subject.objects.get_or_create(slug=slug, defaults={'name': name})
+            if not subject.active or subject.name.casefold() != name.casefold():
+                raise forms.ValidationError('This subject is unavailable. Contact the administrator.')
+            self.instance.subjects.add(subject)
+
+
+class TeacherForm(SubjectEntryForm):
     service_pins = forms.CharField(required=False, help_text='Comma-separated six-digit PIN codes served.')
 
     class Meta:
@@ -28,7 +63,7 @@ class TeacherForm(StyledForm):
     def sections(self):
         for title, names in (
             ('Your teaching profile', ('kind', 'name', 'description', 'qualifications', 'experience')),
-            ('What you teach', ('subjects', 'mode', 'min_age', 'max_age')),
+            ('What you teach', ('new_subjects', 'subjects', 'mode', 'min_age', 'max_age')),
             ('Location & contact', ('address', 'pincode', 'service_pins', 'phone', 'email', 'public_fees')),
         ):
             yield title, [self[name] for name in names]
@@ -58,10 +93,56 @@ class GroupLeaveForm(forms.Form):
         return data
 
 
-class LessonForm(StyledForm):
+class LessonForm(SubjectEntryForm):
     class Meta:
         model = m.Lesson
         fields = ['name', 'description', 'subjects', 'min_age', 'max_age', 'skill_level', 'mode', 'location', 'fee', 'billing_period', 'duration_minutes', 'capacity', 'start_date', 'end_date', 'active']
+
+
+class GroupCreateForm(LessonForm):
+    weekdays = forms.MultipleChoiceField(choices=m.DAYS, label='Class days', widget=forms.CheckboxSelectMultiple)
+    start_time = forms.TimeField(widget=forms.TimeInput(attrs={'type': 'time'}), label='Class start time (India)')
+    meeting_url = forms.URLField(required=False, validators=[m.meeting_url], label='Online meeting link')
+
+    class Meta(LessonForm.Meta):
+        fields = ['name', 'description', 'subjects', 'min_age', 'max_age', 'mode', 'location', 'fee', 'billing_period', 'duration_minutes', 'capacity', 'start_date', 'end_date']
+        labels = {'name': 'Group name', 'fee': 'Advertised fee', 'capacity': 'Maximum students', 'location': 'Class address', 'duration_minutes': 'Class duration (minutes)'}
+        help_texts = {'fee': 'Shown with the group. Student fee agreements and payments are managed separately.'}
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['end_date'].required = True
+
+    def clean(self):
+        data = super().clean()
+        if data.get('end_date') and data['end_date'] < timezone.localdate():
+            self.add_error('end_date', 'Choose today or a future end date.')
+        if data.get('mode') in ('offline', 'hybrid') and not data.get('location'):
+            self.add_error('location', 'Enter the class address.')
+        if data.get('mode') in ('online', 'hybrid') and not data.get('meeting_url'):
+            self.add_error('meeting_url', 'Enter an approved online meeting link.')
+        if data.get('start_time') and data.get('duration_minutes'):
+            time = data['start_time']
+            if time.hour * 60 + time.minute + data['duration_minutes'] >= 1440:
+                self.add_error('duration_minutes', 'Classes must finish before midnight.')
+        return data
+
+
+class GroupMemberForm(forms.Form):
+    enrolment = forms.ModelChoiceField(queryset=m.Enrolment.objects.none(), required=False, label='Add an enrolled student')
+    application = forms.ModelChoiceField(queryset=m.Application.objects.none(), required=False, label='Or accept an application and add student')
+
+    def __init__(self, *args, batch, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['enrolment'].queryset = batch.lesson.enrolments.filter(status='active').exclude(membership__batch=batch).select_related('learner', 'lesson')
+        self.fields['application'].queryset = m.Application.objects.filter(lesson=batch.lesson, status__in=['pending', 'needs_info'], learner__isnull=False, applicant__isnull=False)
+        self.fields['application'].label_from_instance = lambda obj: obj.name
+
+    def clean(self):
+        data = super().clean()
+        if bool(data.get('enrolment')) == bool(data.get('application')):
+            raise forms.ValidationError('Choose one enrolled student or one application.')
+        return data
 
 
 class BatchForm(StyledForm):

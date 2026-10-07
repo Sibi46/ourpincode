@@ -160,6 +160,50 @@ def teacher_dashboard(request, uid):
 
 
 @login_required
+def group_create(request, uid):
+    teacher = teacher_for(request, uid)
+    if teacher.status != 'approved':
+        raise PermissionDenied('Teacher approval is required to create groups.')
+    form = f.GroupCreateForm(request.POST or None, instance=m.Lesson(teacher=teacher),
+        initial={'mode': teacher.mode, 'location': teacher.address, 'start_date': timezone.localdate()})
+    def save(form):
+        teacher = svc.lock_teacher(request.user, form.instance.teacher)
+        if teacher.status != 'approved':
+            raise PermissionDenied
+        lesson = form.save()
+        batch = m.Batch.objects.create(lesson=lesson, name=lesson.name, capacity=lesson.capacity,
+            mode=lesson.mode, location=lesson.location)
+        for day in form.cleaned_data['weekdays']:
+            rule = m.ScheduleRule(batch=batch, weekday=int(day), start_time=form.cleaned_data['start_time'],
+                duration_minutes=lesson.duration_minutes, start_date=lesson.start_date, end_date=lesson.end_date,
+                timezone_name='Asia/Kolkata', meeting_url=form.cleaned_data['meeting_url'])
+            rule.full_clean(); rule.save()
+            svc.generate(rule)
+        svc.audit(request.user, batch, 'group_created')
+        return reverse('tuition:batch', args=[batch.uid])
+    return form_page(request, 'Create group', form, save)
+
+
+@login_required
+def group_students(request, uid):
+    batch = get_object_or_404(m.Batch, uid=uid)
+    perm.own(request.user, batch.lesson.teacher)
+    if batch.lesson.teacher.status != 'approved':
+        raise PermissionDenied
+    form = f.GroupMemberForm(request.POST or None, batch=batch)
+    def save(form):
+        teacher = svc.lock_teacher(request.user, batch.lesson.teacher)
+        if teacher.status != 'approved':
+            raise PermissionDenied
+        enrolment = form.cleaned_data['enrolment']
+        if form.cleaned_data['application']:
+            enrolment = svc.decide(request.user, form.cleaned_data['application'], 'accepted')
+        svc.transfer(request.user, enrolment, batch)
+        return reverse('tuition:batch', args=[batch.uid])
+    return form_page(request, batch.name + ' — Add students', form, save)
+
+
+@login_required
 def lesson_edit(request, teacher_id=None, uid=None):
     if uid:
         obj = get_object_or_404(m.Lesson, uid=uid)

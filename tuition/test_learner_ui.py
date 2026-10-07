@@ -46,7 +46,7 @@ class LearnerUITests(TestCase):
         link = reverse('tuition:schedule', args=[self.batch.uid])
         for url in (reverse('tuition:dashboard'), reverse('tuition:teacher', args=[self.teacher.uid])):
             response = self.client.get(url)
-            self.assertContains(response, 'Create timetable')
+            self.assertContains(response, 'Your groups')
             self.assertContains(response, link)
             self.assertContains(response, 'Set class days &amp; time')
         self.client.force_login(self.parent)

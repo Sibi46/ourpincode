@@ -36,7 +36,7 @@ class RegistrationTests(TestCase):
         self.teacher.longitude = 80
         self.teacher.save()
         form = forms.TeacherForm(instance=self.teacher)
-        data = {name: form[name].value() for name in form.fields if name not in ('subjects', 'service_pins')}
+        data = {name: form[name].value() for name in form.fields if name not in ('subjects', 'service_pins', 'new_subjects')}
         data['name'] = 'Updated teacher'
         self.client.force_login(self.owner)
         url = reverse('tuition:teacher_edit', args=[self.teacher.uid])

@@ -89,6 +89,10 @@ Final verification on 2026-10-04: **145/145 tests passed**, Django checks report
 
 ### Group leave / absence dates
 
+Teachers now start with **Create group** from My Learning or their teacher dashboard. One transaction creates the internal lesson, batch, typed/selected subjects and recurring rules (India timezone), and generates the existing scheduling horizon. Existing groups/data remain intact; no schema migration or fixed group-count limit is introduced. Teacher approval and ownership are required. Scheduling conflicts roll back the whole group.
+
+**Add students** accepts an authorized learner's application and assigns the enrolment atomically, or assigns an existing active enrolment for that group's underlying lesson. Existing age, guardian, capacity and notification checks remain in place. New students use the group application link or teacher invitation; there is no unrestricted lookup of private learners. Group fees are advertised amounts; per-student agreements/invoices remain separate. Existing scheduler configuration is still required to extend recurring classes beyond the generated horizon.
+
 Teachers open a batch and select **Record leave / absence dates**, then choose an active enrolled student, inclusive dates, status and reason. Approved owners only can submit. `excused` means leave (including future scheduled classes); `absent` requires the class to have started. Existing attendance cannot be overwritten through the date-range form; corrections use the individual class attendance form. Membership and enrolment end dates are unchanged.
 
 This reuses Attendance and SessionParticipant, including audit and points handling; no migration is needed. Only already-generated scheduled classes are covered, not future timetable additions. Create the timetable before recording leave. An invalid range is rolled back as a whole. This is teacher-recorded leave, not a parent leave-request approval workflow.
