@@ -181,7 +181,7 @@ def group_create(request, uid):
             svc.generate(rule)
         svc.audit(request.user, batch, 'group_created')
         return reverse('tuition:batch', args=[batch.uid])
-    return form_page(request, 'Create group', form, save)
+    return form_page(request, 'Create group', form, save, template='tuition/group_form.html')
 
 
 @login_required

@@ -958,6 +958,7 @@ document.addEventListener('DOMContentLoaded',function(){
   }
 
   function attachToInput(input){
+    if(input.dataset.pinLookup === 'off') return;
     if(input.dataset.pinAttached) return;
     input.dataset.pinAttached = '1';
 
@@ -1020,6 +1021,7 @@ document.addEventListener('DOMContentLoaded',function(){
     });
   }
   function applyPincodeAutofill(el){
+    if(el.dataset.pinLookup === 'off') return;
     if(el._pincodeWired) return;
     el._pincodeWired = true;
     el.setAttribute('maxlength','6');

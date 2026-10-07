@@ -17,7 +17,7 @@ class LearnerUITests(TestCase):
         self.client.force_login(self.other)
         response = self.client.get(reverse('tuition:dashboard'))
         self.assertNotContains(response, reverse('tuition:learner', args=[self.child.uid]))
-        self.assertContains(response, 'Add your first learner')
+        self.assertContains(response, 'Add your first student')
 
     def test_form_validation_and_guardian_request(self):
         self.client.force_login(self.other)
@@ -37,7 +37,7 @@ class LearnerUITests(TestCase):
     def test_edit_omits_registration_only_fields(self):
         self.client.force_login(self.parent)
         response = self.client.get(reverse('tuition:learner_edit', args=[self.child.uid]))
-        self.assertContains(response, 'Update learner profile')
+        self.assertContains(response, 'Update student profile')
         self.assertNotContains(response, 'name="attestation"')
         self.assertNotContains(response, 'name="self_registration"')
 

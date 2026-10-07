@@ -16,6 +16,30 @@ class StyledForm(forms.ModelForm):
                 field.widget = forms.TimeInput(attrs={'type': 'time'})
 
 
+def subject_names(value):
+    names = list(dict.fromkeys(' '.join(name.split()) for name in value.split(',') if name.strip()))
+    if len(names) > 10 or any(len(name) > 100 for name in names):
+        raise forms.ValidationError('Enter up to 10 subjects, each no longer than 100 characters.')
+    for name in names:
+        if m.Subject.objects.filter(name__iexact=name, active=False).exists():
+            raise forms.ValidationError('A subject with this name is disabled. Contact the administrator.')
+    return names
+
+
+def resolve_subjects(names):
+    import hashlib
+    records = []
+    for name in names:
+        subject = m.Subject.objects.filter(name__iexact=name).first()
+        if subject is None:
+            slug = 'teacher-' + hashlib.sha256(name.casefold().encode()).hexdigest()[:40]
+            subject, _ = m.Subject.objects.get_or_create(slug=slug, defaults={'name': name})
+        if not subject.active or subject.name.casefold() != name.casefold():
+            raise forms.ValidationError('This subject is unavailable. Contact the administrator.')
+        records.append(subject)
+    return records
+
+
 class SubjectEntryForm(StyledForm):
     new_subjects = forms.CharField(required=False, max_length=1000, label='Type subject names',
         help_text='Separate names with commas, for example: Maths, English, Piano. Up to 10 names.',
@@ -29,26 +53,12 @@ class SubjectEntryForm(StyledForm):
         self.order_fields(names)
 
     def clean_new_subjects(self):
-        names = list(dict.fromkeys(' '.join(name.split()) for name in self.cleaned_data['new_subjects'].split(',') if name.strip()))
-        if len(names) > 10 or any(len(name) > 100 for name in names):
-            raise forms.ValidationError('Enter up to 10 subjects, each no longer than 100 characters.')
-        for name in names:
-            if m.Subject.objects.filter(name__iexact=name, active=False).exists():
-                raise forms.ValidationError('A subject with this name is disabled. Contact the administrator.')
-        return names
+        return subject_names(self.cleaned_data['new_subjects'])
 
     def _save_m2m(self):
         # Called only after the parent profile/lesson is saved, inside the view's transaction.
         super()._save_m2m()
-        import hashlib
-        for name in self.cleaned_data.get('new_subjects', []):
-            subject = m.Subject.objects.filter(name__iexact=name).first()
-            if subject is None:
-                slug = 'teacher-' + hashlib.sha256(name.casefold().encode()).hexdigest()[:40]
-                subject, _ = m.Subject.objects.get_or_create(slug=slug, defaults={'name': name})
-            if not subject.active or subject.name.casefold() != name.casefold():
-                raise forms.ValidationError('This subject is unavailable. Contact the administrator.')
-            self.instance.subjects.add(subject)
+        self.instance.subjects.add(*resolve_subjects(self.cleaned_data.get('new_subjects', [])))
 
 
 class TeacherForm(SubjectEntryForm):
@@ -112,6 +122,7 @@ class GroupCreateForm(LessonForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['end_date'].required = True
+        self.order_fields(['name', 'new_subjects', 'subjects', 'location', 'description', 'mode', 'min_age', 'max_age', 'capacity', 'fee', 'billing_period', 'start_date', 'end_date', 'start_time', 'duration_minutes', 'meeting_url', 'weekdays'])
 
     def clean(self):
         data = super().clean()
@@ -158,6 +169,7 @@ class AvailabilityForm(StyledForm):
 
 
 class LearnerForm(StyledForm):
+    interests = forms.CharField(required=False, max_length=1000, help_text='Type interests separated by commas, e.g. Maths, Music.', widget=forms.TextInput(attrs={'placeholder': 'Maths, Music, Drawing'}))
     relationship = forms.CharField(required=False, help_text='For a child/dependant, state your relationship.')
     attestation = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows': 3}), help_text='For a child or dependant, explain your authority to act for this learner. An administrator reviews guardian access.')
     self_registration = forms.BooleanField(required=False, label='I am registering myself and am at least 18')
@@ -165,14 +177,32 @@ class LearnerForm(StyledForm):
     class Meta:
         model = m.Learner
         fields = ['name', 'dob', 'age', 'guardian_name', 'phone', 'email', 'address', 'pincode', 'interests']
-        labels = {'dob': 'Date of birth', 'name': 'Learner name', 'pincode': 'PIN code'}
-        widgets = {'address': forms.Textarea(attrs={'rows': 3})}
+        labels = {'dob': 'Date of birth', 'name': 'Student name', 'pincode': 'PIN code'}
+        widgets = {'address': forms.Textarea(attrs={'rows': 2}), 'pincode': forms.TextInput(attrs={'data-pin-lookup': 'off', 'inputmode': 'numeric', 'pattern': '[0-9]{6}', 'maxlength': '6'})}
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance.pk:
+            self.initial['interests'] = ', '.join(self.instance.interests.values_list('name', flat=True))
+        self.fields['pincode'].help_text = 'Enter any complete six-digit PIN code. Registration in our directory is not required.'
+        self.fields['age'].help_text = 'Calculated from date of birth, or enter age if birth date is unavailable.'
+        self.fields['dob'].widget.attrs['max'] = timezone.localdate().isoformat()
+
+    def clean_interests(self):
+        return subject_names(self.cleaned_data['interests'])
+
+    def _save_m2m(self):
+        names = self.cleaned_data['interests']
+        self.cleaned_data['interests'] = resolve_subjects(names)
+        try:
+            super()._save_m2m()
+        finally:
+            self.cleaned_data['interests'] = names
 
     def sections(self):
         for title, names in (
-            ('Learner details', ('self_registration', 'name', 'dob', 'age', 'interests')),
-            ('Contact & location', ('guardian_name', 'phone', 'email', 'address', 'pincode')),
-            ('Guardian verification', ('relationship', 'attestation')),
+            ('Student details', ('self_registration', 'name', 'dob', 'age', 'interests')),
+            ('Contact & location', ('guardian_name', 'phone', 'email', 'address', 'pincode', 'relationship', 'attestation')),
         ):
             fields = [self[name] for name in names if name in self.fields]
             if fields:
@@ -180,6 +210,11 @@ class LearnerForm(StyledForm):
 
     def clean(self):
         data = super().clean()
+        dob = data.get('dob')
+        if dob and dob <= timezone.localdate():
+            today = timezone.localdate()
+            data['age'] = today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
+            self.instance.age_as_of = today
         if self.instance.pk:
             return data
         if data.get('self_registration'):
