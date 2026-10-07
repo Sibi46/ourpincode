@@ -108,7 +108,7 @@ def discover(request):
 def public_profile(request, slug):
     teacher = get_object_or_404(m.TeacherProfile, slug=slug, status='approved', owner__is_active=True)
     from .activities import public_allowed
-    return page(request, teacher.name, public_teacher=teacher, lessons=teacher.lessons.filter(active=True), availability=teacher.availability.all(), public_images=[asset for asset in m.MediaAsset.objects.filter(teacher=teacher, mime__startswith='image/') if public_allowed(asset)])
+    return page(request, teacher.name, template='tuition/profile.html', public_teacher=teacher, lessons=teacher.lessons.filter(active=True).prefetch_related('subjects'), availability=teacher.availability.all(), public_images=[asset for asset in m.MediaAsset.objects.filter(teacher=teacher, mime__startswith='image/') if public_allowed(asset)])
 
 
 @login_required
