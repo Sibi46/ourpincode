@@ -1,6 +1,7 @@
 (() => {
   const form = document.getElementById('group-form');
   if (!form) return;
+  const modeField = form.querySelector('[name="mode"]');
   function updateSlots() {
     form.querySelectorAll('[data-day]').forEach(row => {
       const checked = row.querySelector('[name="weekdays"]').checked;
@@ -31,15 +32,18 @@
   });
 
   function updateMode() {
-    const mode = form.querySelector('[name="mode"]').value;
+    if (!modeField) return;
+    const mode = modeField.value;
     for(const name of ['meeting_url', 'location']) {
       const show = name === 'meeting_url' ? ['online','hybrid'].includes(mode) : ['offline','hybrid'].includes(mode);
       const field = form.querySelector('[name="'+name+'"]');
-      form.querySelector('[data-field="'+name+'"]').hidden = !show;
+      const wrapper = form.querySelector('[data-field="'+name+'"]');
+      if (!field || !wrapper) continue;
+      wrapper.hidden = !show;
       field.disabled = !show; field.required = show;
     }
   }
   form.querySelectorAll('[name="weekdays"]').forEach(el => el.addEventListener('input', updateSlots));
-  form.querySelector('[name="mode"]').addEventListener('change',updateMode);
+  if (modeField) modeField.addEventListener('change',updateMode);
   updateSlots(); updateMode();
 })();
