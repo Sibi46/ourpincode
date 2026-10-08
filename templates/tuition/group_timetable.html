@@ -1,0 +1,11 @@
+{% extends 'base.html' %}{% load static %}
+{% block title %}Group timetable &middot; OURPINCODE{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'tuition/learning.css' %}"><link rel="stylesheet" href="{% static 'tuition/group-timetable.css' %}">{% endblock %}
+{% block content %}<main class="learning group-timetable">
+<nav><a href="{% url 'tuition:dashboard' %}">&larr; My learning</a><a href="?month={% now 'Y-m' %}">View calendar</a></nav>
+<header><h1>Group timetable</h1><p>Your groups, class days and start times.</p></header>
+{% for group in groups %}<section class="card"><h2>{{ group.name }}</h2><p>{{ group.lesson.teacher.name }}</p>
+{% regroup group.weekly_slots by weekday as days %}
+{% for day in days %}<div class="weekly-day"><strong>{{ day.list.0.get_weekday_display }}</strong><div class="weekly-times">{% for slot in day.list %}<span>{{ slot.start_time|time:'g:i A' }} <small>{{ slot.timezone_name }}</small></span>{% endfor %}</div></div>{% empty %}<p>No weekly slots added yet.</p>{% endfor %}
+</section>{% empty %}<section class="card"><p>No groups to show yet.</p></section>{% endfor %}
+</main>{% endblock %}

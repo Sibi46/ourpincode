@@ -109,3 +109,5 @@ This reuses Attendance and SessionParticipant, including audit and points handli
 - Earlier Phase 3 app registration/root URL/home Explore and core migrations remain in the uncommitted workspace. Pre-existing unrelated `.env.example`, `portal/network_forms.py` and preview artifacts were left untouched. No Git push or deployment performed.
 
 Create Group allows multiple start-time-only slots per weekday (+/remove controls). Each reserves 60 minutes for calendar/clash checks; repeated or conflicting times are rejected. Advertised fee is optional and blank saves zero; fee agreements remain separate. No migration required.
+
+Timetable defaults to group cards with weekday/start-time slots from active, unexpired rules. Access is limited to the group's teacher or an authorized learner's active enrolment/membership. The existing monthly calendar remains available via View calendar (?month=YYYY-MM).

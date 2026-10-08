@@ -43,6 +43,23 @@ class CalendarWorkflowTests(TestCase):
         self.assertNotContains(response,reverse('tuition:session',args=[session.uid]))
         self.assertEqual(response.context['calendar']['busy_days'],0)
 
+    def test_group_timetable_shows_days_and_multiple_start_times_privately(self):
+        today = timezone.localdate()
+        for hour in (10, 12):
+            m.ScheduleRule.objects.create(batch=self.batch, weekday=0, start_time=time(hour), start_date=today, end_date=today+timedelta(days=30))
+        m.ScheduleRule.objects.create(batch=self.batch, weekday=1, start_time=time(18), start_date=today, end_date=today+timedelta(days=30), active=False)
+        self.client.force_login(self.owner)
+        response = self.client.get(reverse('tuition:timetable'))
+        self.assertTemplateUsed(response, 'tuition/group_timetable.html')
+        self.assertContains(response, self.batch.name)
+        self.assertContains(response, 'Monday')
+        self.assertContains(response, '10:00 AM')
+        self.assertContains(response, '12:00 PM')
+        self.assertNotContains(response, '6:00 PM')
+        self.client.force_login(self.other)
+        response = self.client.get(reverse('tuition:timetable'))
+        self.assertEqual(list(response.context['groups']), [])
+
     def test_weekday_times_saved_and_invalid_slot_rejected(self):
         from .test_groups import GroupWorkflowTests
         fixture = GroupWorkflowTests()

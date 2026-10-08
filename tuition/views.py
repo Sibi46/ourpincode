@@ -533,6 +533,15 @@ def timetable(request):
     if request.GET.get('today'):
         sessions = sessions.filter(start__date=timezone.localdate())
         return page(request, 'Timetable', sessions=sessions.order_by('start')[:200])
+    if 'month' not in request.GET:
+        from django.db.models import Prefetch
+        batches = m.Batch.objects.filter(
+            Q(lesson__teacher__owner=request.user) |
+            Q(memberships__enrolment__status='active', memberships__enrolment__learner__in=perm.learners(request.user))
+        ).distinct().select_related('lesson__teacher').prefetch_related(Prefetch(
+            'rules', queryset=m.ScheduleRule.objects.filter(active=True, end_date__gte=timezone.localdate()).order_by('weekday', 'start_time'), to_attr='weekly_slots'
+        )).order_by('name')
+        return page(request, 'Group timetable', template='tuition/group_timetable.html', groups=batches)
     start, end = bounds(first)
     sessions = list(sessions.filter(start__lt=end, end__gt=start).select_related('batch__lesson__teacher').order_by('start'))
     profiles = m.TeacherProfile.objects.filter(owner=request.user)
