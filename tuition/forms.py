@@ -109,6 +109,19 @@ class LessonForm(SubjectEntryForm):
         fields = ['name', 'description', 'subjects', 'min_age', 'max_age', 'skill_level', 'mode', 'location', 'fee', 'billing_period', 'duration_minutes', 'capacity', 'start_date', 'end_date', 'active']
 
 
+class WeeklyTimesWidget(forms.TextInput):
+    template_name = 'tuition/widgets/weekly_times.html'
+
+    def value_from_datadict(self, data, files, name):
+        values = data.getlist(name) if hasattr(data, 'getlist') else data.get(name, [])
+        return ','.join(values) if isinstance(values, list) else values
+
+    def get_context(self, name, value, attrs):
+        context = super().get_context(name, value, attrs)
+        context['times'] = (value or '').split(',')[:24]
+        return context
+
+
 class GroupCreateForm(LessonForm):
     weekdays = forms.MultipleChoiceField(choices=m.DAYS, label='Class days', widget=forms.CheckboxSelectMultiple)
     meeting_url = forms.URLField(required=False, validators=[m.meeting_url], label='Online meeting link')
@@ -122,13 +135,14 @@ class GroupCreateForm(LessonForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields.pop('subjects')
+        self.fields['fee'].required = False
+        self.fields['fee'].help_text = 'Optional. Leave blank to save INR 0. Student fee agreements are managed separately.'
         for day, label in m.DAYS:
-            for part in ('start', 'end'):
-                self.fields[f'day_{part}_{day}'] = forms.TimeField(required=False, label=f'{label} {part} time', widget=forms.TimeInput(attrs={'type': 'time', 'step': '60', 'data-weekday': str(day)}))
+            self.fields[f'day_start_{day}'] = forms.CharField(required=False, max_length=143, label=f'{label} start times', widget=WeeklyTimesWidget())
         self.order_fields(['name', 'new_subjects', 'description', 'mode', 'location', 'meeting_url', 'capacity', 'fee', 'billing_period', 'weekdays'])
 
     def day_rows(self):
-        return [(checkbox, self[f'day_start_{checkbox.data["value"]}'], self[f'day_end_{checkbox.data["value"]}']) for checkbox in self['weekdays']]
+        return [(checkbox, self[f'day_start_{checkbox.data["value"]}']) for checkbox in self['weekdays']]
 
     def main_fields(self):
         return [field for field in self if field.name != 'weekdays' and not field.name.startswith('day_')]
@@ -137,14 +151,19 @@ class GroupCreateForm(LessonForm):
         data = super().clean()
         slots = []
         for day in data.get('weekdays', []):
-            start, end = data.get(f'day_start_{day}'), data.get(f'day_end_{day}')
-            if not start: self.add_error(f'day_start_{day}', 'Enter start time.')
-            if not end: self.add_error(f'day_end_{day}', 'Enter end time.')
-            if start and end:
-                if end <= start or start.second or end.second:
-                    self.add_error(f'day_end_{day}', 'End time must be after start time on the same day, in whole minutes.')
-                else:
-                    slots.append((int(day), start, (end.hour*60+end.minute)-(start.hour*60+start.minute)))
+            name = f'day_start_{day}'
+            values = (data.get(name) or '').split(',')
+            seen = set()
+            for value in values:
+                try:
+                    start = forms.TimeField(input_formats=['%H:%M']).clean(value)
+                    if start in seen:
+                        raise forms.ValidationError('Use different start times for each slot.')
+                    seen.add(start)
+                    slots.append((int(day), start, 60))
+                except forms.ValidationError as error:
+                    self.add_error(name, error)
+        data['fee'] = data.get('fee') or 0
         data['slots'] = slots
         if data.get('mode') in ('offline', 'hybrid') and not data.get('location'):
             self.add_error('location', 'Enter the class address.')

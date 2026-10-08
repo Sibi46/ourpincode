@@ -89,7 +89,7 @@ Final verification on 2026-10-04: **145/145 tests passed**, Django checks report
 
 ### Group leave / absence dates
 
-Group creation now accepts a start/end time for each selected weekday, rather than calendar-date or shared-time inputs. New groups inherit the teacher's age range and schedule weekly from the next occurrence for 365 days (disclosed on the form); existing groups are unchanged. Each rule stores its own duration. In-person groups require an address, online groups require an approved meeting URL, and hybrid groups require both. Standard 90-day generation and the existing scheduler still apply. No schema migration is required.
+Group creation now accepts multiple start times for each selected weekday, rather than calendar-date or shared-time inputs. New groups inherit the teacher's age range and schedule weekly from the next occurrence for 365 days (disclosed on the form); existing groups are unchanged. Each new slot reserves 60 minutes for calendar availability and clash checks. In-person groups require an address, online groups require an approved meeting URL, and hybrid groups require both. Standard 90-day generation and the existing scheduler still apply. No schema migration is required.
 
 Teachers now start with **Create group** from My Learning or their teacher dashboard. One transaction creates the internal lesson, batch, typed/selected subjects and recurring rules (India timezone), and generates the existing scheduling horizon. Existing groups/data remain intact; no schema migration or fixed group-count limit is introduced. Teacher approval and ownership are required. Scheduling conflicts roll back the whole group.
 
@@ -107,3 +107,5 @@ This reuses Attendance and SessionParticipant, including audit and points handli
 - Integration: `jobportal/settings.py`, `jobportal/middleware.py`, `jobs/admin.py`, `jobs/assigned_admin.py`, `jobs/views.py`, `jobs/test_assigned_admin.py`.
 - Documentation: `TUITION_MODULE_DESIGN.md`, `TUITION_MODULE_CHECKLIST.md`, `tuition/README.md`, `tuition/PHASE4_HANDOFF.md`.
 - Earlier Phase 3 app registration/root URL/home Explore and core migrations remain in the uncommitted workspace. Pre-existing unrelated `.env.example`, `portal/network_forms.py` and preview artifacts were left untouched. No Git push or deployment performed.
+
+Create Group allows multiple start-time-only slots per weekday (+/remove controls). Each reserves 60 minutes for calendar/clash checks; repeated or conflicting times are rejected. Advertised fee is optional and blank saves zero; fee agreements remain separate. No migration required.

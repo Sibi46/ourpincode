@@ -49,23 +49,25 @@ class CalendarWorkflowTests(TestCase):
         fixture.owner=self.owner; fixture.teacher=self.teacher; fixture.client=self.client
         fixture.setUp()
         day=fixture.date.weekday()
-        data={**fixture.data, f'day_start_{day}':'10:00', f'day_end_{day}':'11:30'}
+        data={**fixture.data, f'day_start_{day}':['10:00', '12:00'], 'fee':''}
         response=self.client.post(fixture.url,data)
         self.assertEqual(response.status_code,302)
-        rule=m.Batch.objects.get(name='Evening group').rules.get()
+        batch=m.Batch.objects.get(name='Evening group')
+        self.assertEqual(batch.lesson.fee,0)
+        self.assertEqual(batch.rules.count(),2)
+        rule=batch.rules.get(start_time=time(10))
         self.assertEqual(rule.start_time,time(10))
-        self.assertEqual(rule.duration_minutes,90)
+        self.assertEqual(rule.duration_minutes,60)
         self.assertEqual(rule.start_date.weekday(),day)
-        data[f'day_end_{day}']='09:00'
+        data[f'day_start_{day}']=['10:00','10:00']
         form=forms.GroupCreateForm(data,instance=m.Lesson(teacher=self.teacher))
         self.assertFalse(form.is_valid())
-        self.assertIn(f'day_end_{day}',form.errors)
+        self.assertIn(f'day_start_{day}',form.errors)
 
     def test_missing_selected_times_rejected(self):
         form=forms.GroupCreateForm({'weekdays':['0']})
         self.assertFalse(form.is_valid())
         self.assertIn('day_start_0',form.errors)
-        self.assertIn('day_end_0',form.errors)
 
     def test_removed_controls_and_online_fields(self):
         self.client.force_login(self.owner)
@@ -73,7 +75,8 @@ class CalendarWorkflowTests(TestCase):
         for name in ('start_date','end_date','start_time','min_age','max_age','subjects','day_date_0'):
             self.assertNotContains(response,'name="'+name+'"')
         self.assertContains(response,'name="day_start_0"')
-        self.assertContains(response,'name="day_end_0"')
+        self.assertNotContains(response,'name="day_end_0"')
+        self.assertContains(response,'class="add-slot"')
         self.assertContains(response,'data-field="meeting_url"')
 
     def test_export_calendar_and_group_preview(self):

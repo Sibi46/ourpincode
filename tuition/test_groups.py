@@ -49,7 +49,7 @@ class GroupWorkflowTests(TestCase):
 
     def test_invalid_schedule_creates_nothing(self):
         count = m.Batch.objects.count()
-        for changes in ({'location': ''}, {f'day_end_{self.date.weekday()}': '16:00'}, {'weekdays': []}, {f'day_start_{self.date.weekday()}': ''}):
+        for changes in ({'location': ''}, {f'day_start_{self.date.weekday()}': 'invalid'}, {'weekdays': []}, {f'day_start_{self.date.weekday()}': ''}):
             response = self.client.post(self.url, {**self.data, **changes})
             self.assertEqual(response.status_code, 200)
             self.assertTrue(response.context['form'].errors)
