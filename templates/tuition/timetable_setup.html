@@ -1,6 +1,14 @@
 {% for profile in timetable_profiles %}
 <section class="card" aria-label="Teacher groups">
   <p class="eyebrow">TEACHER TOOLS · {{ profile.name }}</p><h2>Your groups</h2>
+  {% if profile.status != 'suspended' and profile.status != 'rejected' %}
+    <nav aria-label="Teacher profile and media">
+      <a class="button" href="{% url 'tuition:teacher_edit' profile.uid %}">Profile photo / banner</a>
+      <a class="button" href="{% url 'tuition:activity_upload' 'teacher' profile.uid %}">Upload photos / flick videos</a>
+      <a href="{% url 'tuition:teacher' profile.uid %}">Teacher dashboard</a>
+      {% if profile.kind == 'academy' %}<a href="{% url 'tuition:academy_staff' profile.uid %}">Academy teachers</a><a href="{% url 'tuition:branch_create' profile.uid %}">Add branch</a>{% endif %}
+    </nav>
+  {% endif %}
   {% if profile.status == 'approved' %}
     <p>Create groups with subjects, fees and class times, then add students. You can create multiple groups.</p>
     <a class="button" href="{% url 'tuition:group_create' profile.uid %}">+ Create group</a>
