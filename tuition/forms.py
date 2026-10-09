@@ -79,6 +79,8 @@ class TeacherForm(SubjectEntryForm):
     closing_time = forms.TimeField(required=False, label='Closing time (India)')
     profile_photo = forms.FileField(required=False, label='Profile image')
     banner_photo = forms.FileField(required=False, label='Banner image')
+    existing_profile_image = forms.ModelChoiceField(queryset=m.MediaAsset.objects.none(), required=False, label='Choose an uploaded logo / profile photo')
+    existing_banner_image = forms.ModelChoiceField(queryset=m.MediaAsset.objects.none(), required=False, label='Choose an uploaded banner')
     publish_brand_images = forms.BooleanField(required=False, label='Publish my profile and banner images', help_text='I confirm these images contain no recognizable students. For student photos, use the gallery and consent process.')
     service_pins = forms.CharField(required=False, help_text='Comma-separated six-digit PIN codes served.')
 
@@ -90,7 +92,7 @@ class TeacherForm(SubjectEntryForm):
 
     def sections(self):
         for title, names in (
-            ('Your teaching profile', ('kind', 'name', 'profile_photo', 'banner_photo', 'publish_brand_images', 'description', 'qualifications', 'experience')),
+            ('Your teaching profile', ('kind', 'name', 'profile_photo', 'existing_profile_image', 'banner_photo', 'existing_banner_image', 'publish_brand_images', 'description', 'qualifications', 'experience')),
             ('What you teach', ('new_subjects', 'subjects', 'mode', 'min_age', 'max_age')),
             ('Academy timings', ('opening_days', 'opening_time', 'closing_time')),
             ('Location & contact', ('address', 'pincode', 'service_pins', 'phone', 'email', 'public_fees')),
@@ -103,6 +105,11 @@ class TeacherForm(SubjectEntryForm):
         super().__init__(*args, **kwargs)
         self.fields.pop('subjects')
         self.fields.pop('public_fees')
+        images = m.MediaAsset.objects.filter(teacher=self.instance, mime__startswith='image/', subjects__isnull=True).exclude(moderation='rejected') if self.instance.pk else m.MediaAsset.objects.none()
+        for field, attribute in [('existing_profile_image', 'profile_image_id'), ('existing_banner_image', 'banner_image_id')]:
+            self.fields[field].queryset = images
+            self.fields[field].label_from_instance = lambda asset: asset.title or 'Image ' + str(asset.uid)[:8]
+            self.initial[field] = getattr(self.instance, attribute)
         if self.instance.pk:
             self.initial['new_subjects'] = ','.join(self.instance.subjects.values_list('name', flat=True))
             for name in ('opening_days', 'opening_time', 'closing_time'):
@@ -116,11 +123,13 @@ class TeacherForm(SubjectEntryForm):
                     self.add_error(name, 'Enter academy opening days and hours.')
             if data.get('opening_time') and data.get('closing_time') and data['closing_time'] <= data['opening_time']:
                 self.add_error('closing_time', 'Closing time must be after opening time.')
-        if (data.get('profile_photo') or data.get('banner_photo')) and not data.get('publish_brand_images'):
+        if (data.get('profile_photo') or data.get('banner_photo') or (data.get('existing_profile_image') and data['existing_profile_image'].pk != self.instance.profile_image_id) or (data.get('existing_banner_image') and data['existing_banner_image'].pk != self.instance.banner_image_id)) and not data.get('publish_brand_images'):
             self.add_error('publish_brand_images', 'Confirm these images contain no recognizable students, or upload student media through the gallery.')
         if data.get('publish_brand_images'):
-            for field in ('profile_image', 'banner_image'):
-                asset = getattr(self.instance, field, None)
+            for field, upload_field, selected_field in [('profile_image', 'profile_photo', 'existing_profile_image'), ('banner_image', 'banner_photo', 'existing_banner_image')]:
+                if data.get(upload_field):
+                    continue
+                asset = data.get(selected_field) or getattr(self.instance, field, None)
                 if asset and (asset.teacher_id != self.instance.pk or asset.subjects.exists() or asset.moderation == 'rejected'):
                     self.add_error('publish_brand_images', 'An existing image requires consent or administrator review. Use the gallery to manage it.')
         return data
@@ -335,7 +344,30 @@ class ApplicationForm(StyledForm):
 
     class Meta:
         model = m.Application
-        fields = ['learner', 'name', 'age', 'mobile', 'email', 'pincode', 'preferred_days', 'preferred_timings', 'mode', 'message']
+        fields = ['learner', 'name', 'age', 'parent_name', 'parent_phone', 'mobile', 'email', 'pincode', 'preferred_days', 'preferred_timings', 'mode', 'message']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['mobile'].required = False
+        self.fields['mobile'].label = 'Contact phone'
+        self.fields['parent_name'].label = 'Parent / guardian name'
+        self.fields['parent_phone'].label = 'Parent / guardian phone'
+
+    def clean(self):
+        data = super().clean()
+        age = data.get('age')
+        if age is not None and age < 18:
+            for field in ('parent_name', 'parent_phone'):
+                if not data.get(field):
+                    self.add_error(field, 'Required for students under 18.')
+            if data.get('parent_phone'):
+                data['mobile'] = data['parent_phone']
+        elif age is not None:
+            if not data.get('mobile'):
+                self.add_error('mobile', 'Enter a contact phone number.')
+            data['parent_name'] = ''
+            data['parent_phone'] = ''
+        return data
 
     def clean_website(self):
         if self.cleaned_data.get('website'):

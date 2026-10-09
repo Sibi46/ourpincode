@@ -3,7 +3,7 @@
 {% block extra_css %}<link rel="stylesheet" href="{% static 'tuition/learning.css' %}"><link rel="stylesheet" href="{% static 'tuition/register.css' %}"><link rel="stylesheet" href="{% static 'tuition/simple-forms.css' %}?v=profile-management-1">{% endblock %}
 {% block content %}
 <main class="learning teacher-register">
-  <nav aria-label="Learning navigation"><a href="{% url 'tuition:dashboard' %}">&larr; My learning</a><a href="{% url 'tuition:discover' %}">Find a teacher</a></nav>
+  <nav aria-label="Learning navigation">{% if request.user.is_authenticated %}<a class="button" href="{% url 'tuition:notifications' %}">Tuition notifications</a>{% endif %}<a href="{% url 'tuition:dashboard' %}">&larr; My learning</a><a href="{% url 'tuition:discover' %}">Find a teacher</a></nav>
   <header><p class="eyebrow">A NEW CHAPTER STARTS HERE</p><h1>{% if form.instance.pk %}Update student profile{% else %}Add student{% endif %}</h1><p>Add yourself or a child to start exploring lessons, classes and new skills.</p></header>
   <div class="student-form-layout">
 

@@ -2,7 +2,7 @@
 {% block title %}{{ title }} · Learning{% endblock %}
 {% block extra_css %}<link rel="stylesheet" href="{% static 'tuition/learning.css' %}">{% endblock %}
 {% block content %}<main class="learning">
-<nav><a href="{% url 'tuition:discover' %}">Find a teacher</a><a href="{% url 'tuition:dashboard' %}">My learning</a><a href="{% url 'tuition:learner_hub' %}">Activities &amp; progress</a><a href="{% url 'tuition:my_complaints' %}">My reports</a>{% if request.user.admin_role or request.user.is_superuser %}<a href="{% url 'tuition:admin_hub' %}">Tuition administration</a>{% endif %}</nav>
+<nav>{% if request.user.is_authenticated %}<a class="button" href="{% url 'tuition:notifications' %}">Tuition notifications</a>{% endif %}<a href="{% url 'tuition:discover' %}">Find a teacher</a><a href="{% url 'tuition:dashboard' %}">My learning</a><a href="{% url 'tuition:learner_hub' %}">Activities &amp; progress</a><a href="{% url 'tuition:my_complaints' %}">My reports</a>{% if request.user.admin_role or request.user.is_superuser %}<a href="{% url 'tuition:admin_hub' %}">Tuition administration</a>{% endif %}</nav>
 <header><p class="eyebrow">LEARN · PARTICIPATE · CELEBRATE</p><h1>{{ title }}</h1>{% if public_name %}<p>{{ public_name }}</p>{% endif %}</header>
 {% if meta %}<p>{{ meta }}</p>{% endif %}{% if description %}<article class="card">{{ description|linebreaksbr }}</article>{% endif %}
 <nav>{% for label,url in actions %}<a class="button" href="{{ url }}">{{ label }}</a>{% endfor %}</nav>

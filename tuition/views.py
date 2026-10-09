@@ -114,7 +114,7 @@ def public_profile(request, slug):
     for lesson in lessons:
         slots = [rule for batch in lesson.batches.all() if batch.status == 'active' for rule in batch.rules.all() if rule.active and rule.end_date >= timezone.localdate()]
         lesson.class_days = len({rule.weekday for rule in slots})
-        lesson.public_slots = sorted(slots, key=lambda rule: (rule.weekday, rule.start_time))
+        lesson.public_slots = sorted(slots, key=lambda rule: (rule.batch_id, rule.weekday, rule.start_time))
     staff = list(teacher.staff.filter(public=True).prefetch_related('subjects')) if teacher.kind == 'academy' else []
     for person in staff:
         person.visible_photo = person.photo_id in public_ids
@@ -146,7 +146,7 @@ def register_teacher(request, uid=None, academy_id=None):
         is_new = not form.instance.pk
         obj = form.save(commit=False)
         obj.owner = request.user
-        photo_only = set(form.changed_data).issubset({'profile_photo', 'banner_photo', 'publish_brand_images'})
+        photo_only = set(form.changed_data).issubset({'profile_photo', 'banner_photo', 'publish_brand_images', 'existing_profile_image', 'existing_banner_image'})
         if is_new or not photo_only:
             obj.status = 'pending'
         from jobs.models import PinCode
@@ -156,6 +156,9 @@ def register_teacher(request, uid=None, academy_id=None):
         if is_new and obj.kind == 'academy':
             for day in form.cleaned_data['opening_days']:
                 m.Availability.objects.create(teacher=obj, weekday=int(day), start=form.cleaned_data['opening_time'], end=form.cleaned_data['closing_time'])
+        for source, target in [('existing_profile_image', 'profile_image'), ('existing_banner_image', 'banner_image')]:
+            if form.cleaned_data.get(source):
+                setattr(obj, target, form.cleaned_data[source])
         for source, target in [('profile_photo', 'profile_image'), ('banner_photo', 'banner_image')]:
             if form.cleaned_data.get(source):
                 asset = upload_image(request.user, form.cleaned_data[source], teacher=obj)
@@ -832,7 +835,7 @@ def notification_read(request, pk):
     notification = get_object_or_404(UserNotification, pk=pk, user=request.user, link__startswith='/tuition/')
     notification.is_read = True
     notification.save(update_fields=['is_read'])
-    return redirect('tuition:dashboard')
+    return redirect('tuition:notifications')
 
 
 @login_required
@@ -945,3 +948,10 @@ def teacher_delete(request, uid):
             return redirect('tuition:dashboard')
     counts = [(label, records.count()) for label, records in deletion_plan(teacher)]
     return page(request, 'Permanently delete teacher profile', template='tuition/teacher_delete.html', form=form, deleting_teacher=teacher, deletion_counts=counts)
+
+
+@login_required
+def tuition_notifications(request):
+    perm.active(request.user)
+    items = request.user.notifications.filter(link__startswith='/tuition/').order_by('-created_at', '-pk')
+    return page(request, 'Tuition notifications', template='tuition/notifications.html', notification_page=Paginator(items, 30).get_page(request.GET.get('page')), unread_count=items.filter(is_read=False).count())

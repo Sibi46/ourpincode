@@ -4,6 +4,7 @@ from . import activity_views as av, moderation as mod
 
 app_name = 'tuition'
 urlpatterns = [
+    path('notifications/', v.tuition_notifications, name='notifications'),
     path('gallery/<uuid:uid>/publish/', av.publish_media, name='publish_media'),
     path('academy/<uuid:academy_id>/branches/add/', v.register_teacher, name='branch_create'),
     path('learn/<uuid:uid>/delete/', v.student_delete, name='student_delete'),

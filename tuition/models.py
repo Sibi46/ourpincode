@@ -219,6 +219,8 @@ class Application(Record):
     applicant = models.ForeignKey(USER, null=True, blank=True, on_delete=models.PROTECT)
     name = models.CharField(max_length=150)
     age = models.PositiveSmallIntegerField(validators=[MaxValueValidator(120)])
+    parent_name = models.CharField(max_length=150, blank=True)
+    parent_phone = models.CharField(max_length=20, blank=True, validators=[RegexValidator(r'^\+?[0-9]{10,15}$')])
     mobile = models.CharField(max_length=20, validators=[RegexValidator(r'^\+?[0-9]{10,15}$')])
     email = models.EmailField()
     pincode = models.CharField(max_length=6, validators=[PIN])
