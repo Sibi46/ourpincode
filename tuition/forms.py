@@ -84,13 +84,14 @@ class TeacherForm(SubjectEntryForm):
 
     class Meta:
         model = m.TeacherProfile
-        fields = ['kind', 'name', 'description', 'qualifications', 'experience', 'subjects', 'min_age', 'max_age', 'mode', 'address', 'pincode', 'phone', 'email', 'public_fees']
+        fields = ['kind', 'name', 'category', 'description', 'qualifications', 'experience', 'subjects', 'min_age', 'max_age', 'mode', 'address', 'pincode', 'phone', 'email', 'public_fees']
         widgets = {name: forms.Textarea(attrs={'rows': 3}) for name in ('description', 'qualifications', 'address')}
         labels = {'kind': 'Profile type', 'name': 'Teacher or academy name', 'experience': 'Experience (years)', 'min_age': 'Minimum student age', 'max_age': 'Maximum student age', 'pincode': 'PIN code', 'public_fees': 'Show lesson fees on my public profile'}
 
     def sections(self):
         for title, names in (
             ('Your teaching profile', ('kind', 'name', 'profile_photo', 'banner_photo', 'publish_brand_images', 'description', 'qualifications', 'experience')),
+            ('Teaching category', ('category',)),
             ('What you teach', ('new_subjects', 'subjects', 'mode', 'min_age', 'max_age')),
             ('Academy timings', ('opening_days', 'opening_time', 'closing_time')),
             ('Location & contact', ('address', 'pincode', 'service_pins', 'phone', 'email', 'public_fees')),

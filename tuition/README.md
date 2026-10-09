@@ -143,3 +143,5 @@ Registration now uses typed subjects only and preserves the existing public-fee 
 Application age under 18 requires a parent/guardian name and validated phone; that phone is used as the application contact. Adult applicants provide their own contact phone. This does not create or verify guardian authorization. Migration 0010 adds blank-compatible parent contact fields for existing records.
 
 The Tuition notifications page paginates all of the current user's Tuition-linked notifications and reuses the existing ownership-checked mark-read endpoint. Public group times are grouped by group/weekday, comma-separated. Edit profile can assign previously uploaded, teacher-owned images as the logo/banner; existing publication/consent rules remain.
+
+Teacher application details are read-only: no response/accept/reject controls, and teacher POST requests to application details return 405. Submitted contact details remain private to the profile owner and applicant. Existing authorized group enrolment workflows are unchanged.

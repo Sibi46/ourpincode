@@ -53,6 +53,15 @@ class Subject(models.Model):
 
 
 class TeacherProfile(Record):
+    CATEGORY_CHOICES = [
+        ('academic', 'Academic tuition'), ('sports', 'Sports'),
+        ('fitness', 'Gym & Fitness'), ('cooking', 'Food & Cooking'),
+        ('skills', 'Skills & Vocational Training'), ('music', 'Music'),
+        ('dance', 'Dance'), ('arts', 'Arts & Crafts'),
+        ('languages', 'Languages'), ('technology', 'Computers & Technology'),
+        ('other', 'Other'),
+    ]
+    category = models.CharField(max_length=20, choices=CATEGORY_CHOICES, blank=True)
     owner = models.ForeignKey(USER, on_delete=models.PROTECT, related_name='tuition_profiles')
     kind = models.CharField(max_length=12, choices=[('teacher', 'Teacher'), ('academy', 'Academy')])
     name = models.CharField(max_length=180)

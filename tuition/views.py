@@ -9,7 +9,7 @@ from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.paginator import Paginator
 from django.db import transaction
 from django.db.models import Q, Count, F
-from django.http import FileResponse, HttpResponseRedirect
+from django.http import FileResponse, HttpResponseRedirect, HttpResponseNotAllowed
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
@@ -437,6 +437,9 @@ def application_detail(request, uid):
     is_teacher = app.teacher.owner_id == request.user.pk
     if is_teacher:
         perm.own(request.user, app.teacher)
+        if request.method != 'GET':
+            return HttpResponseNotAllowed(['GET'])
+        return page(request, 'Learning application', application=app, notice='Application submitted. Contact the applicant using the details below.')
     elif app.applicant_id != request.user.pk:
         raise PermissionDenied
     class ResponseForm(forms.Form):
