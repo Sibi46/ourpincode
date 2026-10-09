@@ -36,18 +36,12 @@ class AcademyRegistrationTests(TestCase):
             self.assertTrue(response.context['form'].errors)
         self.assertFalse(m.TeacherProfile.objects.filter(name='New academy').exists())
 
-    def test_empty_application_selector_explains_authorization(self):
+    def test_application_uses_student_name_without_selector(self):
         self.client.force_login(self.other)
         response=self.client.get(reverse('tuition:apply',args=[self.lesson.uid]))
-        self.assertContains(response,'No authorized student profiles')
-        self.assertContains(response,reverse('tuition:learner_create'))
-        self.assertEqual(list(response.context['form'].fields['learner'].queryset),[])
-        self.client.force_login(self.parent)
-        response=self.client.get(reverse('tuition:apply',args=[self.lesson.uid]))
-        self.assertIn(self.child,response.context['form'].fields['learner'].queryset)
-        self.guardian.status='pending';self.guardian.save()
-        response=self.client.get(reverse('tuition:apply',args=[self.lesson.uid]))
-        self.assertEqual(list(response.context['form'].fields['learner'].queryset),[])
+        self.assertContains(response, 'Student name')
+        self.assertNotContains(response, 'name="learner"')
+        self.assertNotContains(response, reverse('tuition:learner_create'))
 
     def test_unused_student_delete_and_linked_records_protection(self):
         student=m.Learner.objects.create(created_by=self.parent,name='Unused',age=10,pincode='123456')

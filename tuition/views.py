@@ -146,7 +146,9 @@ def register_teacher(request, uid=None, academy_id=None):
         is_new = not form.instance.pk
         obj = form.save(commit=False)
         obj.owner = request.user
-        obj.status = 'pending'
+        photo_only = set(form.changed_data).issubset({'profile_photo', 'banner_photo', 'publish_brand_images'})
+        if is_new or not photo_only:
+            obj.status = 'pending'
         from jobs.models import PinCode
         obj.mapped_pin = PinCode.objects.filter(code=obj.pincode, is_active=True, district__is_active=True, district__state__is_active=True).first()
         obj.save()
@@ -158,6 +160,13 @@ def register_teacher(request, uid=None, academy_id=None):
             if form.cleaned_data.get(source):
                 asset = upload_image(request.user, form.cleaned_data[source], teacher=obj)
                 setattr(obj, target, asset)
+        if form.cleaned_data.get('publish_brand_images'):
+            for asset in (obj.profile_image, obj.banner_image):
+                if asset:
+                    asset.public_requested = True
+                    asset.subjects_complete = True
+                    asset.moderation = 'approved'
+                    asset.save(update_fields=['public_requested', 'subjects_complete', 'moderation'])
         obj.save(update_fields=['profile_image', 'banner_image'])
         from .activities import defaults
         defaults(obj)
@@ -364,11 +373,12 @@ def apply(request, uid):
     lesson = get_object_or_404(m.Lesson, uid=uid, active=True, teacher__status='approved', teacher__owner__is_active=True)
     obj = m.Application(teacher=lesson.teacher, lesson=lesson)
     form = f.ApplicationForm(request.POST or None, instance=obj)
+    form.fields.pop('learner')
+    form.fields['name'].label = 'Student name'
+    if form.is_bound and request.POST.get('learner'):
+        form.add_error(None, 'Student profile linking is not accepted on this form.')
     if request.user.is_authenticated:
         perm.active(request.user)
-        form.fields['learner'].queryset = perm.learners(request.user)
-    if not form.fields['learner'].queryset.exists():
-        form.fields['learner'].help_text = 'No authorized student profiles are available. Add yourself as an adult student, or wait for guardian approval for a child. You can still submit an enquiry.'
     def save(form):
         # An IP bucket is only abuse control, never an identity/authorization check.
         key = 'tuition-apply:' + hashlib.sha256(request.META.get('REMOTE_ADDR', '').encode()).hexdigest()

@@ -79,6 +79,7 @@ class TeacherForm(SubjectEntryForm):
     closing_time = forms.TimeField(required=False, label='Closing time (India)')
     profile_photo = forms.FileField(required=False, label='Profile image')
     banner_photo = forms.FileField(required=False, label='Banner image')
+    publish_brand_images = forms.BooleanField(required=False, label='Publish my profile and banner images', help_text='I confirm these images contain no recognizable students. For student photos, use the gallery and consent process.')
     service_pins = forms.CharField(required=False, help_text='Comma-separated six-digit PIN codes served.')
 
     class Meta:
@@ -89,7 +90,7 @@ class TeacherForm(SubjectEntryForm):
 
     def sections(self):
         for title, names in (
-            ('Your teaching profile', ('kind', 'name', 'profile_photo', 'banner_photo', 'description', 'qualifications', 'experience')),
+            ('Your teaching profile', ('kind', 'name', 'profile_photo', 'banner_photo', 'publish_brand_images', 'description', 'qualifications', 'experience')),
             ('What you teach', ('new_subjects', 'subjects', 'mode', 'min_age', 'max_age')),
             ('Academy timings', ('opening_days', 'opening_time', 'closing_time')),
             ('Location & contact', ('address', 'pincode', 'service_pins', 'phone', 'email', 'public_fees')),
@@ -100,7 +101,10 @@ class TeacherForm(SubjectEntryForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.fields.pop('subjects')
+        self.fields.pop('public_fees')
         if self.instance.pk:
+            self.initial['new_subjects'] = ','.join(self.instance.subjects.values_list('name', flat=True))
             for name in ('opening_days', 'opening_time', 'closing_time'):
                 self.fields.pop(name)
 
@@ -112,7 +116,17 @@ class TeacherForm(SubjectEntryForm):
                     self.add_error(name, 'Enter academy opening days and hours.')
             if data.get('opening_time') and data.get('closing_time') and data['closing_time'] <= data['opening_time']:
                 self.add_error('closing_time', 'Closing time must be after opening time.')
+        if (data.get('profile_photo') or data.get('banner_photo')) and not data.get('publish_brand_images'):
+            self.add_error('publish_brand_images', 'Confirm these images contain no recognizable students, or upload student media through the gallery.')
+        if data.get('publish_brand_images'):
+            for field in ('profile_image', 'banner_image'):
+                asset = getattr(self.instance, field, None)
+                if asset and (asset.teacher_id != self.instance.pk or asset.subjects.exists() or asset.moderation == 'rejected'):
+                    self.add_error('publish_brand_images', 'An existing image requires consent or administrator review. Use the gallery to manage it.')
         return data
+
+    def _save_m2m(self):
+        self.instance.subjects.set(resolve_subjects(self.cleaned_data.get('new_subjects', [])))
 
     def clean_profile_photo(self):
         return validated_photo(self.cleaned_data.get('profile_photo'))

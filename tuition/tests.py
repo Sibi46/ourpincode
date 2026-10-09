@@ -214,7 +214,7 @@ class TuitionTests(TestCase):
     def test_public_apply_does_not_accept_arbitrary_learner(self):
         data = {'name': 'Child', 'age': 10, 'mobile': '9000000001', 'email': 'parent@example.com', 'pincode': '999999', 'preferred_days': 'Monday', 'preferred_timings': 'Morning', 'mode': 'online', 'learner': self.child.pk}
         response = self.client.post(reverse('tuition:apply', args=[self.lesson.uid]), data)
-        self.assertContains(response, 'Select a valid choice')
+        self.assertContains(response, 'Student profile linking is not accepted on this form.')
         self.assertEqual(m.Application.objects.count(), 1)
 
     def test_guardian_cannot_change_identity_link(self):
