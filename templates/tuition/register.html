@@ -1,15 +1,15 @@
 {% extends 'base.html' %}{% load static %}
 {% block title %}Teaching profile · OUR PINCODE{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{% static 'tuition/learning.css' %}"><link rel="stylesheet" href="{% static 'tuition/register.css' %}">{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'tuition/simple-forms.css' %}?v=profile-management-1"><link rel="stylesheet" href="{% static 'tuition/learning.css' %}"><link rel="stylesheet" href="{% static 'tuition/register.css' %}">{% endblock %}
 {% block content %}
 <main class="learning teacher-register">
   <nav aria-label="Learning navigation"><a href="{% url 'tuition:discover' %}">Find a teacher</a><a href="{% url 'tuition:dashboard' %}">My learning</a></nav>
   <header><p class="eyebrow">TEACH. INSPIRE. GROW.</p><h1>{% if form.instance.pk %}Update your teaching profile{% else %}Share your skills.<br>Inspire your neighbourhood.{% endif %}</h1><p>Connect with learners near you. Add your teaching details and the PIN codes you serve.</p></header>
   <div class="registration-layout">
     <aside class="registration-guide"><span class="eyebrow">YOUR NEXT CHAPTER</span><h2>A place for every teacher.</h2><p>From school subjects to music, art and new skills — help learners find what you teach.</p><ol><li><strong>Create your profile</strong><span>Tell learners about your experience.</span></li><li><strong>Submit for review</strong><span>Your profile is reviewed before appearing in search. Edits also return it to review.</span></li><li><strong>Start teaching</strong><span>Manage lessons, batches and students from your dashboard.</span></li></ol><p class="contact-note">Your address, phone and email appear on your approved public profile. Use contact details you are comfortable sharing.</p></aside>
-    <form method="post" class="registration-form">{% csrf_token %}
+    <form method="post" enctype="multipart/form-data" class="registration-form">{% csrf_token %}
       {% if form.errors %}<div class="form-alert" role="alert">Please check the highlighted fields.{{ form.non_field_errors }}</div>{% endif %}
-      {% for title, fields in form.sections %}<fieldset><legend><span>{{ forloop.counter }}</span>{{ title }}</legend><div class="registration-fields">
+      {% for title, fields in form.sections %}<fieldset{% if title == 'Academy timings' %} data-academy-timings{% endif %}><legend><span>{{ forloop.counter }}</span>{{ title }}</legend><div class="registration-fields">
         {% for field in fields %}<div class="registration-field{% if field.name == 'description' or field.name == 'qualifications' or field.name == 'address' or field.name == 'subjects' or field.name == 'public_fees' %} full-width{% endif %}">
           {% if field.field.widget.input_type == 'checkbox' %}<label for="{{ field.id_for_label }}">{{ field }} {{ field.label }}</label>{% else %}<label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} <span aria-hidden="true">*</span>{% else %} <small>(optional)</small>{% endif %}</label>{{ field }}{% endif %}
           {% if field.help_text %}<p class="field-help">{{ field.help_text }}</p>{% endif %}{{ field.errors }}
@@ -20,3 +20,5 @@
   </div>
 </main>
 {% endblock %}
+
+{% block extra_js %}<script src="{% static 'tuition/academy-register.js' %}" defer></script><script src="{% static 'tuition/subjects.js' %}" defer></script>{% endblock %}

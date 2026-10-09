@@ -5,8 +5,9 @@
   function updateSlots() {
     form.querySelectorAll('[data-day]').forEach(row => {
       const checked = row.querySelector('[name="weekdays"]').checked;
+      row.querySelector('.day-times').hidden = !checked;
       row.querySelectorAll('input[type="time"]').forEach(input => {
-        input.disabled = !checked; input.required = checked;
+        input.disabled = !checked; input.required = false;
       });
       row.querySelectorAll('.remove-slot').forEach(button => {
         button.hidden = row.querySelectorAll('.time-slot').length === 1;

@@ -21,7 +21,8 @@ class StudentFormTests(TestCase):
         self.assertEqual(student.age_as_of, date(2026, 10, 7))
         self.assertEqual(set(student.interests.values_list('name', flat=True)), {'Music', 'Maths'})
         self.assertEqual(student.guardians.get().status, 'pending')
-        self.assertNotContains(self.client.get(reverse('tuition:dashboard')), reverse('tuition:learner', args=[student.uid]))
+        self.assertNotContains(self.client.get(reverse('tuition:dashboard')), 'href="' + reverse('tuition:learner', args=[student.uid]) + '"')
+        self.assertEqual(self.client.get(reverse('tuition:learner', args=[student.uid])).status_code, 404)
 
     def test_edit_interests_text_and_future_birth_rejected(self):
         subject = m.Subject.objects.create(name='Music', slug='music')

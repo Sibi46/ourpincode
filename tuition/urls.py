@@ -4,6 +4,12 @@ from . import activity_views as av, moderation as mod
 
 app_name = 'tuition'
 urlpatterns = [
+    path('academy/<uuid:academy_id>/branches/add/', v.register_teacher, name='branch_create'),
+    path('learn/<uuid:uid>/delete/', v.student_delete, name='student_delete'),
+    path('teacher/<uuid:uid>/staff/', v.academy_staff, name='academy_staff'),
+    path('teacher/<uuid:teacher_id>/staff/add/', v.staff_edit, name='staff_create'),
+    path('staff/<uuid:uid>/edit/', v.staff_edit, name='staff_edit'),
+    path('delete/<str:kind>/<uuid:uid>/', v.delete_unused, name='delete_unused'),
     path('activities/', av.learner_hub, name='learner_hub'),
     path('teacher/<uuid:uid>/activities/', av.teacher_hub, name='teacher_hub'),
     path('teacher/<uuid:teacher_id>/events/new/', av.event_edit, name='event_create'),

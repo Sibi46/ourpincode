@@ -3,3 +3,9 @@
 .slot-row{display:grid;grid-template-columns:minmax(86px,1fr) minmax(0,1fr) minmax(0,1fr);gap:10px;align-items:center;padding:12px 0;border-bottom:1px solid #e1e8e2}.slot-row input[type=time]{box-sizing:border-box;min-width:0;width:100%;padding:8px 3px;font-size:13px}.slot-row label{font-size:13px}.slot-row input[type=checkbox]{vertical-align:middle}.slot-label{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}.registration-field[hidden]{display:none}@media(max-width:400px){.slot-row{gap:5px;grid-template-columns:90px minmax(0,1fr) minmax(0,1fr)}}
 
 .group-days .slot-row{grid-template-columns:100px minmax(0,1fr) 36px}.time-slot{display:flex;gap:6px;margin:5px 0}.group-days .add-slot,.group-days .remove-slot{padding:5px;min-width:30px;font-size:20px}.time-slot [hidden]{display:none}
+
+.subject-row{display:flex;align-items:center;gap:8px;margin:8px 0}.subject-row input{min-width:0;flex:1}.subject-row button,[data-add-subject]{padding:8px 12px}.group-days .slot-row{grid-template-columns:100px minmax(0,1fr) 36px;align-items:start}.day-times{display:grid;grid-template-columns:repeat(auto-fit,minmax(125px,1fr));gap:8px}.time-slot{background:#f0f6f2;border:1px solid #d6e5dd;border-radius:12px;padding:8px;margin:0}.time-slot input{border:0;background:transparent}.registration-field[hidden]{display:none}
+
+.group-days .day-times[hidden]{display:none}.group-days .slot-row>label{grid-column:1/3}.group-days .slot-row>div{grid-column:1/-1;grid-row:2}.group-days .slot-row>.add-slot{grid-column:3;grid-row:1}.group-days .day-times{grid-template-columns:repeat(auto-fit,minmax(125px,1fr))}
+
+[data-academy-timings][hidden]{display:none}

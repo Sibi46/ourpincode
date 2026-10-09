@@ -108,16 +108,42 @@ def discover(request):
 def public_profile(request, slug):
     teacher = get_object_or_404(m.TeacherProfile, slug=slug, status='approved', owner__is_active=True)
     from .activities import public_allowed
-    return page(request, teacher.name, template='tuition/profile.html', public_teacher=teacher, lessons=teacher.lessons.filter(active=True).prefetch_related('subjects'), availability=teacher.availability.all(), public_images=[asset for asset in m.MediaAsset.objects.filter(teacher=teacher, mime__startswith='image/') if public_allowed(asset)])
+    assets = [asset for asset in m.MediaAsset.objects.filter(teacher=teacher) if public_allowed(asset)]
+    public_ids = {asset.pk for asset in assets}
+    lessons = list(teacher.lessons.filter(active=True).prefetch_related('subjects', 'batches__rules'))
+    for lesson in lessons:
+        slots = [rule for batch in lesson.batches.all() if batch.status == 'active' for rule in batch.rules.all() if rule.active and rule.end_date >= timezone.localdate()]
+        lesson.class_days = len({rule.weekday for rule in slots})
+        lesson.public_slots = sorted(slots, key=lambda rule: (rule.weekday, rule.start_time))
+    staff = list(teacher.staff.filter(public=True).prefetch_related('subjects')) if teacher.kind == 'academy' else []
+    for person in staff:
+        person.visible_photo = person.photo_id in public_ids
+    return page(request, teacher.name, template='tuition/profile.html', public_teacher=teacher, lessons=lessons,
+        availability=teacher.availability.all(), public_images=[asset for asset in assets if asset.mime.startswith('image/')],
+        public_videos=[asset for asset in assets if asset.mime.startswith('video/')],
+        profile_photo=teacher.profile_image if teacher.profile_image_id in public_ids else None,
+        banner_photo=teacher.banner_image if teacher.banner_image_id in public_ids else None, academy_staff=staff, branches=teacher.branches.filter(status='approved', owner__is_active=True))
+
 
 
 @login_required
-def register_teacher(request, uid=None):
+def register_teacher(request, uid=None, academy_id=None):
     perm.active(request.user)
     teacher = teacher_for(request, uid) if uid else m.TeacherProfile(owner=request.user)
+    academy = teacher_for(request, academy_id) if academy_id else None
+    if academy:
+        if academy.kind != 'academy':
+            raise PermissionDenied
+        teacher.parent_academy = academy
+        teacher.kind = 'academy'
     initial = {'service_pins': ', '.join(teacher.service_areas.values_list('pincode', flat=True))} if teacher.pk else {}
-    form = f.TeacherForm(request.POST or None, instance=teacher, initial=initial)
+    form = f.TeacherForm(request.POST or None, request.FILES or None, instance=teacher, initial=initial)
+    if academy or teacher.parent_academy_id:
+        form.fields['kind'].disabled = True
+        form.initial['kind'] = 'academy'
+        form.fields['name'].label = 'Branch name'
     def save(form):
+        is_new = not form.instance.pk
         obj = form.save(commit=False)
         obj.owner = request.user
         obj.status = 'pending'
@@ -125,6 +151,14 @@ def register_teacher(request, uid=None):
         obj.mapped_pin = PinCode.objects.filter(code=obj.pincode, is_active=True, district__is_active=True, district__state__is_active=True).first()
         obj.save()
         form.save_m2m()
+        if is_new and obj.kind == 'academy':
+            for day in form.cleaned_data['opening_days']:
+                m.Availability.objects.create(teacher=obj, weekday=int(day), start=form.cleaned_data['opening_time'], end=form.cleaned_data['closing_time'])
+        for source, target in [('profile_photo', 'profile_image'), ('banner_photo', 'banner_image')]:
+            if form.cleaned_data.get(source):
+                asset = upload_image(request.user, form.cleaned_data[source], teacher=obj)
+                setattr(obj, target, asset)
+        obj.save(update_fields=['profile_image', 'banner_image'])
         from .activities import defaults
         defaults(obj)
         wanted = form.cleaned_data['service_pins']
@@ -333,6 +367,8 @@ def apply(request, uid):
     if request.user.is_authenticated:
         perm.active(request.user)
         form.fields['learner'].queryset = perm.learners(request.user)
+    if not form.fields['learner'].queryset.exists():
+        form.fields['learner'].help_text = 'No authorized student profiles are available. Add yourself as an adult student, or wait for guardian approval for a child. You can still submit an enquiry.'
     def save(form):
         # An IP bucket is only abuse control, never an identity/authorization check.
         key = 'tuition-apply:' + hashlib.sha256(request.META.get('REMOTE_ADDR', '').encode()).hexdigest()
@@ -347,7 +383,7 @@ def apply(request, uid):
             request.session['tuition_receipts'] = (request.session.get('tuition_receipts', []) + [str(app.uid)])[-10:]
         svc.notify(f'application:{app.pk}:new', 'New learning enquiry', [lesson.teacher.owner_id], teacher_url(lesson.teacher))
         return 'tuition:received'
-    return form_page(request, f'Apply to learn: {lesson.name}', form, save)
+    return form_page(request, f'Apply to learn: {lesson.name}', form, save, template='tuition/apply.html')
 
 
 def received(request):
@@ -787,3 +823,92 @@ def notification_read(request, pk):
     notification.is_read = True
     notification.save(update_fields=['is_read'])
     return redirect('tuition:dashboard')
+
+
+@login_required
+def academy_staff(request, uid):
+    teacher = teacher_for(request, uid)
+    if teacher.kind != 'academy':
+        raise PermissionDenied
+    return page(request, 'Academy teachers', template='tuition/staff.html', academy=teacher, staff=teacher.staff.all().prefetch_related('subjects'))
+
+
+@login_required
+def staff_edit(request, teacher_id=None, uid=None):
+    obj = get_object_or_404(m.AcademyStaff, uid=uid) if uid else m.AcademyStaff(academy=teacher_for(request, teacher_id))
+    perm.own(request.user, obj.academy)
+    if obj.academy.kind != 'academy':
+        raise PermissionDenied
+    form = f.AcademyStaffForm(request.POST or None, request.FILES or None, instance=obj)
+    def save(form):
+        svc.lock_teacher(request.user, obj.academy)
+        person = form.save()
+        if form.cleaned_data.get('profile_photo'):
+            person.photo = upload_image(request.user, form.cleaned_data['profile_photo'], teacher=obj.academy)
+            person.save(update_fields=['photo'])
+        if person.photo_id:
+            person.photo.public_requested = person.public
+            person.photo.save(update_fields=['public_requested'])
+        svc.audit(request.user, person, 'staff_saved')
+        return reverse('tuition:academy_staff', args=[obj.academy.uid])
+    return form_page(request, 'Academy teacher', form, save, template='tuition/staff_form.html')
+
+
+@login_required
+def delete_unused(request, kind, uid):
+    models = {'teacher': m.TeacherProfile, 'group': m.Batch, 'staff': m.AcademyStaff}
+    if kind not in models:
+        raise PermissionDenied
+    obj = get_object_or_404(models[kind], uid=uid)
+    teacher = obj if kind == 'teacher' else obj.lesson.teacher if kind == 'group' else obj.academy
+    perm.own(request.user, teacher)
+    class Confirmation(forms.Form):
+        confirm = forms.BooleanField(label='Permanently delete this unused record')
+    form = Confirmation(request.POST or None)
+    def save(form):
+        from django.db.models.deletion import ProtectedError
+        svc.lock_teacher(request.user, teacher)
+        # Configuration is removed only after every business/history relation is empty.
+        config = {'service_areas', 'availability', 'point_rules', 'levels'} if kind == 'teacher' else set()
+        for relation in obj._meta.related_objects:
+            if relation.one_to_many and relation.get_accessor_name() not in config:
+                if getattr(obj, relation.get_accessor_name()).exists():
+                    raise ValidationError('Cannot delete: linked records exist. Keep this record and use Edit to manage it.')
+        try:
+            with transaction.atomic():
+                if kind == 'teacher':
+                    obj.point_rules.all().delete()
+                    obj.levels.all().delete()
+                svc.audit(request.user, obj, 'unused_record_deleted')
+                obj.delete()
+        except ProtectedError:
+            raise ValidationError('Cannot delete: linked records exist.')
+        return reverse('tuition:dashboard')
+    return form_page(request, 'Delete ' + str(getattr(obj, 'name', kind)), form, save)
+
+
+@login_required
+def student_delete(request, uid):
+    perm.active(request.user)
+    allowed = m.Learner.objects.filter(Q(user=request.user) | Q(user__isnull=True, created_by=request.user, guardians__user=request.user, guardians__status__in=['pending', 'verified'])).distinct()
+    student = get_object_or_404(allowed, uid=uid)
+    class Confirmation(forms.Form):
+        confirm = forms.BooleanField(label='Permanently delete this unused student profile')
+    form = Confirmation(request.POST or None)
+    def save(form):
+        from django.db.models.deletion import ProtectedError
+        obj = allowed.select_for_update().get(pk=student.pk)
+        if obj.guardians.exclude(user=request.user).exists():
+            raise ValidationError('Cannot delete: another guardian is linked to this student.')
+        for relation in obj._meta.related_objects:
+            if relation.one_to_many and relation.get_accessor_name() != 'guardians' and getattr(obj, relation.get_accessor_name()).exists():
+                raise ValidationError('Cannot delete: linked student records exist.')
+        try:
+            with transaction.atomic():
+                obj.guardians.all().delete()
+                svc.audit(request.user, obj, 'unused_student_deleted')
+                obj.delete()
+        except ProtectedError:
+            raise ValidationError('Cannot delete: linked student records exist.')
+        return reverse('tuition:dashboard')
+    return form_page(request, 'Delete student: ' + student.name, form, save)

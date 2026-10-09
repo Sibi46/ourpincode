@@ -76,7 +76,14 @@ class TeacherProfile(Record):
     public_fees = models.BooleanField(default=False)
     status = models.CharField(max_length=12, default='pending', choices=[(x, x.title()) for x in ['pending', 'approved', 'rejected', 'suspended']], db_index=True)
 
+    parent_academy = models.ForeignKey('self', null=True, blank=True, on_delete=models.PROTECT, related_name='branches')
+    profile_image = models.ForeignKey('MediaAsset', null=True, blank=True, on_delete=models.SET_NULL, related_name='+')
+    banner_image = models.ForeignKey('MediaAsset', null=True, blank=True, on_delete=models.SET_NULL, related_name='+')
+
     def clean(self):
+        if self.parent_academy_id:
+            if self.parent_academy_id == self.pk or self.kind != 'academy' or self.parent_academy.kind != 'academy' or self.parent_academy.owner_id != self.owner_id:
+                raise ValidationError('Branches must belong to an academy owned by the same account.')
         if self.min_age > self.max_age:
             raise ValidationError('Minimum age must not exceed maximum age.')
         if (self.latitude is None) != (self.longitude is None):
@@ -87,6 +94,21 @@ class TeacherProfile(Record):
 
     def __str__(self):
         return self.name
+
+
+class AcademyStaff(Record):
+    academy = models.ForeignKey(TeacherProfile, on_delete=models.PROTECT, related_name='staff')
+    name = models.CharField(max_length=150)
+    phone = models.CharField(max_length=20, validators=[RegexValidator(r'^\+?[0-9]{10,15}$')])
+    subjects = models.ManyToManyField(Subject, blank=True)
+    photo = models.ForeignKey('MediaAsset', null=True, blank=True, on_delete=models.SET_NULL, related_name='+')
+    public = models.BooleanField(default=False, help_text='I have this teacher\'s permission to publish their name, subjects and approved photo. Phone stays private.')
+
+    def clean(self):
+        if self.academy_id and self.academy.kind != 'academy':
+            raise ValidationError('Staff profiles belong to an academy.')
+        if self.photo_id and self.photo.teacher_id != self.academy_id:
+            raise ValidationError('Choose an image owned by this academy.')
 
 
 class ServiceArea(models.Model):

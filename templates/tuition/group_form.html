@@ -1,10 +1,10 @@
 {% extends 'base.html' %}{% load static %}
 {% block title %}Create group · OURPINCODE{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{% static 'tuition/learning.css' %}"><link rel="stylesheet" href="{% static 'tuition/register.css' %}"><link rel="stylesheet" href="{% static 'tuition/simple-forms.css' %}">{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'tuition/learning.css' %}"><link rel="stylesheet" href="{% static 'tuition/register.css' %}"><link rel="stylesheet" href="{% static 'tuition/simple-forms.css' %}?v=profile-management-1">{% endblock %}
 {% block content %}<main class="learning teacher-register"><nav><a href="{% url 'tuition:dashboard' %}">&larr; My learning</a></nav><header><h1>Create group</h1><p>Add group details, then choose weekly time slots.</p></header>
 <form method="post" class="registration-form" id="group-form">{% csrf_token %}
 {% if form.errors %}<div class="form-alert" role="alert">Please check the highlighted fields.{{ form.non_field_errors }}</div>{% endif %}
 <div class="registration-fields">{% for field in form.main_fields %}<div data-field="{{ field.name }}" class="registration-field{% if field.name == 'description' or field.name == 'subjects' %} full-width{% endif %}"><label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} *{% endif %}</label>{{ field }}{% if field.help_text %}<p class="field-help">{{ field.help_text }}</p>{% endif %}{{ field.errors }}</div>{% endfor %}</div>
 <fieldset class="group-days"><legend>Weekly class slots</legend><p>Tick a day and add start times (IST) using +. Each slot reserves one hour in the calendar. Classes repeat weekly for the next 12 months.</p>{% for checkbox, start_field in form.day_rows %}<div class="slot-row" data-day="{{ checkbox.data.value }}"><label>{{ checkbox.tag }} {{ checkbox.choice_label }}</label><div>{{ start_field }}{{ start_field.errors }}</div><button type="button" class="add-slot" aria-label="Add {{ checkbox.choice_label }} slot">+</button></div>{% endfor %}{{ form.weekdays.errors }}</fieldset>
 <footer><a href="{% url 'tuition:dashboard' %}">Cancel</a><button>Create group</button></footer></form></main>{% endblock %}
-{% block extra_js %}<script src="{% static 'tuition/group-form.js' %}?v=weekly-slots-2" defer></script>{% endblock %}
+{% block extra_js %}<script src="{% static 'tuition/subjects.js' %}" defer></script><script src="{% static 'tuition/group-form.js' %}?v=weekly-slots-3" defer></script>{% endblock %}

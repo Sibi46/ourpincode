@@ -111,3 +111,17 @@ This reuses Attendance and SessionParticipant, including audit and points handli
 Create Group allows multiple start-time-only slots per weekday (+/remove controls). Each reserves 60 minutes for calendar/clash checks; repeated or conflicting times are rejected. Advertised fee is optional and blank saves zero; fee agreements remain separate. No migration required.
 
 Timetable defaults to group cards with weekday/start-time slots from active, unexpired rules. Access is limited to the group's teacher or an authorized learner's active enrolment/membership. The existing monthly calendar remains available via View calendar (?month=YYYY-MM).
+
+
+### Profile and academy management
+Teacher/academy registration accepts moderated profile and banner images through existing private media storage. Public profiles include active weekly class-day counts, approved teacher videos, and opted-in academy staff (phone numbers remain owner-only). Staff are managed by the academy owner, not separate login accounts. Changing a staff profile to private also removes publication permission on its photo.
+
+Subject inputs support +/remove; selected weekdays show five optional start-time inputs (at least one is required server-side; up to 24). Student guardian failures are field-specific, with adult self-registration hiding guardian-only inputs; verified access is still required.
+
+Delete requires an owner-authorized confirmation POST. Groups with related sessions, membership, rules or history cannot be deleted. Teacher profiles with business/history records cannot be deleted; only unused configuration (service areas, availability, points/levels) is cleared with an otherwise unused profile. Staff deletion keeps uploaded media records intact. Existing group edit and private media/video validation services are reused.
+
+Migration 0007 adds nullable image references and the academy staff table/M2M only. It must be applied before running this version; no data migration, new dependency, storage change or production action was performed. Take the normal verified backup before deployment. Video uploads continue to require ffprobe and existing moderation/consent checks.
+
+Academy registration now requires opening weekdays and opening/closing times, saved as existing Availability rows. Existing hours are edited through Teaching hours, so profile edits do not overwrite them. Branches are independently reviewed academy profiles owned by the same account, linked through nullable parent_academy (migration 0008). Public branch lists only show approved profiles.
+
+Student deletion requires a confirmation POST by the student account or the original creator with a pending/verified guardian request. Other guardians or any linked education/media records prevent deletion. Only an unused student's authorization metadata is removed alongside the profile. Apply to learn keeps its authorized-only selector and explains empty/pending states, with Add student and request-status links.

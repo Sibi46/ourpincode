@@ -40,10 +40,22 @@ def resolve_subjects(names):
     return records
 
 
+class SubjectInputs(forms.TextInput):
+    template_name = 'tuition/widgets/subjects.html'
+
+    def value_from_datadict(self, data, files, name):
+        values = data.getlist(name) if hasattr(data, 'getlist') else data.get(name, '')
+        return ','.join(values) if isinstance(values, list) else values
+
+    def get_context(self, name, value, attrs):
+        context = super().get_context(name, value, attrs)
+        context['subjects'] = (value or '').split(',')
+        return context
+
+
 class SubjectEntryForm(StyledForm):
     new_subjects = forms.CharField(required=False, max_length=1000, label='Type subject names',
-        help_text='Separate names with commas, for example: Maths, English, Piano. Up to 10 names.',
-        widget=forms.TextInput(attrs={'placeholder': 'Maths, English, Piano'}))
+        help_text='Use + to add another subject. Up to 10 subjects.', widget=SubjectInputs())
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -62,6 +74,11 @@ class SubjectEntryForm(StyledForm):
 
 
 class TeacherForm(SubjectEntryForm):
+    opening_days = forms.MultipleChoiceField(choices=m.DAYS, required=False, widget=forms.CheckboxSelectMultiple, label='Opening days')
+    opening_time = forms.TimeField(required=False, label='Opening time (India)')
+    closing_time = forms.TimeField(required=False, label='Closing time (India)')
+    profile_photo = forms.FileField(required=False, label='Profile image')
+    banner_photo = forms.FileField(required=False, label='Banner image')
     service_pins = forms.CharField(required=False, help_text='Comma-separated six-digit PIN codes served.')
 
     class Meta:
@@ -72,11 +89,36 @@ class TeacherForm(SubjectEntryForm):
 
     def sections(self):
         for title, names in (
-            ('Your teaching profile', ('kind', 'name', 'description', 'qualifications', 'experience')),
+            ('Your teaching profile', ('kind', 'name', 'profile_photo', 'banner_photo', 'description', 'qualifications', 'experience')),
             ('What you teach', ('new_subjects', 'subjects', 'mode', 'min_age', 'max_age')),
+            ('Academy timings', ('opening_days', 'opening_time', 'closing_time')),
             ('Location & contact', ('address', 'pincode', 'service_pins', 'phone', 'email', 'public_fees')),
         ):
-            yield title, [self[name] for name in names]
+            fields = [self[name] for name in names if name in self.fields]
+            if fields:
+                yield title, fields
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance.pk:
+            for name in ('opening_days', 'opening_time', 'closing_time'):
+                self.fields.pop(name)
+
+    def clean(self):
+        data = super().clean()
+        if not self.instance.pk and data.get('kind') == 'academy':
+            for name in ('opening_days', 'opening_time', 'closing_time'):
+                if not data.get(name):
+                    self.add_error(name, 'Enter academy opening days and hours.')
+            if data.get('opening_time') and data.get('closing_time') and data['closing_time'] <= data['opening_time']:
+                self.add_error('closing_time', 'Closing time must be after opening time.')
+        return data
+
+    def clean_profile_photo(self):
+        return validated_photo(self.cleaned_data.get('profile_photo'))
+
+    def clean_banner_photo(self):
+        return validated_photo(self.cleaned_data.get('banner_photo'))
 
     def clean_service_pins(self):
         pins = set(x.strip() for x in self.cleaned_data['service_pins'].split(',') if x.strip())
@@ -119,6 +161,7 @@ class WeeklyTimesWidget(forms.TextInput):
     def get_context(self, name, value, attrs):
         context = super().get_context(name, value, attrs)
         context['times'] = (value or '').split(',')[:24]
+        context['times'] += [''] * max(0, 5-len(context['times']))
         return context
 
 
@@ -138,7 +181,7 @@ class GroupCreateForm(LessonForm):
         self.fields['fee'].required = False
         self.fields['fee'].help_text = 'Optional. Leave blank to save INR 0. Student fee agreements are managed separately.'
         for day, label in m.DAYS:
-            self.fields[f'day_start_{day}'] = forms.CharField(required=False, max_length=143, label=f'{label} start times', widget=WeeklyTimesWidget())
+            self.fields[f'day_start_{day}'] = forms.CharField(required=False, max_length=300, label=f'{label} start times', widget=WeeklyTimesWidget())
         self.order_fields(['name', 'new_subjects', 'description', 'mode', 'location', 'meeting_url', 'capacity', 'fee', 'billing_period', 'weekdays'])
 
     def day_rows(self):
@@ -152,7 +195,11 @@ class GroupCreateForm(LessonForm):
         slots = []
         for day in data.get('weekdays', []):
             name = f'day_start_{day}'
-            values = (data.get(name) or '').split(',')
+            values = [v for v in (data.get(name) or '').split(',') if v.strip()]
+            if not values:
+                self.add_error(name, 'Enter at least one start time for this day.')
+            if len(values) > 24:
+                self.add_error(name, 'Use up to 24 slots per day.')
             seen = set()
             for value in values:
                 try:
@@ -259,14 +306,17 @@ class LearnerForm(StyledForm):
             today = timezone.localdate()
             if not dob or today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day)) < 18:
                 self.add_error('dob', 'Adult self-registration requires your date of birth.')
-        elif not data.get('relationship') or not data.get('attestation'):
-            raise forms.ValidationError('Guardian requests require relationship and attestation.')
+        else:
+            if not data.get('relationship'):
+                self.add_error('relationship', 'Enter your relationship to this student, or select adult self-registration above.')
+            if not data.get('attestation'):
+                self.add_error('attestation', 'Confirm that you are authorized to register this child or dependant.')
         return data
 
 
 class ApplicationForm(StyledForm):
-    learner = forms.ModelChoiceField(queryset=m.Learner.objects.none(), required=False,
-        help_text='Choose an authorized learner to allow enrolment; otherwise this is an enquiry.')
+    learner = forms.ModelChoiceField(queryset=m.Learner.objects.none(), required=False, label='Student', empty_label='Send an enquiry without selecting a student',
+        help_text='Select your student profile. Children appear after guardian approval. You may send an enquiry while waiting.')
     website = forms.CharField(required=False, widget=forms.HiddenInput)
 
     class Meta:
@@ -349,3 +399,23 @@ class SearchForm(forms.Form):
         if data.get('start') and data.get('end') and data['start'] >= data['end']:
             raise forms.ValidationError('End time must be after start time.')
         return data
+
+
+def validated_photo(file):
+    if file:
+        from .storage import validate_image
+        validate_image(file)
+        file.seek(0)
+    return file
+
+
+class AcademyStaffForm(SubjectEntryForm):
+    profile_photo = forms.FileField(required=False, label='Profile image')
+
+    class Meta:
+        model = m.AcademyStaff
+        fields = ['name', 'phone', 'subjects', 'public']
+        labels = {'public': 'Publish staff profile with permission'}
+
+    def clean_profile_photo(self):
+        return validated_photo(self.cleaned_data.get('profile_photo'))
