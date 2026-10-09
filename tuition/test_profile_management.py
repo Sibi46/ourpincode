@@ -49,7 +49,7 @@ class ProfileManagementTests(TestCase):
     def test_linked_group_and_teacher_cannot_be_deleted(self):
         today=timezone.localdate()
         m.ScheduleRule.objects.create(batch=self.batch,weekday=0,start_time=time(10),start_date=today,end_date=today+timedelta(days=30))
-        for kind,obj in [('group',self.batch),('teacher',self.teacher)]:
+        for kind,obj in [('group',self.batch)]:
             response=self.client.post(reverse('tuition:delete_unused',args=[kind,obj.uid]),{'confirm':'on'})
             self.assertContains(response,'linked records exist')
             self.assertTrue(type(obj).objects.filter(pk=obj.pk).exists())

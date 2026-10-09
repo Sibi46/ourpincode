@@ -859,6 +859,8 @@ def delete_unused(request, kind, uid):
     models = {'teacher': m.TeacherProfile, 'group': m.Batch, 'staff': m.AcademyStaff}
     if kind not in models:
         raise PermissionDenied
+    if kind == 'teacher':
+        return teacher_delete(request, uid)
     obj = get_object_or_404(models[kind], uid=uid)
     teacher = obj if kind == 'teacher' else obj.lesson.teacher if kind == 'group' else obj.academy
     perm.own(request.user, teacher)
@@ -912,3 +914,24 @@ def student_delete(request, uid):
             raise ValidationError('Cannot delete: linked student records exist.')
         return reverse('tuition:dashboard')
     return form_page(request, 'Delete student: ' + student.name, form, save)
+
+
+@login_required
+def teacher_delete(request, uid):
+    from .deletion import deletion_plan, delete_teacher
+    teacher = teacher_for(request, uid)
+    class Confirmation(forms.Form):
+        profile_name = forms.CharField(label='Type the exact profile name')
+        password = forms.CharField(label='Your account password', widget=forms.PasswordInput)
+        confirm = forms.BooleanField(label='I understand this permanently deletes this profile and its listed records')
+    form = Confirmation(request.POST or None)
+    if request.method == 'POST' and form.is_valid():
+        try:
+            delete_teacher(request.user, teacher, form.cleaned_data['profile_name'], form.cleaned_data['password'], form.cleaned_data['confirm'])
+        except ValidationError as error:
+            form.add_error(None, error)
+        else:
+            messages.success(request, 'Teacher profile deleted. Uploaded file cleanup is processed automatically.')
+            return redirect('tuition:dashboard')
+    counts = [(label, records.count()) for label, records in deletion_plan(teacher)]
+    return page(request, 'Permanently delete teacher profile', template='tuition/teacher_delete.html', form=form, deleting_teacher=teacher, deletion_counts=counts)

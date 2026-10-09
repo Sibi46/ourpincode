@@ -9,6 +9,8 @@ class Command(BaseCommand):
     help = 'Generate upcoming tuition occurrences and retry in-app notification delivery (idempotent).'
 
     def handle(self, **options):
+        from tuition.deletion import retry_file_deletions
+        retry_file_deletions()
         count = 0
         for rule in ScheduleRule.objects.filter(active=True):
             try:

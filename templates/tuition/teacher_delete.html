@@ -1,0 +1,8 @@
+{% extends 'base.html' %}{% load static %}
+{% block title %}Delete teaching profile{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'tuition/learning.css' %}">{% endblock %}
+{% block content %}<main class="learning"><h1>Permanently delete {{ deleting_teacher.name }}?</h1>
+<section class="card"><p>This cannot be undone. This profile's groups, enrolments, applications, attendance, invoices, payment records, events, achievements and uploaded media will be deleted. Deleting payment records does not issue refunds.</p>
+<p>Shared student profiles, guardian access, user accounts, other teaching profiles and academy branches stay. Existing inbox messages, complaints and audit records remain; their Tuition links may no longer open.</p>
+<h2>Records to remove</h2><ul>{% for label, count in deletion_counts %}{% if count %}<li>{{ label }}: <strong>{{ count }}</strong></li>{% endif %}{% endfor %}</ul><p>Current counts are shown above. All records belonging to this profile at confirmation time will be removed.</p></section>
+<form method="post" class="card editor">{% csrf_token %}{{ form.as_p }}<button type="submit">Permanently delete profile and linked data</button> <a href="{% url 'tuition:dashboard' %}">Cancel</a></form></main>{% endblock %}

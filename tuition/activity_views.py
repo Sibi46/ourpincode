@@ -59,7 +59,7 @@ def teacher_hub(request, uid):
     cards += [card(x.title, link('achievement', x), 'Achievement') for x in teacher.achievements.all()]
     cards += [card(x.title, link('assignment', x), 'Assignment') for x in m.Assignment.objects.filter(lesson__teacher=teacher)]
     cards += [card(x.title, link('announcement', x), 'Announcement') for x in teacher.announcements.all()]
-    cards += [card(x.title or 'Media', link('asset', x), x.moderation) for x in media_for_teacher(teacher)]
+    cards += [card(x.title or 'Media', link('asset', x), 'Public' if a.public_allowed(x) else 'Private - open to publish or check consent') for x in media_for_teacher(teacher)]
     cards += [card('Messages: ' + x.enrolment.learner.name, link('thread', x)) for x in m.TuitionConversation.objects.filter(enrolment__lesson__teacher=teacher)]
     progress = [{'enrolment': e, 'points': a.points(e), 'level': current_level(e)} for e in m.Enrolment.objects.filter(lesson__teacher=teacher).select_related('learner', 'lesson')]
     return page(request, 'Activities · ' + teacher.name, cards=cards, progress=progress, actions=[
@@ -403,10 +403,21 @@ def activity_upload(request, kind, uid):
         p.own(request.user, teacher)
     form = f.MediaForm(request.POST or None, request.FILES or None)
     form.fields['subjects'].queryset = m.Learner.objects.filter(enrolments__lesson__teacher=teacher).distinct() if kind != 'submission' else m.Learner.objects.filter(pk=parent.enrolment.learner_id)
+    if not form.fields['subjects'].queryset.exists():
+        form.fields['subjects'].help_text = 'No enrolled students are available to select. This is not a teaching-subject field. Upload media without recognizable students, or enrol those students first so their publication consent can be checked.'
+    if kind == 'teacher':
+        form.fields['students_confirmed'] = f.TeacherPublicationForm().fields['students_confirmed']
+        form.initial['public_requested'] = True
     def save(form):
-        asset = upload(request.user, form.cleaned_data['file'], parent, form.cleaned_data['title'], form.cleaned_data['public_requested'], form.cleaned_data['subjects'])
+        from django.core.exceptions import ImproperlyConfigured
+        import logging
+        try:
+            asset = upload(request.user, form.cleaned_data['file'], parent, form.cleaned_data['title'], form.cleaned_data['public_requested'], form.cleaned_data['subjects'], students_confirmed=form.cleaned_data.get('students_confirmed', False))
+        except (OSError, ImproperlyConfigured):
+            logging.getLogger(__name__).exception('Tuition media storage/validation unavailable')
+            raise ValidationError('Upload storage is unavailable. Please ask the administrator to check private-storage configuration and service permissions, then retry.')
         return link('asset', asset)
-    return form_page(request, 'Upload private or consent-reviewed media', form, save)
+    return form_page(request, 'Upload photo / flick', form, save)
 
 
 def asset_detail(request, uid):
@@ -416,7 +427,16 @@ def asset_detail(request, uid):
     actions = [('Open media', reverse('tuition:activity_file', args=[obj.uid]))]
     if request.user.is_authenticated and a.target_learners(obj):
         actions.append(('Publication consent', reverse('tuition:consent', args=['asset', obj.uid])))
-    return page(request, obj.title or 'Learning media', meta=obj.moderation, actions=actions)
+    status = 'Public' if a.public_allowed(obj) else 'Private'
+    if obj.teacher_id and request.user.is_authenticated and can_manage(request.user, obj.teacher) and obj.moderation != 'rejected':
+        actions.append(('Publish / update student consent details', reverse('tuition:publish_media', args=[obj.uid])))
+        if obj.public_requested:
+            status = 'Waiting for student consent' if obj.subjects_complete and a.target_learners(obj) else 'Confirm student details to publish'
+            if obj.teacher.status != 'approved':
+                status = 'Teacher profile approval required'
+            if a.public_allowed(obj):
+                status = 'Public'
+    return page(request, obj.title or 'Learning media', meta=status, actions=actions)
 
 
 def asset_access(user, obj):
@@ -480,3 +500,34 @@ def thread_read(request, uid):
     messaging.authorize(request.user, obj)
     obj.conversation.messages.filter(receiver=request.user, is_read=False).update(is_read=True)
     return redirect('tuition:thread', uid=obj.uid)
+
+
+@login_required
+def publish_media(request, uid):
+    obj = get_object_or_404(m.MediaAsset, uid=uid, teacher__isnull=False)
+    p.own(request.user, obj.teacher)
+    if obj.moderation == 'rejected':
+        raise PermissionDenied
+    form = f.TeacherPublicationForm(request.POST or None, initial={'subjects': obj.subjects.values_list('learner_id', flat=True)})
+    form.fields['subjects'].queryset = m.Learner.objects.filter(enrolments__lesson__teacher=obj.teacher).distinct()
+    def save(form):
+        svc.lock_teacher(request.user, obj.teacher)
+        asset = m.MediaAsset.objects.select_for_update().get(pk=obj.pk)
+        if asset.moderation == 'rejected':
+            raise PermissionDenied
+        ids = set(form.cleaned_data['subjects'].values_list('pk',flat=True))
+        previous = set(asset.subjects.values_list('learner_id',flat=True))
+        if not previous.issubset(ids):
+            raise ValidationError('Previously identified students must remain selected so their consent is protected.')
+        if ids != previous:
+            asset.revision += 1
+            asset.subjects.exclude(learner_id__in=ids).delete()
+            for learner_id in ids:
+                m.MediaSubject.objects.get_or_create(asset=asset,learner_id=learner_id)
+        asset.public_requested = True
+        asset.subjects_complete = True
+        asset.moderation = 'approved'
+        asset.save(update_fields=['public_requested','subjects_complete','moderation','revision'])
+        svc.audit(request.user, asset, 'teacher_media_published')
+        return link('asset',asset)
+    return form_page(request, 'Publish photo / flick', form, save)

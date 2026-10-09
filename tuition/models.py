@@ -635,3 +635,9 @@ class TuitionComplaint(Record):
     enrolment = models.ForeignKey(Enrolment, null=True, blank=True, on_delete=models.PROTECT)
     event = models.ForeignKey(LearningEvent, null=True, blank=True, on_delete=models.PROTECT)
     asset = models.ForeignKey(MediaAsset, null=True, blank=True, on_delete=models.PROTECT)
+
+
+class PendingFileDeletion(models.Model):
+    storage_key = models.CharField(max_length=100, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    attempts = models.PositiveIntegerField(default=0)

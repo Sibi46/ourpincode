@@ -81,7 +81,7 @@ def validate(file):
 
 
 @transaction.atomic
-def upload(user, file, parent, title, public_requested, subjects):
+def upload(user, file, parent, title, public_requested, subjects, students_confirmed=False):
     teacher = a.teacher_of(parent)
     if isinstance(parent, m.Submission):
         p.learner_access(user, parent.enrolment.learner)
@@ -97,7 +97,9 @@ def upload(user, file, parent, title, public_requested, subjects):
     key = storage().save(uuid.uuid4().hex + suffix, ContentFile(data))
     field = {m.TeacherProfile: 'teacher', m.Achievement: 'achievement', m.LearningEvent: 'event', m.Submission: 'submission'}[type(parent)]
     asset = m.MediaAsset.objects.create(**{field: parent}, uploader=user, title=title, public_requested=public_requested,
-        storage_key=key, mime=mime, size=len(data), checksum=hashlib.sha256(data).hexdigest())
+        storage_key=key, mime=mime, size=len(data), checksum=hashlib.sha256(data).hexdigest(),
+        moderation='approved' if isinstance(parent, m.TeacherProfile) and students_confirmed else 'pending',
+        subjects_complete=isinstance(parent, m.TeacherProfile) and bool(students_confirmed))
     for learner in people:
         m.MediaSubject.objects.create(asset=asset, learner=learner)
     audit(user, asset, 'media_uploaded')
