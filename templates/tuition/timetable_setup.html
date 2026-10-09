@@ -3,6 +3,8 @@
   <p class="eyebrow">TEACHER TOOLS · {{ profile.name }}</p><h2>Your groups</h2>
   {% if profile.status != 'suspended' and profile.status != 'rejected' %}
     <nav aria-label="Teacher profile and media">
+      <a class="button" href="{% url 'tuition:teacher_edit' profile.uid %}">Edit profile</a>
+      <a class="button" href="{% url 'tuition:delete_unused' 'teacher' profile.uid %}">Delete profile</a>
       <a class="button" href="{% url 'tuition:teacher_edit' profile.uid %}">Profile photo / banner</a>
       <a class="button" href="{% url 'tuition:activity_upload' 'teacher' profile.uid %}">Upload photos / flick videos</a>
       <a href="{% url 'tuition:teacher' profile.uid %}">Teacher dashboard</a>
