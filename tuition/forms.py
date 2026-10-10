@@ -93,7 +93,7 @@ class TeacherForm(SubjectEntryForm):
         for title, names in (
             ('Your teaching profile', ('kind', 'name', 'profile_photo', 'banner_photo', 'publish_brand_images', 'description', 'qualifications', 'experience')),
             ('Teaching categories', ('categories',)),
-            ('What you teach', ('new_subjects', 'subjects', 'mode', 'min_age', 'max_age')),
+            ('What you teach', tuple('category_' + key for key, label in m.TeacherProfile.CATEGORY_CHOICES) + ('new_subjects', 'mode', 'min_age', 'max_age')),
             ('Academy timings', ('opening_days', 'opening_time', 'closing_time')),
             ('Location & contact', ('address', 'pincode', 'service_pins', 'phone', 'email', 'public_fees')),
         ):
@@ -105,13 +105,30 @@ class TeacherForm(SubjectEntryForm):
         super().__init__(*args, **kwargs)
         self.fields.pop('subjects')
         self.fields.pop('public_fees')
+        for key, label in m.TeacherProfile.CATEGORY_CHOICES:
+            field_name = 'category_' + key
+            self.fields[field_name] = forms.CharField(required=False, max_length=1000,
+                label=label + ' - type names', widget=SubjectInputs(),
+                help_text='Use + to add another name. Up to 10 per category.')
+            self.initial[field_name] = ','.join(self.instance.category_subjects.get(key, []))
         if self.instance.pk:
-            self.initial['new_subjects'] = ','.join(self.instance.subjects.values_list('name', flat=True))
+            assigned = {name.casefold() for names in self.instance.category_subjects.values() for name in names}
+            self.initial['new_subjects'] = ','.join(name for name in self.instance.subjects.values_list('name', flat=True) if name.casefold() not in assigned)
+            if assigned:
+                self.fields['new_subjects'].label = 'Other existing subjects'
             for name in ('opening_days', 'opening_time', 'closing_time'):
                 self.fields.pop(name)
 
     def clean(self):
         data = super().clean()
+        mapping = {}
+        for key in data.get('categories', []):
+            field_name = 'category_' + key
+            try:
+                mapping[key] = subject_names(data.get(field_name, ''))
+            except forms.ValidationError as exc:
+                self.add_error(field_name, exc)
+        self.instance.category_subjects = mapping
         if not self.instance.pk and data.get('kind') == 'academy':
             for name in ('opening_days', 'opening_time', 'closing_time'):
                 if not data.get(name):
@@ -130,7 +147,10 @@ class TeacherForm(SubjectEntryForm):
         return data
 
     def _save_m2m(self):
-        self.instance.subjects.set(resolve_subjects(self.cleaned_data.get('new_subjects', [])))
+        names = list(self.cleaned_data.get('new_subjects', []))
+        for values in self.instance.category_subjects.values():
+            names.extend(values)
+        self.instance.subjects.set(resolve_subjects(names))
 
     def clean_profile_photo(self):
         return validated_photo(self.cleaned_data.get('profile_photo'))
