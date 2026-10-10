@@ -62,6 +62,7 @@ class TeacherProfile(Record):
         ('other', 'Other'),
     ]
     category = models.CharField(max_length=20, choices=CATEGORY_CHOICES, blank=True)
+    categories = models.JSONField(default=list, blank=True)
     owner = models.ForeignKey(USER, on_delete=models.PROTECT, related_name='tuition_profiles')
     kind = models.CharField(max_length=12, choices=[('teacher', 'Teacher'), ('academy', 'Academy')])
     name = models.CharField(max_length=180)

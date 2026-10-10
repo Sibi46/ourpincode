@@ -102,7 +102,14 @@ def discover(request):
             teachers = teachers.distinct().order_by('name', 'pk')
     else:
         teachers = teachers.none()
-    return page(request, 'Find a teacher', template='tuition/discover.html', search=form, teachers=Paginator(teachers, 20).get_page(request.GET.get('page')))
+    from .activities import public_allowed
+    results = Paginator(teachers, 20).get_page(request.GET.get('page'))
+    for teacher in results:
+        for field in ('profile_image', 'banner_image'):
+            asset = getattr(teacher, field)
+            visible = asset and asset.teacher_id == teacher.pk and asset.mime.startswith('image/') and public_allowed(asset)
+            setattr(teacher, 'public_' + field, asset if visible else None)
+    return page(request, 'Find a teacher', template='tuition/discover.html', search=form, teachers=results)
 
 
 def public_profile(request, slug):

@@ -9,16 +9,20 @@ class TeacherCategoryTests(SimpleTestCase):
         form = TeacherForm()
         sections = list(form.sections())
         titles = [title for title, fields in sections]
-        self.assertEqual(titles.index('Teaching category') + 1, titles.index('What you teach'))
-        choices = dict(form.fields['category'].choices)
+        self.assertEqual(titles.index('Teaching categories') + 1, titles.index('What you teach'))
+        choices = dict(form.fields['categories'].choices)
         for value in ('sports', 'fitness', 'cooking', 'skills'):
             self.assertIn(value, choices)
-            self.assertEqual(form.fields['category'].clean(value), value)
+            self.assertEqual(form.fields['categories'].clean([value]), [value])
 
     def test_existing_profiles_allow_blank_and_invalid_values_are_rejected(self):
-        field = TeacherForm().fields['category']
-        self.assertEqual(field.clean(''), '')
+        field = TeacherForm().fields['categories']
+        self.assertEqual(field.clean([]), [])
         with self.assertRaises(ValidationError):
-            field.clean('invalid-category')
-        self.assertEqual(TeacherProfile().category, '')
-        self.assertEqual(TeacherForm(instance=TeacherProfile(category='sports')).initial['category'], 'sports')
+            field.clean(['invalid-category'])
+        self.assertEqual(TeacherProfile().categories, [])
+        self.assertEqual(TeacherForm(instance=TeacherProfile(categories=['sports', 'fitness'])).initial['categories'], ['sports', 'fitness'])
+
+    def test_multiple_selections(self):
+        field = TeacherForm().fields['categories']
+        self.assertEqual(field.clean(['sports', 'fitness', 'skills']), ['sports', 'fitness', 'skills'])

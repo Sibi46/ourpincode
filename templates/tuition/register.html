@@ -1,6 +1,6 @@
 {% extends 'base.html' %}{% load static %}
 {% block title %}Teaching profile · OUR PINCODE{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{% static 'tuition/simple-forms.css' %}?v=profile-management-1"><link rel="stylesheet" href="{% static 'tuition/learning.css' %}"><link rel="stylesheet" href="{% static 'tuition/register.css' %}">{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'tuition/simple-forms.css' %}?v=profile-management-1"><link rel="stylesheet" href="{% static 'tuition/learning.css' %}"><link rel="stylesheet" href="{% static 'tuition/register.css' %}?v=categories-2">{% endblock %}
 {% block content %}
 <main class="learning teacher-register">
   <nav aria-label="Learning navigation">{% if request.user.is_authenticated %}<a class="button" href="{% url 'tuition:notifications' %}">Tuition notifications</a>{% endif %}<a href="{% url 'tuition:discover' %}">Find a teacher</a><a href="{% url 'tuition:dashboard' %}">My learning</a></nav>
@@ -10,7 +10,7 @@
     <form method="post" enctype="multipart/form-data" class="registration-form">{% csrf_token %}
       {% if form.errors %}<div class="form-alert" role="alert">Please check the highlighted fields.{{ form.non_field_errors }}</div>{% endif %}
       {% for title, fields in form.sections %}<fieldset{% if title == 'Academy timings' %} data-academy-timings{% endif %}><legend><span>{{ forloop.counter }}</span>{{ title }}</legend><div class="registration-fields">
-        {% for field in fields %}<div class="registration-field{% if field.name == 'description' or field.name == 'qualifications' or field.name == 'address' or field.name == 'subjects' or field.name == 'public_fees' %} full-width{% endif %}">
+        {% for field in fields %}<div class="registration-field{% if field.name == 'categories' or field.name == 'description' or field.name == 'qualifications' or field.name == 'address' or field.name == 'subjects' or field.name == 'public_fees' %} full-width{% endif %}">
           {% if field.field.widget.input_type == 'checkbox' %}<label for="{{ field.id_for_label }}">{{ field }} {{ field.label }}</label>{% else %}<label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} <span aria-hidden="true">*</span>{% else %} <small>(optional)</small>{% endif %}</label>{{ field }}{% endif %}
           {% if field.help_text %}<p class="field-help">{{ field.help_text }}</p>{% endif %}{{ field.errors }}
           {% if field.name == 'profile_photo' and form.instance.profile_image %}<img class="photo" src="{% url 'tuition:file' form.instance.profile_image.uid %}" alt="Current profile photo">{% endif %}
@@ -23,4 +23,4 @@
 </main>
 {% endblock %}
 
-{% block extra_js %}<script src="{% static 'tuition/academy-register.js' %}" defer></script><script src="{% static 'tuition/subjects.js' %}" defer></script><script src="{% static 'tuition/teaching-category.js' %}?v=1" defer></script>{% endblock %}
+{% block extra_js %}<script src="{% static 'tuition/academy-register.js' %}" defer></script><script src="{% static 'tuition/subjects.js' %}" defer></script><script src="{% static 'tuition/teaching-category.js' %}?v=2" defer></script>{% endblock %}
