@@ -1,9 +1,9 @@
 {% extends 'base.html' %}{% load static %}
 {% block title %}{{ public_teacher.name }} · Tuition · OURPINCODE{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{% static 'tuition/learning.css' %}"><link rel="stylesheet" href="{% static 'tuition/profile.css' %}?v=profile-branding-2">{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'tuition/learning.css' %}"><link rel="stylesheet" href="{% static 'tuition/profile.css' %}?v=profile-branding-2"><link rel="stylesheet" href="{% static 'tuition/navigation.css' %}?v=1">{% endblock %}
 {% block content %}
 <main class="learning teacher-profile">
-  <nav aria-label="Learning navigation">{% if request.user.is_authenticated %}<a class="button" href="{% url 'tuition:notifications' %}">Tuition notifications</a>{% endif %}<a href="{% url 'tuition:discover' %}">&larr; Find a teacher</a><a href="{% url 'tuition:dashboard' %}">My learning</a></nav>
+  <nav class="tuition-nav" aria-label="Learning navigation">{% if request.user.is_authenticated %}<a class="button" href="{% url 'tuition:notifications' %}">Tuition notifications</a>{% endif %}<a href="{% url 'tuition:discover' %}">&larr; Find a teacher</a><a href="{% url 'tuition:dashboard' %}">My profile</a></nav>
   <header class="profile-hero{% if banner_photo %} profile-hero--branded{% endif %}">
     {% if banner_photo %}<img class="profile-banner" src="{% url 'tuition:file' banner_photo.uid %}" alt=""><div class="profile-banner-shade" aria-hidden="true"></div>{% endif %}
     <div class="profile-avatar">{% if profile_photo %}<img src="{% url 'tuition:file' profile_photo.uid %}" alt="{{ public_teacher.name }}">{% else %}{{ public_teacher.name|first|upper }}{% endif %}</div><div class="profile-intro"><p class="eyebrow">{{ public_teacher.get_kind_display }} · PIN {{ public_teacher.pincode }}</p><h1>{{ public_teacher.name }}</h1><p>Learn, practise and grow with your local teaching community.</p><div class="profile-tags"><span>{{ public_teacher.get_mode_display }}</span><span>Ages {{ public_teacher.min_age }}–{{ public_teacher.max_age }}</span>{% if public_teacher.experience %}<span>{{ public_teacher.experience }} year{{ public_teacher.experience|pluralize }} of experience</span>{% endif %}</div></div><a class="button" href="#classes">Explore classes &darr;</a></header>

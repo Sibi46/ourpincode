@@ -1,10 +1,10 @@
 {% extends 'base.html' %}{% load static %}
-{% block title %}My learning · OUR PINCODE{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{% static 'tuition/learning.css' %}"><link rel="stylesheet" href="{% static 'tuition/learn.css' %}">{% endblock %}
+{% block title %}My profile · OUR PINCODE{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'tuition/learning.css' %}"><link rel="stylesheet" href="{% static 'tuition/learn.css' %}"><link rel="stylesheet" href="{% static 'tuition/navigation.css' %}?v=1">{% endblock %}
 {% block content %}
 <main class="learning learner-dashboard">
-  <nav aria-label="Learning navigation">{% if request.user.is_authenticated %}<a class="button" href="{% url 'tuition:notifications' %}">Tuition notifications</a>{% endif %}<a href="{% url 'tuition:discover' %}">Find a teacher</a><a href="{% url 'tuition:timetable' %}">Timetable</a><a href="{% url 'tuition:learner_hub' %}">Activities &amp; progress</a></nav>
-  <header><div><p class="eyebrow">YOUR NEXT CHAPTER</p><h1>Your learning space</h1><p>Welcome, {{ request.user.first_name|default:request.user.username }}. Keep your learners, classes and progress together.</p><a class="button" href="{% url 'tuition:learner_create' %}">+ Add a student</a></div><div class="learning-mark" aria-hidden="true">Aa<span>Learn something new.</span></div></header>
+  <nav class="tuition-nav" aria-label="Learning navigation">{% if request.user.is_authenticated %}<a class="button" href="{% url 'tuition:notifications' %}">Tuition notifications</a>{% endif %}<a href="{% url 'tuition:discover' %}">Find a teacher</a><a href="{% url 'tuition:timetable' %}">Timetable</a><a href="{% url 'tuition:learner_hub' %}">Activities &amp; progress</a></nav>
+  <header><div><p class="eyebrow">YOUR NEXT CHAPTER</p><h1>My profile</h1><p>Welcome, {{ request.user.first_name|default:request.user.username }}. Manage your teaching profiles, students and classes in one place.</p><a class="button" href="{% url 'tuition:learner_create' %}">+ Add a student</a></div><div class="learning-mark" aria-hidden="true">Aa<span>Learn something new.</span></div></header>
   <div class="learning-shortcuts"><a href="{% url 'tuition:discover' %}"><strong>Find your next class &rarr;</strong><span>Explore teachers near your PIN code</span></a><a href="{% url 'tuition:timetable' %}"><strong>Your timetable &rarr;</strong><span>View scheduled classes</span></a><a href="{% url 'tuition:learner_hub' %}"><strong>Activities &amp; achievements &rarr;</strong><span>Explore events and learning progress</span></a></div>
   {% include 'tuition/timetable_setup.html' %}
   <div class="learning-columns"><div>

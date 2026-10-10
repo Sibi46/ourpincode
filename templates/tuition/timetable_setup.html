@@ -1,10 +1,10 @@
 {% for profile in timetable_profiles %}
-<section class="card" aria-label="Teacher groups">
+<section class="card teacher-tools" aria-label="Teacher groups">
   <p class="eyebrow">TEACHER TOOLS · {{ profile.name }}</p><h2>Your groups</h2>
   {% if profile.status != 'suspended' and profile.status != 'rejected' %}
     <nav aria-label="Teacher profile and media">
       <a class="button" href="{% url 'tuition:teacher_edit' profile.uid %}">Edit profile</a>
-      <a class="button" href="{% url 'tuition:delete_unused' 'teacher' profile.uid %}">Delete profile</a>
+      <a class="button action-danger" href="{% url 'tuition:delete_unused' 'teacher' profile.uid %}">Delete profile</a>
       <a class="button" href="{% url 'tuition:teacher_edit' profile.uid %}">Profile photo / banner</a>
       <a class="button" href="{% url 'tuition:activity_upload' 'teacher' profile.uid %}">Upload photos / flick videos</a>
       <a href="{% url 'tuition:teacher' profile.uid %}">Teacher dashboard</a><a href="{% url 'tuition:teacher_hub' profile.uid %}">Manage uploads</a>
@@ -17,7 +17,7 @@
     <a class="button" href="{% url 'tuition:timetable' %}">View calendar / free &amp; busy days</a>
     {% for lesson in profile.lessons.all %}
       {% for group in lesson.batches.all %}<div class="card"><strong>{{ group.name }}</strong> · {{ group.get_status_display }}
-        <nav aria-label="Group actions"><a href="{% url 'tuition:batch_edit' group.uid %}">Edit group</a><a href="{% url 'tuition:delete_unused' 'group' group.uid %}">Delete group</a>{% if group.status == 'active' %}<a class="button" href="{% url 'tuition:group_students' group.uid %}">Add students</a><a href="{% url 'tuition:schedule' group.uid %}">Set class days &amp; time</a><a href="{% url 'tuition:session_create' group.uid %}">Add one-time class</a>{% endif %}<a href="{% url 'tuition:batch' group.uid %}">View group &amp; timetable</a></nav>
+        <nav aria-label="Group actions"><a href="{% url 'tuition:batch_edit' group.uid %}">Edit group</a><a class="action-danger" href="{% url 'tuition:delete_unused' 'group' group.uid %}">Delete group</a>{% if group.status == 'active' %}<a class="button" href="{% url 'tuition:group_students' group.uid %}">Add students</a><a href="{% url 'tuition:schedule' group.uid %}">Set class days &amp; time</a><a href="{% url 'tuition:session_create' group.uid %}">Add one-time class</a>{% endif %}<a href="{% url 'tuition:batch' group.uid %}">View group &amp; timetable</a></nav>
       </div>{% empty %}<p>{{ lesson.name }} has no group yet. <a href="{% url 'tuition:batch_create' lesson.uid %}">Create its group</a></p>{% endfor %}
     {% empty %}<p>No groups yet. Create your first group to get started.</p>{% endfor %}
   {% else %}<p>Profile status: {{ profile.get_status_display }}. An approved teacher profile is needed to create groups.</p>{% endif %}

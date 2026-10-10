@@ -1,0 +1,16 @@
+.learning .tuition-nav{display:flex;align-items:center;gap:10px;padding:10px;background:#fff;border:1px solid #e0e8e3;border-radius:18px;box-shadow:0 4px 18px #163f3606}
+.learning .tuition-nav a{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:11px 18px;border:1px solid transparent;border-radius:12px;background:#f1f6f3;color:#204e42;font-size:14px;font-weight:600;line-height:1.4;text-decoration:none}
+.learning .tuition-nav a:first-child{background:#204e42;color:#fff}
+.learning .tuition-nav a:hover{background:#dfece4;color:#173f36}
+.learner-dashboard .teacher-tools{padding:26px;border-radius:20px;border-color:#dbe5df;box-shadow:0 5px 22px #163f3605}
+.learner-dashboard .teacher-tools>h2{margin:6px 0 20px}
+.learner-dashboard .teacher-tools nav{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:10px}
+.learner-dashboard .teacher-tools nav a,.learner-dashboard .panel-heading>a{display:flex;align-items:center;justify-content:center;min-height:46px;padding:12px 14px;border:1px solid #dce6df;border-radius:12px;background:#f5f8f6;color:#245243;text-decoration:none;font-size:13px;font-weight:600;line-height:1.45;text-align:center}
+.learner-dashboard .teacher-tools nav a:hover,.learner-dashboard .panel-heading>a:hover{background:#e5efe8;border-color:#9ebba9}
+.learner-dashboard .teacher-tools nav .action-danger{background:#fff8f7;color:#9e3934;border-color:#eed7d4}
+.learner-dashboard .teacher-tools>.button{margin:0 8px 10px 0;border-radius:12px;text-decoration:none;font-size:14px;font-weight:600;min-height:44px}
+.learner-dashboard .teacher-tools>.card{background:#f8faf8;border-radius:16px;margin-top:20px}
+.learner-dashboard .learning-shortcuts>a:hover{background:#f0f6f1;border-color:#9ebba9}
+.learner-dashboard .button{text-decoration:none;border-radius:12px}
+.learning .tuition-nav a:focus-visible,.learner-dashboard .teacher-tools a:focus-visible{outline:3px solid #c69635;outline-offset:3px}
+@media(max-width:600px){.learning .tuition-nav{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));padding:8px;gap:8px}.learning .tuition-nav a{padding:10px;font-size:13px}.learner-dashboard .teacher-tools{padding:18px}.learner-dashboard .teacher-tools nav{grid-template-columns:repeat(2,minmax(0,1fr))}.learner-dashboard .teacher-tools nav a{overflow-wrap:anywhere;font-size:12px;padding:10px}.learner-dashboard .teacher-tools>.button{display:block;margin:0 0 10px;text-align:center}}
