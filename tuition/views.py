@@ -251,13 +251,7 @@ def group_students(request, uid):
         raise PermissionDenied
     form = f.GroupMemberForm(request.POST or None, batch=batch)
     def save(form):
-        teacher = svc.lock_teacher(request.user, batch.lesson.teacher)
-        if teacher.status != 'approved':
-            raise PermissionDenied
-        enrolment = form.cleaned_data['enrolment']
-        if form.cleaned_data['application']:
-            enrolment = svc.decide(request.user, form.cleaned_data['application'], 'accepted')
-        svc.transfer(request.user, enrolment, batch)
+        svc.add_named_student(request.user, batch, form.cleaned_data['name'])
         return reverse('tuition:batch', args=[batch.uid])
     return form_page(request, batch.name + ' — Add students', form, save)
 

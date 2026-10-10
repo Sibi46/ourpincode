@@ -242,20 +242,11 @@ class GroupCreateForm(LessonForm):
 
 
 class GroupMemberForm(forms.Form):
-    enrolment = forms.ModelChoiceField(queryset=m.Enrolment.objects.none(), required=False, label='Add an enrolled student')
-    application = forms.ModelChoiceField(queryset=m.Application.objects.none(), required=False, label='Or accept an application and add student')
+    name = forms.CharField(max_length=150, label='Student name',
+        widget=forms.TextInput(attrs={'placeholder': 'Enter student name', 'autocomplete': 'off'}))
 
     def __init__(self, *args, batch, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['enrolment'].queryset = batch.lesson.enrolments.filter(status='active').exclude(membership__batch=batch).select_related('learner', 'lesson')
-        self.fields['application'].queryset = m.Application.objects.filter(lesson=batch.lesson, status__in=['pending', 'needs_info'], learner__isnull=False, applicant__isnull=False)
-        self.fields['application'].label_from_instance = lambda obj: obj.name
-
-    def clean(self):
-        data = super().clean()
-        if bool(data.get('enrolment')) == bool(data.get('application')):
-            raise forms.ValidationError('Choose one enrolled student or one application.')
-        return data
 
 
 class BatchForm(StyledForm):

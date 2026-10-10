@@ -55,17 +55,17 @@ class GroupWorkflowTests(TestCase):
             self.assertTrue(response.context['form'].errors)
         self.assertEqual(m.Batch.objects.count(), count)
 
-    def test_accept_application_and_add_student(self):
+    def test_add_student_by_name(self):
         url = reverse('tuition:group_students', args=[self.batch.uid])
-        response = self.client.post(url, {'application': self.application.pk})
+        response = self.client.post(url, {'name': 'New student'})
         self.assertRedirects(response, reverse('tuition:batch', args=[self.batch.uid]))
-        enrolment = m.Enrolment.objects.get(application=self.application)
+        enrolment = m.Enrolment.objects.get(learner__name='New student')
         self.assertEqual(enrolment.membership.batch_id, self.batch.pk)
 
     def test_revoked_guardian_cannot_be_enrolled(self):
         self.guardian.status = 'revoked'; self.guardian.save()
         response = self.client.post(reverse('tuition:group_students', args=[self.batch.uid]), {'application': self.application.pk})
-        self.assertEqual(response.status_code, 403)
+        self.assertTrue(response.context['form'].errors)
         self.assertFalse(m.Enrolment.objects.filter(application=self.application).exists())
 
     def test_add_existing_enrolment_and_reject_unrelated_group(self):
@@ -75,5 +75,5 @@ class GroupWorkflowTests(TestCase):
         response = self.client.post(reverse('tuition:group_students', args=[other_batch.uid]), {'enrolment': enrolment.pk})
         self.assertTrue(response.context['form'].errors)
         response = self.client.post(reverse('tuition:group_students', args=[self.batch.uid]), {'enrolment': enrolment.pk})
-        self.assertEqual(response.status_code, 302)
-        self.assertEqual(m.BatchMembership.objects.get(enrolment=enrolment).batch_id, self.batch.pk)
+        self.assertTrue(response.context['form'].errors)
+        self.assertIsNone(m.BatchMembership.objects.get(enrolment=enrolment).batch_id)

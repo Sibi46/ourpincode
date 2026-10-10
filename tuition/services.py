@@ -312,3 +312,29 @@ def review_guardian(user, link, status, verification):
     link.save()
     audit(user, link, 'guardian_review')
     notify(f'guardian:{link.pk}:{link.updated_at.isoformat()}', 'Learning access reviewed', [link.user_id])
+
+
+@transaction.atomic
+def add_named_student(user, batch, name):
+    from .models import Learner
+    teacher = lock_teacher(user, batch.lesson.teacher)
+    if teacher.status != 'approved':
+        raise PermissionDenied
+    lesson = Lesson.objects.select_for_update().get(pk=batch.lesson_id)
+    batch = Batch.objects.select_for_update().get(pk=batch.pk)
+    if not lesson.active or batch.status != 'active' or (lesson.end_date and lesson.end_date < timezone.localdate()):
+        raise ValidationError('Choose an active group that has not ended.')
+    if lesson.enrolments.filter(status='active').count() >= lesson.capacity:
+        raise ValidationError('Lesson is full.')
+    if batch.memberships.filter(enrolment__status='active').count() >= batch.capacity:
+        raise ValidationError('Group is full.')
+    # A private teacher-managed record, never an account/guardian match by name.
+    learner = Learner(name=name.strip(), created_by=user, pincode='')
+    learner.full_clean(exclude=['pincode'])
+    learner.save()
+    enrolment = Enrolment(learner=learner, lesson=lesson)
+    enrolment.full_clean()
+    enrolment.save()
+    transfer(user, enrolment, batch)
+    audit(user, enrolment, 'student_added_by_name')
+    return enrolment
