@@ -6,12 +6,12 @@
       pending.set(pin, fetch('/api/pincode/' + pin + '/', {credentials: 'same-origin'})
         .then(response => response.ok ? response.json() : null)
         .then(data => data && data.success ? data : null)
-        .catch(() => null));
+        .catch(() => null).then(data => { if (!data) pending.delete(pin); return data; }));
     }
     return pending.get(pin);
   }
   function label(data) {
-    return [...new Set([data.area, data.district, data.state].filter(Boolean))].join(', ');
+    return [...new Set([data.area, data.district, data.state].map(value => (value || "").trim()).filter(Boolean))].join(', ');
   }
   document.querySelectorAll('[data-area-name]').forEach(async node => {
     const pin = node.dataset.areaName;
@@ -33,7 +33,7 @@
       hint.textContent = 'Finding your area…';
       const data = await lookup(pin);
       if (input.value.trim() !== pin) return;
-      hint.textContent = data ? label(data) : 'Area name unavailable. You can still explore using this pincode.';
+      hint.textContent = data ? label(data) + (data.areas && data.areas.length > 1 ? ' ? ' + data.areas.length + ' postal areas share this pincode.' : '') : 'Area name unavailable. You can still explore using this pincode.';
     }
     input.addEventListener('input', update);
     update();

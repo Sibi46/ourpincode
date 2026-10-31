@@ -5,6 +5,7 @@ from django.conf.urls.static import static
 from jobs import views
 from jobs import business_reviews
 from jobs import account
+from jobs import postal_areas
 from django.contrib.sitemaps import views as sitemap_views
 from .seo import SITEMAPS, robots, sitemap_index
 
@@ -21,7 +22,7 @@ urlpatterns = [
     path('admin/',                  admin.site.urls),
     path('',                        views.home,               name='home'),
     path('favicon.ico',             views.favicon,            name='favicon'),
-    path('api/pincode/<str:pin>/',  views.api_pincode_lookup, name='api_pincode_lookup'),
+    path('api/pincode/<str:pin>/',  postal_areas.pincode_lookup, name='api_pincode_lookup'),
 
     # Auth
     path('register/',               views.register,           name='register'),
@@ -194,7 +195,7 @@ urlpatterns = [
     path('jobs/<int:pk>/select-plan/',                 views.job_select_plan,             name='job_select_plan'),
     path('referral/',                                  views.referral_dashboard,          name='referral_dashboard'),
     path('api/update-interview-type/',                 views.update_interview_type,        name='update_interview_type'),
-    path('api/pincode/<str:pin>/',                     views.api_pincode_lookup,          name='api_pincode_lookup'),
+    path('api/pincode/<str:pin>/',                     postal_areas.pincode_lookup,          name='api_pincode_lookup'),
     path('about/',                                     views.about_page,                   name='about'),
     path('terms/',                                     views.terms,                        name='terms'),
     path('privacy/',                                   views.privacy,                      name='privacy'),
