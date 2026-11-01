@@ -1,0 +1,8 @@
+<form id="dashboard-business-form" class="account-business-form" method="post" action="{% url 'employer_dashboard' %}" enctype="multipart/form-data">
+  {% csrf_token %}<input type="hidden" name="profile_section" value="business-profile">
+  <h2>Business Profile</h2><p>Manage the business details customers see, including your logo and banner.</p>
+  {% if business_form.errors %}<div class="account-errors" role="alert">Please correct the fields below.{{ business_form.errors }}</div>{% endif %}
+  {% if company.logo %}<p>Current business logo</p><img class="business-logo-preview" src="{{ company.logo.url }}" alt="{{ company.company_name }} logo">{% else %}<p>No business logo uploaded yet.</p>{% endif %}
+  {% include 'includes/business_profile_form.html' %}
+  <button type="submit">Save business profile</button>
+</form>

@@ -1,10 +1,9 @@
-{% include 'includes/profile_features.html' %}
+
 {% if personal_form.errors or location_form.errors or business_form.errors or seeker_form.errors %}<div class="account-errors" role="alert">Please correct the fields below.{{ personal_form.errors }}{{ location_form.errors }}{{ business_form.errors }}{{ seeker_form.errors }}</div>{% endif %}
 <form id="dashboard-profile-form" class="account-business-form" method="post" action="{% url 'employer_dashboard' %}" enctype="multipart/form-data" style="background:#fff;padding:20px;border:1px solid #e5e7eb;border-radius:14px">
   {% csrf_token %}<input type="hidden" name="dashboard_profile" value="1"><input type="hidden" name="next" value="{{ request.GET.next }}">
-  <h2>Edit your profile</h2><p>Update your personal and business details here in your dashboard.</p>
+  <h2>Edit your profile</h2><p>Manage your personal details and preferred areas. Use Business Profile for your logo and business information.</p>
   <fieldset style="border:0;padding:0;margin:20px 0"><legend><strong>Personal details</strong></legend>{{ personal_form.as_p }}<p>Account phone: {{ request.user.phone|default:'Not provided' }}</p></fieldset>
-  {% include 'includes/business_profile_form.html' %}
   <fieldset id="profile-location" style="border:0;padding:0;margin:20px 0"><legend><strong>Main and preferred areas</strong></legend><p>One main pincode and up to two optional preferred (Quest) pincodes. Use different six-digit pincodes.</p>{{ location_form.as_p }}</fieldset>
   {% if seeker_form %}<fieldset style="border:0;padding:0;margin:20px 0"><legend><strong>Work and education details</strong></legend>{{ seeker_form.as_p }}</fieldset>{% endif %}
   <button type="submit" class="business-follow-button">Save profile</button>

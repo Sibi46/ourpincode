@@ -4115,6 +4115,28 @@ def profile_edit(request):
     user = request.user
     company = getattr(user, 'company', None)
     business_user = user.is_employer() or company is not None
+    if request.method == 'POST' and business_user and request.POST.get('profile_section') == 'business-profile':
+        from .account import dashboard_profile_context
+        if company is None:
+            from django.http import HttpResponseForbidden
+            return HttpResponseForbidden('Business profile required.')
+        form = BusinessDetailsForm(request.POST, request.FILES, instance=company)
+        phone = request.POST.get('business_phone', user.business_phone).strip()
+        valid = form.is_valid()
+        if phone and (not re.fullmatch(r'[0-9]{10}', phone) or User.objects.exclude(pk=user.pk).filter(business_phone=phone).exists()):
+            form.add_error(None, 'Enter a unique 10-digit business phone number.')
+            valid = False
+        if valid:
+            form.save()
+            user.business_phone = phone
+            user.save(update_fields=['business_phone'])
+            messages.success(request, 'Business profile updated successfully.')
+            return redirect('/employer/dashboard/#business-profile')
+        editor = dashboard_profile_context(user, company)
+        editor.update(business_form=form, open_profile_editor=True, profile_section='business-profile')
+        response = employer_dashboard(request, profile_editor=editor)
+        response.status_code = 400
+        return response
     if request.method == 'GET' and business_user:
         from urllib.parse import urlencode
         query = '?' + urlencode({'next': request.GET['next']}) if request.GET.get('next') else ''

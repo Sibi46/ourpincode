@@ -124,6 +124,7 @@
   }
   </style>
 {% include "includes/site_ui.html" %}
+<link rel="stylesheet" href="{% static 'css/employer_workspace.css' %}?v=1">
 </head>
 <body>
 
@@ -148,7 +149,7 @@
   <!-- BANNER -->
   <div class="ig-banner">
     {% if profile and profile.banner_image %}<img src="{{ profile.banner_image.url }}" alt="Banner">{% endif %}
-    <button type="button" onclick="showSection('my-profile');document.getElementById('dashboard-profile-form').scrollIntoView({behavior:'smooth',block:'center'})" style="position:absolute;right:12px;bottom:12px;background:#fff;color:#0a66c2;border:1px solid #ddd;border-radius:8px;padding:9px 14px;font-weight:700;cursor:pointer"><i class="fas fa-pen"></i> Edit Logo &amp; Banner</button>
+    <button type="button" onclick="showSection('business-profile');document.getElementById('dashboard-business-form').scrollIntoView({behavior:'smooth',block:'center'})" style="position:absolute;right:12px;bottom:12px;background:#fff;color:#0a66c2;border:1px solid #ddd;border-radius:8px;padding:9px 14px;font-weight:700;cursor:pointer"><i class="fas fa-pen"></i> Edit Logo &amp; Banner</button>
   </div>
 
   <!-- PROFILE HEADER -->
@@ -157,7 +158,7 @@
       <a class="ig-logo-wrap" {% if profile and profile.company_id %}href="{% url 'business_profile' profile.company_id %}"{% endif %} aria-label="View full business profile" style="text-decoration:none">
         {% if profile and profile.logo %}
           {% with ln=profile.logo.name|lower %}
-          {% if '.jpg' in ln or '.jpeg' in ln or '.png' in ln or '.gif' in ln or '.webp' in ln or '.svg' in ln %}
+          {% if '.mp4' not in ln and '.mov' not in ln and '.webm' not in ln %}
             <img src="{{ profile.logo.url }}" alt="{{ profile.company_name }}" class="ig-logo"
                  onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
             <div class="ig-logo-init" style="display:none">{{ profile.company_name|first|upper|default:"B" }}</div>
@@ -248,32 +249,36 @@
   </nav>
 
   <!-- TABS -->
-  <div class="ig-tabs" id="igTabs">
+  <div class="employer-workspace">
+  <nav class="ig-tabs" id="igTabs" aria-label="Dashboard sections">
+    <h2>Your workspace</h2>
+    <button type="button" class="ig-tab" onclick="showSection('my-profile',this)" data-sec="my-profile">Edit Profile</button>
+    <button type="button" class="ig-tab" onclick="showSection('account-tools',this)" data-sec="account-tools">Account services</button>
     <button type="button" class="ig-tab" onclick="showSection('paid-pending',this)" data-sec="paid-pending">Payment Review ({{ paid_pending_jobs.count }})</button>
     <button type="button" class="ig-tab" onclick="showSection('expired-jobs',this)" data-sec="expired-jobs">Expired ({{ expired_jobs.count }})</button>
     <button type="button" class="ig-tab" onclick="showSection('closed-jobs',this)" data-sec="closed-jobs">Closed ({{ closed_jobs.count }})</button>
-    <a class="ig-tab" href="/referral/"><i class="fas fa-gift"></i>Refer &amp; Earn</a>
+    <a class="ig-tab" href="/referral/">Refer &amp; Earn</a>
     <button type="button" class="ig-tab" onclick="showSection('approval-pending',this)" data-sec="approval-pending">Under review ({{ approval_pending.count }})</button>
     <button type="button" class="ig-tab" onclick="showSection('pending-jobs',this)" data-sec="pending-jobs">Drafts ({{ pending_jobs.count }})</button>
     <button type="button" class="ig-tab" onclick="showSection('plan-pending',this)" data-sec="plan-pending">Choose Plan ({{ plan_pending.count }})</button>
-    <button type="button" class="ig-tab" onclick="showSection('coupons',this)" data-sec="coupons"><i class="fas fa-ticket-alt"></i>Coupons</button>
-    <button type="button" class="ig-tab" onclick="window.location.href='/offers/post/'"><i class="fas fa-tag" style="color:#FF5722"></i>Offer</button>
-    <button type="button" class="ig-tab" onclick="showSection('flicks',this)" data-sec="flicks"><i class="fas fa-bolt" style="color:#f59e0b"></i>Flicks</button>
-    <button type="button" class="ig-tab" onclick="showSection('my-profile',this)" data-sec="my-profile"><i class="fas fa-id-card"></i>Company Profile{% if profile_incomplete %} <span style="background:#e65100;color:#fff;border-radius:10px;padding:1px 5px;font-size:9px">!</span>{% endif %}</button>
-    <button type="button" class="ig-tab" onclick="window.location.href='/advertiser/dashboard/'"><i class="fas fa-bullhorn"></i>Ads</button>
-    <button type="button" class="ig-tab" onclick="window.location.href='/vouchers/business/register/'"><i class="fas fa-gift" style="color:#7c3aed"></i>Voucher</button>
-    <button type="button" class="ig-tab" onclick="window.location.href='/quiz/'"><i class="fas fa-brain" style="color:#7c3aed"></i>Quiz</button>
-    <button type="button" class="ig-tab" onclick="showSection('gallery',this)" data-sec="gallery"><i class="fas fa-images" style="color:#10b981"></i>Gallery</button>
-    <button type="button" class="ig-tab" onclick="showSection('notifications',this)" data-sec="notifications"><i class="fas fa-bell"></i>Notifs{% if unread_notif_count %} <span style="background:#e65100;color:#fff;border-radius:10px;padding:1px 5px;font-size:9px">{{ unread_notif_count }}</span>{% endif %}</button>
-    <button type="button" class="ig-tab" onclick="showSection('messages',this)" data-sec="messages"><i class="fas fa-comment-dots"></i>Msgs{% if unread_msg_count %} <span style="background:#e65100;color:#fff;border-radius:10px;padding:1px 5px;font-size:9px">{{ unread_msg_count }}</span>{% endif %}</button>
-    <button type="button" class="ig-tab active" onclick="showSection('active-jobs',this)" data-sec="active-jobs"><i class="fas fa-briefcase"></i>Jobs</button>
-    <button type="button" class="ig-tab" onclick="showSection('applications',this)" data-sec="applications"><i class="fas fa-file-alt"></i>Apply</button>
-    <button type="button" class="ig-tab" onclick="showSection('shortlisted',this)" data-sec="shortlisted"><i class="fas fa-star"></i>Short</button>
-    <button type="button" class="ig-tab" onclick="showSection('subscription',this)" data-sec="subscription"><i class="fas fa-crown"></i>Plan</button>
-    <button type="button" class="ig-tab" onclick="showSection('wallet',this)" data-sec="wallet"><i class="fas fa-wallet"></i>Wallet</button>
-    <button type="button" class="ig-tab" onclick="showSection('billing',this)" data-sec="billing"><i class="fas fa-receipt"></i>Billing</button>
-    <button type="button" class="ig-tab" onclick="showSection('feedback',this)" data-sec="feedback"><i class="fas fa-comment-alt"></i>Feedback</button>
-  </div>
+    <button type="button" class="ig-tab" onclick="showSection('coupons',this)" data-sec="coupons">Coupons</button>
+    <button type="button" class="ig-tab" onclick="window.location.href='/offers/post/'">Post an offer</button>
+    <button type="button" class="ig-tab" onclick="showSection('flicks',this)" data-sec="flicks">Flicks</button>
+    <button type="button" class="ig-tab" onclick="showSection('business-profile',this)" data-sec="business-profile">Business Profile{% if profile_incomplete %} <span style="background:#e65100;color:#fff;border-radius:10px;padding:1px 5px;font-size:9px">!</span>{% endif %}</button>
+    <button type="button" class="ig-tab" onclick="window.location.href='/advertiser/dashboard/'">Advertisements</button>
+    <button type="button" class="ig-tab" onclick="window.location.href='/vouchers/business/register/'">Vouchers</button>
+    <button type="button" class="ig-tab" onclick="window.location.href='/quiz/'">Quiz</button>
+    <button type="button" class="ig-tab" onclick="showSection('gallery',this)" data-sec="gallery">Gallery</button>
+    <button type="button" class="ig-tab" onclick="showSection('notifications',this)" data-sec="notifications">Notifications{% if unread_notif_count %} <span style="background:#e65100;color:#fff;border-radius:10px;padding:1px 5px;font-size:9px">{{ unread_notif_count }}</span>{% endif %}</button>
+    <button type="button" class="ig-tab" onclick="showSection('messages',this)" data-sec="messages">Messages{% if unread_msg_count %} <span style="background:#e65100;color:#fff;border-radius:10px;padding:1px 5px;font-size:9px">{{ unread_msg_count }}</span>{% endif %}</button>
+    <button type="button" class="ig-tab active" onclick="showSection('active-jobs',this)" data-sec="active-jobs">Jobs</button>
+    <button type="button" class="ig-tab" onclick="showSection('applications',this)" data-sec="applications">Applications</button>
+    <button type="button" class="ig-tab" onclick="showSection('shortlisted',this)" data-sec="shortlisted">Shortlisted</button>
+    <button type="button" class="ig-tab" onclick="showSection('subscription',this)" data-sec="subscription">Subscription</button>
+    <button type="button" class="ig-tab" onclick="showSection('wallet',this)" data-sec="wallet">Wallet</button>
+    <button type="button" class="ig-tab" onclick="showSection('billing',this)" data-sec="billing">Billing</button>
+    <button type="button" class="ig-tab" onclick="showSection('feedback',this)" data-sec="feedback">Feedback</button>
+  </nav>
 
   <!-- CONTENT AREA -->
   <div class="ig-content">
@@ -993,6 +998,12 @@
     <section class="dsec hidden" id="sec-my-profile">
       {% include 'includes/dashboard_profile_editor.html' %}
     </section>
+    <section class="dsec hidden" id="sec-business-profile">
+      {% include 'includes/dashboard_business_editor.html' %}
+    </section>
+    <section class="dsec hidden" id="sec-account-tools">
+      {% include 'includes/profile_features.html' %}
+    </section>
 
     <!-- ══ FLICKS ══ -->
     <section class="dash-section" data-sec="flicks">
@@ -1143,6 +1154,7 @@
     </section>
 
   </div><!-- /ig-content -->
+  </div><!-- /employer-workspace -->
 </div><!-- /ig-wrap -->
 
 <script>
@@ -1168,9 +1180,10 @@ function dashPreviewBanner(input) {
   reader.readAsDataURL(file);
 }
 function showSection(id, navEl) {
+  if (!document.getElementById('sec-' + id) && !document.querySelector('.dash-section[data-sec="' + id + '"]')) id = 'active-jobs';
   document.querySelectorAll('.dsec').forEach(s => s.classList.add('hidden'));
   document.querySelectorAll('.dash-section').forEach(s => s.style.display = 'none');
-  document.querySelectorAll('.ig-tab').forEach(a => a.classList.remove('active'));
+  document.querySelectorAll('.ig-tab').forEach(a => { a.classList.remove('active'); a.removeAttribute('aria-current'); });
   const sec = document.getElementById('sec-' + id);
   if (sec) sec.classList.remove('hidden');
   const dSec = document.querySelector('.dash-section[data-sec="' + id + '"]');
@@ -1181,9 +1194,11 @@ function showSection(id, navEl) {
     const m = document.querySelector('.ig-tab[data-sec="' + id + '"]');
     if (m) m.classList.add('active');
   }
+  const current = document.querySelector('.ig-tab.active');
+  if (current) current.setAttribute('aria-current', 'page');
   history.replaceState(null, '', '#' + id);
   const tabs = document.querySelector('.ig-tabs');
-  if (tabs) window.scrollTo({top: tabs.offsetTop - 52, behavior: 'smooth'});
+  if (tabs) document.querySelector('.ig-content').scrollIntoView({block:'start',behavior:'smooth'});
 }
 
 function galOpen(url, title, type) {
@@ -1207,8 +1222,8 @@ window.addEventListener('hashchange', function(){
 (function() {
   document.querySelectorAll('.dash-section').forEach(s => s.style.display = 'none');
   const hash = window.location.hash.replace('#', '');
-  if (hash) showSection(hash);
-  {% if open_profile_editor %}showSection('my-profile');{% endif %}
+  showSection(hash || 'active-jobs');
+  {% if open_profile_editor %}showSection('{{ profile_section|default:"my-profile"|escapejs }}');{% endif %}
 })();
 
 // ── Profile Industry Pills ──
