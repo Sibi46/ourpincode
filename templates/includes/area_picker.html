@@ -1,8 +1,19 @@
-<section class="account-area" aria-label="Your discovery area">
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/area-picker.css' %}?v=1">
+<section class="account-area area-picker" aria-label="Your discovery area">
   <details {% if not active_area %}open{% endif %}>
-    <summary><i class="fas fa-map-marker-alt" aria-hidden="true"></i> {% if active_area %}Exploring <span data-area-name="{{ active_area }}">{{ active_area }}</span> <span>Change area</span>{% else %}Enter your pincode <span>Discover what is near you</span>{% endif %}</summary>
-    <button type="button" data-use-location>Use my location</button><p class="location-status" data-location-status role="status"></p><a class="location-nearby" data-location-jobs hidden>Find jobs near me →</a>
-    <form method="post" action="{% url 'select_area' %}" class="account-area-form">{% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}"><label for="account-area-pin">Pincode<input data-area-lookup id="account-area-pin" name="pincode" value="{{ active_area }}" inputmode="numeric" pattern="[1-9][0-9]{5}" maxlength="6" required autocomplete="postal-code" placeholder="6-digit pincode"></label><button type="submit">Explore this area</button></form>
-    {% if saved_areas %}<div class="account-saved-areas"><span>Your saved areas</span>{% for code in saved_areas %}<form method="post" action="{% url 'select_area' %}">{% csrf_token %}<input type="hidden" name="next" value="{{ request.path }}"><button name="pincode" value="{{ code }}" {% if code == active_area %}aria-current="true"{% endif %}>{{ code }}</button></form>{% endfor %}<a href="{% url 'profile_edit' %}#profile-location">Edit areas</a></div>{% endif %}
+    <summary>
+      <span class="area-picker-icon" aria-hidden="true"><i class="fas fa-map-marker-alt"></i></span>
+      <span class="area-picker-heading"><span class="area-picker-eyebrow">YOUR NEIGHBOURHOOD</span><strong>{% if active_area %}Exploring <span data-area-name="{{ active_area }}">{{ active_area }}</span>{% else %}Discover your local area{% endif %}</strong><span class="area-picker-caption">Shops, jobs and communities around you</span></span>
+      <span class="area-picker-change">{% if active_area %}Change area{% else %}Choose area{% endif %}<span aria-hidden="true"> &#8964;</span></span>
+    </summary>
+    <div class="area-picker-body">
+      <div class="area-picker-search">
+        <form method="post" action="{% url 'select_area' %}" class="account-area-form">{% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}"><label for="account-area-pin">Enter your pincode<input data-area-lookup id="account-area-pin" name="pincode" value="{{ active_area }}" inputmode="numeric" pattern="[1-9][0-9]{5}" maxlength="6" required autocomplete="postal-code" placeholder="e.g. 600073"></label><button type="submit">Explore area <span aria-hidden="true">&#8594;</span></button></form>
+        <span class="area-picker-or">or</span><button class="area-picker-locate" type="button" data-use-location><i class="fas fa-location-arrow" aria-hidden="true"></i> Use my location</button>
+      </div>
+      <p class="location-status" data-location-status role="status"></p><a class="location-nearby" data-location-jobs hidden>Find jobs near me &#8594;</a>
+      {% if saved_areas %}<div class="account-saved-areas"><span class="area-picker-saved-label">Saved areas</span>{% for code in saved_areas %}<form method="post" action="{% url 'select_area' %}">{% csrf_token %}<input type="hidden" name="next" value="{{ request.path }}"><button name="pincode" value="{{ code }}" {% if code == active_area %}aria-current="true"{% endif %}><i class="fas fa-map-pin" aria-hidden="true"></i> {{ code }}</button></form>{% endfor %}<a href="{% url 'profile_edit' %}#profile-location">Manage areas</a></div>{% endif %}
+    </div>
   </details>
 </section>
