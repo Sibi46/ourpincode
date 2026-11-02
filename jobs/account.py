@@ -49,6 +49,13 @@ class DashboardPersonalForm(forms.ModelForm):
 
 
 class DashboardSeekerForm(forms.ModelForm):
+    dob = forms.DateField(
+        required=False, label='Date of birth',
+        input_formats=['%Y-%m-%d', '%d/%m/%Y', '%d-%m-%Y'],
+        widget=forms.DateInput(format='%Y-%m-%d', attrs={'type': 'date', 'autocomplete': 'bday'}),
+        error_messages={'invalid': 'Enter a valid date of birth using the date picker.'},
+    )
+
     class Meta:
         model = JobSeekerProfile
         fields = ['dob', 'gender', 'experience', 'education', 'education_details', 'primary_skill',
