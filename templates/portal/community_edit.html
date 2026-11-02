@@ -91,7 +91,7 @@
             </div>
             <label style="cursor:pointer;background:#eff6ff;border:1.5px dashed #93c5fd;color:#1d4ed8;padding:10px 18px;border-radius:10px;font-size:13px;font-weight:700">
               📷 Choose Logo
-              <input type="file" id="logoFileInput" accept="image/*" style="display:none" onchange="openCrop('logo',this,1)">
+              <input type="file" name="logo" id="logoFileInput" accept="image/*" style="display:none" onchange="openCrop('logo',this,1)">
             </label>
           </div>
           <input type="hidden" name="logo_cropped" id="logo_cropped">
@@ -113,7 +113,7 @@
           </div>
           <label style="cursor:pointer;background:#eff6ff;border:1.5px dashed #93c5fd;color:#1d4ed8;padding:10px 18px;border-radius:10px;font-size:13px;font-weight:700;display:inline-block">
             🌄 Choose Banner
-            <input type="file" id="coverFileInput" accept="image/*" style="display:none" onchange="openCrop('cover',this,4)">
+            <input type="file" name="cover" id="coverFileInput" accept="image/*" style="display:none" onchange="openCrop('cover',this,4)">
           </label>
           <input type="hidden" name="cover_cropped" id="cover_cropped">
           <div id="coverCropArea" style="display:none;margin-top:10px">
@@ -140,11 +140,18 @@ var croppers = {};
 
 function openCrop(type, input, ratio) {
   var file = input.files[0];
+  document.getElementById(type + '_cropped').value = '';
   if (!file) return;
   var reader = new FileReader();
   reader.onload = function(e) {
     var imgEl = document.getElementById(type + 'CropImg');
     imgEl.src = e.target.result;
+    var preview = document.createElement('img');
+    preview.src = e.target.result;
+    preview.alt = type === 'logo' ? 'Selected community logo' : 'Selected community banner';
+    preview.style.cssText = 'width:100%;height:100%;object-fit:cover';
+    document.getElementById(type + 'PreviewWrap').replaceChildren(preview);
+    if (typeof Cropper === 'undefined') return;
     document.getElementById(type + 'CropArea').style.display = 'block';
     if (croppers[type]) { croppers[type].destroy(); }
     croppers[type] = new Cropper(imgEl, {

@@ -13,8 +13,15 @@
     {% endfor %}
   {% endif %}
 
-  <form method="post" enctype="multipart/form-data">
+  <form id="communityCreateForm" method="post" enctype="multipart/form-data">
     {% csrf_token %}
+    <div class="pcard" style="margin-bottom:16px">
+      <div class="pcard-head"><div class="pcard-title">Community Logo &amp; Banner</div></div>
+      <div class="pcard-body">
+        <div class="pform-group"><label class="pform-label" for="communityLogo">Community logo</label><input class="pform-input" type="file" id="communityLogo" name="logo" accept="image/*" onchange="previewCommunityImage(this, 'communityLogoPreview')"><small>Choose a square image for your community logo.</small><img id="communityLogoPreview" alt="Selected community logo" hidden style="display:none;width:96px;height:96px;object-fit:cover;border-radius:16px;margin-top:10px"></div>
+        <div class="pform-group"><label class="pform-label" for="communityCover">Cover banner</label><input class="pform-input" type="file" id="communityCover" name="cover" accept="image/*" onchange="previewCommunityImage(this, 'communityCoverPreview')"><small>A wide image works best (4:1).</small><img id="communityCoverPreview" alt="Selected community banner" hidden style="display:none;width:100%;aspect-ratio:4/1;object-fit:cover;border-radius:12px;margin-top:10px"></div>
+      </div>
+    </div>
 
     <!-- ── Community Identity ── -->
     <div class="pcard" style="margin-bottom:16px">
@@ -186,7 +193,7 @@
 </div>
 
 <script>
-document.querySelector('form').addEventListener('submit', function(e) {
+document.getElementById('communityCreateForm').addEventListener('submit', function(e) {
   var btn = document.getElementById('submitBtn');
   btn.disabled = true;
   btn.textContent = 'Creating…';
@@ -214,6 +221,15 @@ document.querySelector('form').addEventListener('submit', function(e) {
 </script>
 
 <script>
+function previewCommunityImage(input, previewId) {
+  var preview = document.getElementById(previewId);
+  if (preview.dataset.objectUrl) URL.revokeObjectURL(preview.dataset.objectUrl);
+  var file = input.files && input.files[0];
+  preview.hidden = !file;
+  preview.style.display = file ? 'block' : 'none';
+  if (file) { preview.dataset.objectUrl = URL.createObjectURL(file); preview.src = preview.dataset.objectUrl; }
+  else preview.removeAttribute('src');
+}
 var _cropImg=new Image(),_cropX=0,_cropY=0,_cropScale=1,_cropDragging=false,_cropLx=0,_cropLy=0,_cropInput=null;
 function previewCreatorPhoto(input){
   if(!input.files||!input.files[0])return;
