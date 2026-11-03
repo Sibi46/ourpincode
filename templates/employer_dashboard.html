@@ -239,6 +239,7 @@
   <div class="employer-workspace">
   <nav class="ig-tabs" id="igTabs" aria-label="Dashboard sections">
     <h2>Your workspace</h2>
+    <a class="ig-tab" href="{% url 'logout' %}" style="color:#b42318">Sign out</a>
     <button type="button" class="ig-tab" onclick="showSection('my-profile',this)" data-sec="my-profile">Edit Profile</button>
     <button type="button" class="ig-tab" onclick="showSection('account-tools',this)" data-sec="account-tools">Account services</button>
     <button type="button" class="ig-tab" onclick="showSection('paid-pending',this)" data-sec="paid-pending">Payment Review ({{ paid_pending_jobs.count }})</button>
