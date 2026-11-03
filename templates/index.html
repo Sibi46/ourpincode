@@ -329,8 +329,14 @@ a{text-decoration:none;color:inherit}
 <link rel="stylesheet" href="{% static 'css/home-welcome.css' %}?v=1">
 <script src="{% static 'js/home-welcome.js' %}?v=2" defer></script>
 {% include "includes/site_ui.html" %}
+<style>
+.launching-watermark{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;user-select:none;z-index:90;overflow:hidden}
+.launching-watermark span{display:block;transform:rotate(-18deg);font-family:system-ui,sans-serif;font-size:clamp(38px,9vw,140px);font-weight:900;letter-spacing:.06em;white-space:nowrap;text-transform:uppercase;color:rgba(103,48,170,.13);text-align:center}
+@media print{.launching-watermark{display:none}}
+</style>
 </head>
 <body>
+<div class="launching-watermark" role="note" aria-label="Launching soon"><span>Launching Soon</span></div>
 
 <!-- TOP BAR -->
 {% include 'includes/account_header.html' %}
