@@ -299,7 +299,7 @@ document.addEventListener('keydown',e=>{if(!document.getElementById('adv-fs').st
           <textarea name="description" required rows="4" maxlength="500" placeholder="Tell us about your business — what you offer, your services, why customers should choose you… (minimum 30 words)" oninput="descCount(this)" style="resize:vertical">{% if adv %}{{ adv.description }}{% endif %}</textarea>
           <div style="display:flex;justify-content:space-between;margin-top:3px">
             <small id="descWordWarn" style="color:#e65100;font-weight:700;display:none"><i class="fas fa-exclamation-triangle"></i> Minimum 30 words required</small>
-            <small id="descCharCount" style="color:#aaa;font-weight:700;margin-left:auto">{% if adv %}{{ adv.description|length }}{% else %}0{% endif %} / 500 chars &nbsp;|&nbsp; <span id="descWordCount">{% if adv %}{{ adv.description.split|length }}{% else %}0{% endif %}</span> words</small>
+            <small id="descCharCount" style="color:#aaa;font-weight:700;margin-left:auto"><span id="descCharValue">{% if adv %}{{ adv.description|length }}{% else %}0{% endif %}</span> / 500 chars &nbsp;|&nbsp; <span id="descWordCount">{% if adv %}{{ adv.description.split|length }}{% else %}0{% endif %}</span> words</small>
           </div>
         </div>
 
@@ -336,6 +336,7 @@ document.addEventListener('keydown',e=>{if(!document.getElementById('adv-fs').st
 <script>
 function descCount(ta) {
   const len = ta.value.length;
+  document.getElementById('descCharValue').textContent = len;
   const words = ta.value.trim() ? ta.value.trim().split(/\s+/).length : 0;
   document.getElementById('descWordCount').textContent = words;
   const warn = document.getElementById('descWordWarn');
@@ -344,7 +345,9 @@ function descCount(ta) {
   el.style.color = len > 450 ? '#e65100' : len > 300 ? '#f3a000' : '#aaa';
 }
 document.addEventListener('DOMContentLoaded', function(){
-  var form = document.querySelector('form.ar-form') || document.querySelector('form');
+  var description = document.querySelector('textarea[name="description"]');
+  if (description) descCount(description);
+  var form = document.querySelector('form.ar-form-body');
   if(form) form.addEventListener('submit', function(e){
     var ta = document.querySelector('textarea[name="description"]');
     if(ta){

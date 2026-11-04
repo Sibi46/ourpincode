@@ -1,3 +1,4 @@
+from jobs.person_names import valid_person_name
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import get_user_model
@@ -940,6 +941,10 @@ def create_event(request, page_id):
     causes = community.causes.filter(is_active=True)
     if request.method == 'POST':
         p = request.POST
+        contact = p.get('contact_person', '').strip()
+        if contact and not valid_person_name(contact):
+            messages.error(request, 'Contact person must contain letters and spaces only.')
+            return render(request, 'portal/event_create.html', {'community': community, 'causes': causes, 'is_admin': is_admin}, status=400)
         event = Event(
             community=community, created_by=request.user,
             name=p.get('name','').strip(),

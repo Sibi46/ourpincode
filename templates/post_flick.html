@@ -19,7 +19,7 @@
   {% endif %}
 
   <div style="background:#fff;border-radius:16px;box-shadow:0 2px 24px rgba(0,0,0,0.08);padding:32px">
-    <form method="post" enctype="multipart/form-data">
+    <form id="postFlickForm" method="post" action="{% url 'post_flick' %}" enctype="multipart/form-data">
       {% csrf_token %}
 
       <div style="margin-bottom:20px">
@@ -159,7 +159,8 @@ function setMFlickProgress(pct) {
 }
 function doPostFlick() {
   closeFlickModal();
-  var form = document.querySelector('form');
+  var form = document.getElementById('postFlickForm');
+  if (!form.reportValidity()) return;
   var overlay = document.getElementById('mFlickOverlay');
   overlay.style.display = 'flex';
   setMFlickProgress(0);
@@ -174,17 +175,15 @@ function doPostFlick() {
     }
   };
   xhr.onload = function() {
-    setMFlickProgress(100);
-    document.getElementById('mFlickMsg').textContent = 'Done! ✓';
-    if (xhr.status >= 200 && xhr.status < 400) {
-      setTimeout(function() {
-        document.open(); document.write(xhr.responseText); document.close();
-        window.history.replaceState({}, '', xhr.responseURL || window.location.pathname);
-      }, 400);
+    var result;
+    try { result = JSON.parse(xhr.responseText); } catch (_) {}
+    if (xhr.status >= 200 && xhr.status < 300 && result && result.success) {
+      setMFlickProgress(100);
+      window.location.assign(result.url);
     } else {
       overlay.style.display = 'none';
       document.getElementById('postFlickBtn').disabled = false;
-      alert('Upload failed. Please try again.');
+      alert(result && result.error ? result.error : 'Upload failed. Please sign in again if your session expired, then retry.');
     }
   };
   xhr.onerror = function() {
@@ -194,6 +193,9 @@ function doPostFlick() {
   };
   var formData = new FormData(form);
   xhr.setRequestHeader('X-CSRFToken', formData.get('csrfmiddlewaretoken'));
+  xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+  xhr.timeout = 300000;
+  xhr.ontimeout = xhr.onerror;
   xhr.send(formData);
 }
 </script>

@@ -1,3 +1,4 @@
+from jobs.person_names import valid_person_name
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, get_user_model
@@ -1204,6 +1205,8 @@ def campus_student_signup(request):
 
         if not all([full_name, phone, email, pincode, inst_id, password]):
             error = 'All fields are required.'
+        elif not valid_person_name(full_name):
+            error = 'Student name must contain letters and spaces only.'
         elif password != password2:
             error = 'Passwords do not match.'
         elif len(password) < 6:
@@ -1223,7 +1226,7 @@ def campus_student_signup(request):
                 phone      = phone,
                 email      = email,
             )
-            login(request, user)
+            login(request, user, backend='django.contrib.auth.backends.ModelBackend')
             # store chosen institution in session so student_register can pre-fill it
             request.session['campus_signup_inst_id'] = inst_id
             request.session['campus_signup_pincode']  = pincode

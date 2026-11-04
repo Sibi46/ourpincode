@@ -3659,11 +3659,16 @@ def post_flick(request):
         category = request.POST.get('category', 'general')
         video    = request.FILES.get('video')
         image    = request.FILES.get('image')
+        ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
         if not caption and not video and not image:
+            if ajax:
+                return JsonResponse({'success': False, 'error': 'Add a caption, image, or video.'}, status=400)
             messages.error(request, 'Add a caption, image, or video.')
             return redirect('post_flick')
         Flick.objects.create(user=request.user, title=title, caption=caption,
                              category=category, video=video, image=image)
+        if ajax:
+            return JsonResponse({'success': True, 'url': '/flicks/'})
         messages.success(request, 'Flick posted!')
         return redirect('flicks_feed')
     return render(request, 'post_flick.html')
