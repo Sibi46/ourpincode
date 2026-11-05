@@ -182,7 +182,7 @@ class AccountFeatureTests(TestCase):
         self.login(self.owner)
         self.assertEqual(self.client.get('/businesses/?following=1&pincode=').context['businesses'].paginator.count,0)
 
-    def test_primary_headers_include_dashboard_signout_and_account_access(self):
+    def test_primary_headers_include_visible_account_actions(self):
         from html.parser import HTMLParser
         class HeaderParser(HTMLParser):
             def __init__(self): super().__init__(); self.in_header=False; self.links=[]; self.headers=0

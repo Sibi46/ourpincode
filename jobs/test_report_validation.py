@@ -58,7 +58,7 @@ class ReportValidationTests(TestCase):
             self.assertIn(field, form.errors)
 
     def test_job_types_follow_category_and_reject_mismatched_submission(self):
-        for category, kind in [('blue', 'driver'), ('white', 'software')]:
+        for category, kind in [('blue', 'driver'), ('white', 'it')]:
             form = DashboardSeekerForm({'job_category': category, 'blue_collar_type': kind}, instance=JobSeekerProfile())
             self.assertTrue(form.is_valid(), form.errors)
         form = DashboardSeekerForm({'job_category': 'white', 'blue_collar_type': 'driver'}, instance=JobSeekerProfile())
