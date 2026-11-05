@@ -182,7 +182,7 @@ class AccountFeatureTests(TestCase):
         self.login(self.owner)
         self.assertEqual(self.client.get('/businesses/?following=1&pincode=').context['businesses'].paginator.count,0)
 
-    def test_primary_headers_are_only_logo_and_account_access(self):
+    def test_primary_headers_include_dashboard_signout_and_account_access(self):
         from html.parser import HTMLParser
         class HeaderParser(HTMLParser):
             def __init__(self): super().__init__(); self.in_header=False; self.links=[]; self.headers=0
@@ -198,4 +198,4 @@ class AccountFeatureTests(TestCase):
             self.assertEqual(response.status_code,200,url)
             parser=HeaderParser(); parser.feed(response.content.decode())
             self.assertEqual(parser.headers,1,url)
-            self.assertEqual(parser.links,['/','/profile/edit/'],url)
+            self.assertEqual(parser.links,['/','/jobseeker/dashboard/','/logout/','/profile/edit/'],url)

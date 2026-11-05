@@ -255,6 +255,17 @@ def register_process(request):
     whatsapp   = request.POST.get('whatsapp', '').strip()
     ref_code   = request.POST.get('ref_code', '').strip().upper()
 
+    from .person_names import valid_person_name
+    if user_type in User.EMPLOYER_TYPES:
+        names = [first_name, request.POST.get('owner_name', '').strip()]
+        if not first_name or any(name and not valid_person_name(name) for name in names):
+            return err('Owner / contact person name must contain letters and spaces only.')
+    if password and len(password) < 8:
+        return err('Password must contain at least 8 characters.')
+    confirmation = request.POST.get('confirm_password', request.POST.get('password2'))
+    if confirmation is not None and password != confirmation:
+        return err('Passwords do not match.')
+
     from django.db import IntegrityError as _IntegrityError
 
     # If already logged in and registering a business — link to existing account
@@ -2144,6 +2155,13 @@ def advertiser_register(request):
         return redirect('advertiser_dashboard')
 
     if request.method == 'POST':
+        from .person_names import valid_person_name
+        contact_name = request.POST.get('contact_person', user.get_full_name()).strip()
+        if not valid_person_name(contact_name):
+            messages.error(request, 'Contact person name must contain letters and spaces only.')
+            return render(request, 'advertiser_register.html', {
+                'user': user, 'adv': existing_adv, 'reapply': existing_adv is not None,
+            }, status=400)
         if existing_adv:
             # Re-apply: update existing record and reset to pending
             existing_adv.business_name  = request.POST.get('business_name', '').strip()

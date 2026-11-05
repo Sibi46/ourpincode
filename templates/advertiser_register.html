@@ -268,7 +268,7 @@ document.addEventListener('keydown',e=>{if(!document.getElementById('adv-fs').st
           </div>
           <div class="ar-field">
             <label>Contact Person <span class="ar-req">*</span></label>
-            <input type="text" name="contact_person" required value="{% if adv %}{{ adv.contact_person }}{% else %}{{ user.get_full_name|default:user.username }}{% endif %}" placeholder="Owner / Manager Name">
+            <input type="text" name="contact_person" data-person-name pattern="[\p{L}\p{M} ]+" title="Use letters and spaces only" required value="{% if adv %}{{ adv.contact_person }}{% else %}{{ user.get_full_name|default:user.username }}{% endif %}" placeholder="Owner / Manager Name">
           </div>
         </div>
 
@@ -371,5 +371,6 @@ function previewLogo(input) {
   reader.readAsDataURL(file);
 }
 </script>
+<script src="{% static 'js/form-validation.js' %}?v=1" defer></script>
 {% endblock %}
 

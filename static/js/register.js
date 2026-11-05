@@ -81,9 +81,12 @@ function loadEmployerForm(type) {
     }
 
     document.getElementById('emp-user-type-input').value = type;
-    document.getElementById('emp-type-label').textContent = m.label;
-    document.getElementById('emp-type-icon').className    = 'fas ' + m.icon;
-    document.getElementById('emp-type-desc').textContent  = m.desc;
+    const typeLabel = document.getElementById('emp-type-label');
+    const typeIcon = document.getElementById('emp-type-icon');
+    const typeDescription = document.getElementById('emp-type-desc');
+    if (typeLabel) typeLabel.textContent = m.label;
+    if (typeIcon) typeIcon.className = 'fas ' + m.icon;
+    if (typeDescription) typeDescription.textContent = m.desc;
     document.getElementById('emp-org-label').innerHTML    =
         '<i class="fas ' + m.icon + '"></i> ' + m.org + ' *';
     document.getElementById('emp-org-input').placeholder  = 'Enter ' + m.org.toLowerCase();
@@ -259,9 +262,16 @@ function verifyOTP(prefix) {
 // ── Password match check ──────────────────────────────────────────────────────
 function checkPasswords(form) {
     const pwd  = form.querySelector('[name="password"]');
-    const pwd2 = form.querySelector('[name="password2"]');
+    const pwd2 = form.querySelector('[name="password2"], [name="confirm_password"]');
     const err  = form.querySelector('.pwd-error, #emp-pwd-error');
-    if (!pwd || !pwd2) return true;
+    if (!pwd) return true;
+    if (pwd.value.length < 8) {
+        pwd.setCustomValidity('Password must contain at least 8 characters.');
+        pwd.reportValidity();
+        pwd.addEventListener('input', () => pwd.setCustomValidity(''), {once:true});
+        return false;
+    }
+    if (!pwd2) return true;
     if (pwd.value !== pwd2.value) {
         if (err) err.style.display = 'block';
         pwd2.focus();

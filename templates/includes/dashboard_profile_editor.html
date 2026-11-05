@@ -8,3 +8,5 @@
   {% if seeker_form %}<fieldset style="border:0;padding:0;margin:20px 0"><legend><strong>Work and education details</strong></legend>{{ seeker_form.as_p }}</fieldset>{% endif %}
   <button type="submit" class="business-follow-button">Save profile</button>
 </form>
+{% if seeker_form %}{{ seeker_form.BLUE_TYPES|json_script:"profile-blue-types" }}{{ seeker_form.WHITE_TYPES|json_script:"profile-white-types" }}{% endif %}
+{% load static %}<script src="{% static 'js/form-validation.js' %}?v=1" defer></script>

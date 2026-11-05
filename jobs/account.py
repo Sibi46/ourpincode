@@ -14,10 +14,39 @@ from .models import BusinessFollow, CompanyProfile, JobSeekerProfile, User
 PIN = re.compile(r'[1-9][0-9]{5}')
 
 
+class ProfileValidationMixin:
+    name_fields = ()
+    text_fields = ()
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for name in self.name_fields:
+            self.fields[name].widget.attrs.update({'data-person-name': '', 'pattern': r'[\p{L}\p{M} ]+', 'title': 'Use letters and spaces only.'})
+        for name in self.text_fields:
+            self.fields[name].widget.attrs.update({'data-no-digits': '', 'pattern': r'[^\p{N}]*', 'title': 'Numbers are not allowed in this field.'})
+
+    def clean(self):
+        from .person_names import valid_person_name
+        import unicodedata
+        data = super().clean()
+        for name in self.name_fields:
+            if data.get(name) and not valid_person_name(data[name]):
+                self.add_error(name, 'Use letters and spaces only.')
+        for name in self.text_fields:
+            if data.get(name) and any(unicodedata.category(c).startswith('N') for c in data[name]):
+                self.add_error(name, 'Numbers are not allowed in this field.')
+        return data
+
+
 class LocationPreferencesForm(forms.Form):
     pincode = forms.RegexField(PIN, required=False, max_length=6, label='Main pincode')
     preferred_pincode_1 = forms.RegexField(PIN, required=False, max_length=6, label='Preferred area 1')
     preferred_pincode_2 = forms.RegexField(PIN, required=False, max_length=6, label='Preferred area 2')
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self.fields.values():
+            field.widget.attrs.update({'inputmode': 'numeric', 'pattern': '[1-9][0-9]{5}', 'maxlength': '6', 'data-digits-only': ''})
 
     def clean(self):
         data = super().clean()
@@ -40,15 +69,31 @@ class BusinessDetailsForm(forms.ModelForm):
         return self.cleaned_data.get('review_reward_percent') or 0
 
 
-class DashboardPersonalForm(forms.ModelForm):
+class DashboardPersonalForm(ProfileValidationMixin, forms.ModelForm):
+    name_fields = ('first_name', 'last_name')
+    text_fields = ('city',)
     photo = forms.ImageField(required=False, label='Personal profile photo')
+    whatsapp = forms.RegexField(r'[0-9]{10}', required=False, label='WhatsApp contact number',
+        widget=forms.TextInput(attrs={'inputmode': 'numeric', 'pattern': '[0-9]{10}', 'maxlength': '10', 'data-digits-only': ''}),
+        error_messages={'invalid': 'Enter a 10-digit WhatsApp number.'})
 
     class Meta:
         model = User
         fields = ['first_name', 'last_name', 'email', 'whatsapp', 'city', 'address', 'photo']
 
 
-class DashboardSeekerForm(forms.ModelForm):
+class DashboardSeekerForm(ProfileValidationMixin, forms.ModelForm):
+    text_fields = ('languages', 'preferred_roles', 'preferred_location', 'education', 'education_details', 'primary_skill', 'skills')
+    BLUE_TYPES = [('construction', 'Construction'), ('electrician', 'Electrician'), ('plumber', 'Plumber'),
+        ('driver', 'Driver / Delivery'), ('factory', 'Factory / Production'), ('security', 'Security'),
+        ('domestic', 'Domestic work'), ('agriculture', 'Agriculture'), ('welder', 'Welder'),
+        ('painter', 'Painter'), ('helper', 'Helper'), ('sweeper', 'Housekeeping'), ('tailor', 'Tailor'),
+        ('mechanic', 'Mechanic'), ('other_blue', 'Other blue collar')]
+    WHITE_TYPES = [('software', 'Software / IT'), ('accounting', 'Accounting / Finance'),
+        ('administration', 'Administration'), ('sales', 'Sales'), ('marketing', 'Marketing'),
+        ('human_resources', 'Human resources'), ('teaching', 'Teaching'), ('healthcare', 'Healthcare'),
+        ('customer_service', 'Customer service'), ('other_white', 'Other white collar')]
+    blue_collar_type = forms.ChoiceField(required=False, label='Job type', choices=[('', 'Choose a job type')])
     dob = forms.DateField(
         required=False, label='Date of birth',
         input_formats=['%Y-%m-%d', '%d/%m/%Y', '%d-%m-%Y'],
@@ -61,6 +106,14 @@ class DashboardSeekerForm(forms.ModelForm):
         fields = ['dob', 'gender', 'experience', 'education', 'education_details', 'primary_skill',
                   'skills', 'languages', 'preferred_roles', 'preferred_location', 'open_to_relocate',
                   'job_category', 'blue_collar_type', 'salary_min', 'portfolio_url', 'resume']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        category = self.data.get('job_category', self.instance.job_category) if self.is_bound else self.instance.job_category
+        options = self.WHITE_TYPES if category == 'white' else self.BLUE_TYPES if category == 'blue' else self.BLUE_TYPES + self.WHITE_TYPES
+        self.fields['blue_collar_type'].choices = [('', 'Choose a job type')] + options
+        self.fields['blue_collar_type'].widget.attrs['data-job-type'] = ''
+        self.fields['job_category'].widget.attrs['data-job-category'] = ''
 
 
 def dashboard_profile_context(user, company):

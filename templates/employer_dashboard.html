@@ -124,7 +124,7 @@
   }
   </style>
 {% include "includes/site_ui.html" %}
-<link rel="stylesheet" href="{% static 'css/employer_workspace.css' %}?v=1">
+<link rel="stylesheet" href="{% static 'css/employer_workspace.css' %}?v=2">
 </head>
 <body>
 
@@ -1168,6 +1168,7 @@ function dashPreviewBanner(input) {
   reader.readAsDataURL(file);
 }
 function showSection(id, navEl) {
+  if (id === 'myprofile') id = 'my-profile';
   if (!document.getElementById('sec-' + id) && !document.querySelector('.dash-section[data-sec="' + id + '"]')) id = 'active-jobs';
   document.querySelectorAll('.dsec').forEach(s => s.classList.add('hidden'));
   document.querySelectorAll('.dash-section').forEach(s => s.style.display = 'none');

@@ -390,7 +390,7 @@
                         </div>
                         <div class="form-group full">
                             <label><i class="fas fa-user"></i> Owner Name *</label>
-                            <input type="text" id="emp-owner-input" name="owner_name" placeholder="Enter owner / contact person name" required>
+                            <input type="text" id="emp-owner-input" name="owner_name" pattern="[\p{L}\p{M} ]+" title="Use letters and spaces only" data-person-name placeholder="Enter owner / contact person name" required>
                         </div>
                         <div class="form-group full">
                             <label><i class="fab fa-whatsapp" style="color:#25D366"></i> Business Mobile Number (WhatsApp) *</label>
@@ -415,11 +415,11 @@
                         <div class="form-row">
                             <div class="form-group">
                                 <label><i class="fas fa-lock"></i> Password *</label>
-                                <input type="password" name="password" id="emp-pwd" placeholder="Create password (min 8 chars)" required>
+                                <input type="password" name="password" id="emp-pwd" minlength="8" placeholder="Create password (min 8 chars)" required>
                             </div>
                             <div class="form-group">
                                 <label><i class="fas fa-lock"></i> Confirm Password *</label>
-                                <input type="password" name="confirm_password" id="emp-pwd2" placeholder="Repeat password" required>
+                                <input type="password" name="confirm_password" id="emp-pwd2" minlength="8" placeholder="Repeat password" required>
                             </div>
                         </div>
                         <div id="emp-pwd-error" style="color:#c62828;font-size:13px;margin-bottom:12px;display:none">
@@ -811,7 +811,7 @@
     body{padding-bottom:62px}
     </style>
 
-    <script src="{% static 'js/register.js' %}?v=14"></script>
+    <script src="{% static 'js/register.js' %}?v=15"></script>
 <script>
 function selectCollar(type) {
     document.getElementById('empCollarHidden').value = type;
@@ -965,5 +965,6 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 {% endif %}
 {% include "includes/email_autofill.html" %}
+<script src="{% static 'js/form-validation.js' %}?v=1" defer></script>
 </body>
 </html>
