@@ -257,6 +257,12 @@ def register_process(request):
 
     from django.db import IntegrityError as _IntegrityError
 
+    if user_type in User.EMPLOYER_TYPES:
+        from .person_names import valid_person_name
+        owner_name = request.POST.get('owner_name', '').strip() or first_name
+        if owner_name and not valid_person_name(owner_name):
+            return err('Owner / contact person name must contain letters and spaces only.')
+
     # If already logged in and registering a business — link to existing account
     if request.user.is_authenticated and user_type in User.EMPLOYER_TYPES:
         user = request.user

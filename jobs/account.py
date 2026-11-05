@@ -1,5 +1,6 @@
 """Account settings, saved discovery areas and business follows."""
 import re
+import json
 
 from django import forms
 from django.contrib import messages
@@ -10,6 +11,7 @@ from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 
 from .models import BusinessFollow, CompanyProfile, JobSeekerProfile, User
+from .profile_validation import ProfileValidationMixin, BLUE_TYPES, WHITE_TYPES
 
 PIN = re.compile(r'[1-9][0-9]{5}')
 
@@ -18,6 +20,12 @@ class LocationPreferencesForm(forms.Form):
     pincode = forms.RegexField(PIN, required=False, max_length=6, label='Main pincode')
     preferred_pincode_1 = forms.RegexField(PIN, required=False, max_length=6, label='Preferred area 1')
     preferred_pincode_2 = forms.RegexField(PIN, required=False, max_length=6, label='Preferred area 2')
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self.fields.values():
+            field.widget.attrs.update({'inputmode': 'numeric', 'pattern': '[1-9][0-9]{5}',
+                                      'maxlength': '6', 'title': 'Enter a six-digit pincode.'})
 
     def clean(self):
         data = super().clean()
@@ -40,7 +48,8 @@ class BusinessDetailsForm(forms.ModelForm):
         return self.cleaned_data.get('review_reward_percent') or 0
 
 
-class DashboardPersonalForm(forms.ModelForm):
+class DashboardPersonalForm(ProfileValidationMixin, forms.ModelForm):
+    person_fields = ('first_name', 'last_name', 'city')
     photo = forms.ImageField(required=False, label='Personal profile photo')
 
     class Meta:
@@ -48,13 +57,32 @@ class DashboardPersonalForm(forms.ModelForm):
         fields = ['first_name', 'last_name', 'email', 'whatsapp', 'city', 'address', 'photo']
 
 
-class DashboardSeekerForm(forms.ModelForm):
+class DashboardSeekerForm(ProfileValidationMixin, forms.ModelForm):
+    text_fields = ('languages', 'preferred_roles', 'preferred_location', 'education',
+                   'education_details', 'primary_skill', 'skills')
     dob = forms.DateField(
         required=False, label='Date of birth',
         input_formats=['%Y-%m-%d', '%d/%m/%Y', '%d-%m-%Y'],
         widget=forms.DateInput(format='%Y-%m-%d', attrs={'type': 'date', 'autocomplete': 'bday'}),
         error_messages={'invalid': 'Enter a valid date of birth using the date picker.'},
     )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        category = self.data.get('job_category') if self.is_bound else self.initial.get('job_category', 'any')
+        choices = WHITE_TYPES if category == 'white' else BLUE_TYPES if category == 'blue' else []
+        self.fields['blue_collar_type'].label = 'Job type'
+        self.fields['blue_collar_type'].widget = forms.Select(choices=[('', 'Select a job type')] + choices, attrs={'data-job-types': json.dumps({'blue': BLUE_TYPES, 'white': WHITE_TYPES})})
+
+    def clean(self):
+        data = super().clean()
+        category, kind = data.get('job_category'), data.get('blue_collar_type')
+        choices = WHITE_TYPES if category == 'white' else BLUE_TYPES if category == 'blue' else []
+        if category == 'any':
+            data['blue_collar_type'] = ''
+        elif kind and kind not in dict(choices):
+            self.add_error('blue_collar_type', 'Choose a job type that matches your job category.')
+        return data
 
     class Meta:
         model = JobSeekerProfile
