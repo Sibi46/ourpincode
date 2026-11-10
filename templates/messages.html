@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Messages — OUR PINCODE Jobs</title>
 <link rel="stylesheet" href="/static/fontawesome/css/all.min.css">
-<link rel="stylesheet" href="/static/css/messages.css?v=3">
+<link rel="stylesheet" href="/static/css/messages.css?v=4">
 <link rel="stylesheet" href="/static/css/bottom_nav.css?v=3">
 {% include "includes/site_ui.html" %}
 </head>
@@ -19,52 +19,15 @@
 
   <!-- ── SIDEBAR ─────────────────────────────────────────────────── -->
   <aside class="msg-sidebar" id="msgSidebar">
-    <div class="sidebar-search">
+    <form class="sidebar-search" method="get" action="{% url 'chat_list' %}" role="search">
       <i class="fa-solid fa-magnifying-glass"></i>
-      <input type="text" id="convSearch" placeholder="Search conversations…" oninput="filterConvs(this.value)">
-    </div>
+      <input type="text" id="convSearch" name="q" value="{{ search_query }}" aria-label="Search conversations" placeholder="Search name, job or message" oninput="filterConvs(this.value)">
+      <button type="submit" aria-label="Search">Search</button>
+    </form>
+    <p id="convSearchStatus" role="status" class="conv-search-status"></p>
 
     <div class="conv-list" id="convList">
-      {% for row in conversations %}
-      {% with conv=row.conv other=row.other last=row.last unread=row.unread %}
-      <a href="{% url 'chat_room' conv.pk %}"
-         class="conv-item {% if active_conv and active_conv.pk == conv.pk %}active{% endif %}"
-         data-name="{{ other.get_full_name|lower }} {{ other.username|lower }}">
-        <div class="conv-avatar">
-          {% if other.seeker.photo %}
-            <img src="{{ other.seeker.photo.url }}" alt="">
-          {% else %}
-            <span class="av-letter">{{ other.get_full_name|first|upper|default:other.username|first|upper }}</span>
-          {% endif %}
-        </div>
-        <div class="conv-info">
-          <div class="conv-top">
-            <strong>{{ other.get_full_name|default:other.username }}</strong>
-            {% if last %}<span class="conv-time">{{ last.sent_at|date:"g:i A" }}</span>{% endif %}
-          </div>
-          <div class="conv-preview">
-            {% if last %}
-              {% if last.msg_type == 'image' %}<i class="fa-solid fa-image"></i> Photo
-              {% elif last.msg_type == 'file' or last.msg_type == 'resume' %}<i class="fa-solid fa-paperclip"></i> File
-              {% elif last.msg_type == 'interview_invite' %}<i class="fa-solid fa-calendar-check"></i> Interview Invitation
-              {% else %}{{ last.content|truncatechars:40 }}
-              {% endif %}
-            {% else %}
-              <em>No messages yet</em>
-            {% endif %}
-          </div>
-          {% if conv.job %}<div class="conv-job-tag"><i class="fa-solid fa-briefcase"></i> {{ conv.job.title|truncatechars:25 }}</div>{% endif %}
-        </div>
-        {% if unread %}<span class="conv-unread">{{ unread }}</span>{% endif %}
-      </a>
-      {% endwith %}
-      {% empty %}
-      <div class="no-convs">
-        <i class="fa-solid fa-comment-slash"></i>
-        <p>No conversations yet</p>
-        <small>Start a conversation from a job listing or candidate profile</small>
-      </div>
-      {% endfor %}
+      {% include 'includes/conversation_list.html' %}
     </div>
   </aside>
 
@@ -427,11 +390,29 @@ function closeChatMobile() {
 }
 
 // ── Conversation filter ───────────────────────────────────────────────
+let searchTimer;
+let searchController;
 function filterConvs(q) {
-  q = q.toLowerCase();
-  document.querySelectorAll('.conv-item').forEach(el => {
-    el.style.display = el.dataset.name.includes(q) ? '' : 'none';
-  });
+  clearTimeout(searchTimer);
+  if (searchController) searchController.abort();
+  const status = document.getElementById('convSearchStatus');
+  status.textContent = 'Searching…';
+  searchTimer = setTimeout(async () => {
+    const controller = new AbortController();
+    searchController = controller;
+    try {
+      const response = await fetch('{% url 'chat_list' %}?q=' + encodeURIComponent(q.trim()), {
+        headers: {'X-Requested-With': 'XMLHttpRequest'}, signal: controller.signal
+      });
+      if (!response.ok) throw new Error('Search failed');
+      const data = await response.json();
+      if (controller.signal.aborted) return;
+      document.getElementById('convList').innerHTML = data.html;
+      status.textContent = data.count + (data.count === 1 ? ' conversation' : ' conversations');
+    } catch (error) {
+      if (error.name !== 'AbortError') status.textContent = 'Search unavailable. Press Search to try again.';
+    }
+  }, 250);
 }
 
 // ── Auto-open invite modal (from shortlist "Invite" button) ───────────

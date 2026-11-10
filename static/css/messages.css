@@ -633,3 +633,4 @@ a { text-decoration: none; color: inherit; }
   .bubble-wrap { max-width: 85%; }
   .chat-img { max-width: 200px; }
 }
+.msg-page .sidebar-search{background:#0f172a;flex-wrap:wrap}.msg-page .sidebar-search input{min-width:0;width:0;flex:1;color:#f8fafc!important;background:#0f172a!important;caret-color:#fff;padding:10px;border:1px solid #64748b;border-radius:8px}.msg-page .sidebar-search input::placeholder{color:#cbd5e1!important}.msg-page .sidebar-search button{border:0;border-radius:8px;background:#2563eb;color:#fff;padding:10px;cursor:pointer}.conv-search-status{color:#334155;background:#fff;font-size:12px;margin:0;padding:0 16px}.conv-search-status:empty{display:none}

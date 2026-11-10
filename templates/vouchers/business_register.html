@@ -1,4 +1,5 @@
-﻿{% extends 'base.html' %}
+{% extends 'base.html' %}
+{% load static %}
 {% block title %}Register Your Business – OURPINCODE Gift Vouchers{% endblock %}
 
 {% block extra_css %}
@@ -125,12 +126,12 @@ select.form-control{background:#fff}
           </div>
           <div class="form-group">
             <label>City</label>
-            {{ form.city }}
+            {{ form.city }}{{ form.city.errors }}
           </div>
         </div>
         <div class="form-group">
           <label>State</label>
-          {{ form.state }}
+          {{ form.state }}{{ form.state.errors }}
         </div>
       </div>
     </div>
@@ -196,4 +197,5 @@ select.form-control{background:#fff}
     <p class="vr-login-note">By registering you agree to our <a href="/terms/">Terms of Service</a></p>
   </form>
 </div>
+<script src="{% static 'js/form-validation.js' %}?v=2" defer></script>
 {% endblock %}

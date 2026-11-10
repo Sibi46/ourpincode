@@ -70,17 +70,15 @@ class DashboardSeekerForm(ProfileValidationMixin, forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         category = self.data.get('job_category') if self.is_bound else self.initial.get('job_category', 'any')
-        choices = WHITE_TYPES if category == 'white' else BLUE_TYPES if category == 'blue' else []
+        choices = WHITE_TYPES if category == 'white' else BLUE_TYPES if category == 'blue' else list(dict(BLUE_TYPES + WHITE_TYPES).items())
         self.fields['blue_collar_type'].label = 'Job type'
         self.fields['blue_collar_type'].widget = forms.Select(choices=[('', 'Select a job type')] + choices, attrs={'data-job-types': json.dumps({'blue': BLUE_TYPES, 'white': WHITE_TYPES})})
 
     def clean(self):
         data = super().clean()
         category, kind = data.get('job_category'), data.get('blue_collar_type')
-        choices = WHITE_TYPES if category == 'white' else BLUE_TYPES if category == 'blue' else []
-        if category == 'any':
-            data['blue_collar_type'] = ''
-        elif kind and kind not in dict(choices):
+        choices = WHITE_TYPES if category == 'white' else BLUE_TYPES if category == 'blue' else BLUE_TYPES + WHITE_TYPES
+        if kind and kind not in dict(choices):
             self.add_error('blue_collar_type', 'Choose a job type that matches your job category.')
         return data
 

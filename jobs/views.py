@@ -1880,10 +1880,16 @@ def _msg_to_dict(msg, me):
     return d
 
 
-def _sidebar_data(user):
+def _sidebar_data(user, query=''):
     convs = Conversation.objects.filter(
         Q(user_a=user) | Q(user_b=user), tuition_context__isnull=True
     ).select_related('user_a', 'user_b', 'job').order_by('-updated_at')
+    for token in query.split():
+        other_a = Q(user_a__first_name__icontains=token) | Q(user_a__last_name__icontains=token) | Q(user_a__username__icontains=token) | Q(user_a__company__company_name__icontains=token)
+        other_b = Q(user_b__first_name__icontains=token) | Q(user_b__last_name__icontains=token) | Q(user_b__username__icontains=token) | Q(user_b__company__company_name__icontains=token)
+        convs = convs.filter((Q(user_a=user) & other_b) | (Q(user_b=user) & other_a) |
+                             Q(job__title__icontains=token) | Q(messages__content__icontains=token))
+    convs = convs.distinct()
     rows = []
     for c in convs:
         last = c.messages.order_by('-sent_at').first()
@@ -1894,12 +1900,19 @@ def _sidebar_data(user):
 
 @login_required
 def chat_list(request):
-    sidebar      = _sidebar_data(request.user)
+    query = request.GET.get('q', '').strip()[:200]
+    sidebar = _sidebar_data(request.user, query)
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        from django.template.loader import render_to_string
+        return JsonResponse({'html': render_to_string('includes/conversation_list.html', {
+            'conversations': sidebar, 'search_query': query,
+        }, request=request), 'count': len(sidebar)})
     total_unread = sum(d['unread'] for d in sidebar)
     return render(request, 'messages.html', {
         'conversations': sidebar,
         'total_unread':  total_unread,
         'active_conv':   None,
+        'search_query': query,
     })
 
 

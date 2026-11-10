@@ -1,9 +1,21 @@
 (() => {
   function start() {
-    document.querySelectorAll('[data-person-name]').forEach(input => {
+    document.querySelectorAll('[data-person-name],[data-profile-name]').forEach(input => {
       const validate = () => input.setCustomValidity(input.value && !/^[\p{L}\p{M} ]+$/u.test(input.value)
         ? 'Use letters and spaces only.' : '');
-      input.addEventListener('input', validate);
+      const hint = document.createElement('small');
+      hint.setAttribute('role', 'status');
+      hint.style.cssText = 'display:block;color:#b42318;margin-top:6px';
+      input.insertAdjacentElement('afterend', hint);
+      input.addEventListener('input', () => {
+        const original = input.value;
+        const position = input.selectionStart;
+        const clean = value => value.replace(/[^\p{L}\p{M} ]/gu, '');
+        input.value = clean(original);
+        if (position !== null) input.setSelectionRange(clean(original.slice(0, position)).length, clean(original.slice(0, position)).length);
+        hint.textContent = original !== input.value ? 'Use letters and spaces only. Invalid characters were removed.' : '';
+        validate();
+      });
       validate();
     });
     const description = document.querySelector('textarea[name="description"][maxlength="500"]');

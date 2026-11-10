@@ -1,8 +1,10 @@
 from django import forms
+from jobs.profile_validation import ProfileValidationMixin
 from .models import Business, BusinessCategory, Branch, Employee, VoucherSlotPurchase, GiftVoucher, VoucherCategory
 
 
-class BusinessRegistrationForm(forms.ModelForm):
+class BusinessRegistrationForm(ProfileValidationMixin, forms.ModelForm):
+    person_fields = ('owner_name', 'city', 'state')
     class Meta:
         model = Business
         fields = [
