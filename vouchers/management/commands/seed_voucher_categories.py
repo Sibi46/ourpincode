@@ -48,9 +48,6 @@ class Command(BaseCommand):
             obj, created = BusinessCategory.objects.get_or_create(
                 name=name, defaults={'icon': icon, 'is_active': True}
             )
-            if not created and not obj.is_active:
-                obj.is_active = True
-                obj.save()
             self.stdout.write(f"  {'Created' if created else 'OK'}: {name}")
         self.stdout.write(self.style.SUCCESS(
             f"  {BusinessCategory.objects.filter(is_active=True).count()} active business categories."
@@ -61,9 +58,6 @@ class Command(BaseCommand):
             obj, created = VoucherCategory.objects.get_or_create(
                 name=name, defaults={'icon': icon, 'is_active': True, 'order': order}
             )
-            if not created and not obj.is_active:
-                obj.is_active = True
-                obj.save()
             self.stdout.write(f"  {'Created' if created else 'OK'}: {name}")
         self.stdout.write(self.style.SUCCESS(
             f"  {VoucherCategory.objects.filter(is_active=True).count()} active voucher categories."

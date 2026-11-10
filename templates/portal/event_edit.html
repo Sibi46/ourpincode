@@ -18,7 +18,7 @@
             <span>Description *</span>
             <span id="desc-counter" style="font-size:11px;font-weight:600;color:#94a3b8">0 / 120 words</span>
           </label>
-          <textarea name="description" id="ev-desc" class="pform-input" rows="4" required oninput="opcWordLimit(this,'desc-counter',120)">{{ event.description }}</textarea>
+          <textarea name="description" data-word-limit="120" id="ev-desc" class="pform-input" rows="4" required oninput="opcWordLimit(this,'desc-counter',120)">{{ event.description }}</textarea>
         </div>
         <div class="pform-group"><label class="pform-label">Tags <span style="font-weight:400;color:#94a3b8">(space-separated)</span></label>
           <input type="text" name="tags" class="pform-input" value="{{ event.tags }}"></div>
@@ -101,7 +101,7 @@
       <div class="pcard-body">
         <div style="font-size:13px;font-weight:800;color:#0f172a;margin-bottom:14px">📞 Contact &amp; Media</div>
         <div class="p2col">
-          <div class="pform-group"><label class="pform-label">Contact Person</label><input type="text" name="contact_person" class="pform-input" value="{{ event.contact_person }}"></div>
+          <div class="pform-group"><label class="pform-label">Contact Person</label><input type="text" name="contact_person" data-person-name pattern="[\p{L}\p{M} ]+" title="Use letters and spaces only" class="pform-input" value="{{ event.contact_person }}"></div>
           <div class="pform-group"><label class="pform-label">Contact Phone</label><input type="text" name="contact_phone" class="pform-input" value="{{ event.contact_phone }}"></div>
           <div class="pform-group" style="grid-column:1/-1">
             <label class="pform-label">Event Poster {% if event.image %}<span style="color:#059669;font-size:11px">(current image kept if blank)</span>{% endif %}</label>
@@ -293,4 +293,5 @@ document.addEventListener('DOMContentLoaded',function(){
   });
 });
 </script>
+<script src="/static/js/form-validation.js?v=3" defer></script><script src="/static/js/report-controls.js?v=1" defer></script>
 {% endblock %}

@@ -982,7 +982,7 @@ document.addEventListener('DOMContentLoaded',function(){
       </div>
       <div class="rp-field" id="rpPwdField" style="display:none">
         <label class="rp-label">Set Password * <span style="font-weight:400;color:#9ca3af">(min 6 characters)</span></label>
-        <input class="rp-input" type="password" id="rpPwd" placeholder="Create a password">
+        <input class="rp-input" type="password" id="rpPwd" data-password-toggle placeholder="Create a password">
       </div>
       <button class="rp-submit" onclick="rpSubmit()">Create Account →</button>
       <div class="rp-footer">Already have an account? <a href="/login/">Sign In</a></div>
@@ -1140,7 +1140,7 @@ body{top:0!important}
       </div>
       <div style="margin-bottom:18px">
         <label style="font-size:11px;font-weight:700;color:#374151;display:block;margin-bottom:4px">Password *</label>
-        <input id="regPass" type="password" placeholder="Create a password" style="width:100%;padding:10px 12px;border:1.5px solid #E2E8F0;border-radius:10px;font-size:13px;font-family:inherit;outline:none">
+        <input id="regPass" data-password-toggle type="password" placeholder="Create a password" style="width:100%;padding:10px 12px;border:1.5px solid #E2E8F0;border-radius:10px;font-size:13px;font-family:inherit;outline:none">
       </div>
       <button onclick="doRegister()" id="regBtn" style="width:100%;padding:13px;background:linear-gradient(135deg,#4F46E5,#7C3AED);color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit">Create Account & Continue →</button>
     </div>
@@ -1244,5 +1244,6 @@ function doLogin(){
 <script src="{% static 'js/page-loading.js' %}?v=1" defer></script>
 {% include "includes/quiz_popup.html" %}
 {% include "includes/welcome_intro.html" %}
+<script src="/static/js/report-controls.js?v=1" defer></script>
 </body>
 </html>

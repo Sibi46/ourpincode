@@ -12,6 +12,7 @@ from django.views.decorators.http import require_POST
 
 from .models import BusinessFollow, CompanyProfile, JobSeekerProfile, User
 from .profile_validation import ProfileValidationMixin, BLUE_TYPES, WHITE_TYPES
+from .form_fields import FourDigitYearDateField
 
 PIN = re.compile(r'[1-9][0-9]{5}')
 
@@ -60,7 +61,7 @@ class DashboardPersonalForm(ProfileValidationMixin, forms.ModelForm):
 class DashboardSeekerForm(ProfileValidationMixin, forms.ModelForm):
     text_fields = ('languages', 'preferred_roles', 'preferred_location', 'education',
                    'education_details', 'primary_skill', 'skills')
-    dob = forms.DateField(
+    dob = FourDigitYearDateField(
         required=False, label='Date of birth',
         input_formats=['%Y-%m-%d', '%d/%m/%Y', '%d-%m-%Y'],
         widget=forms.DateInput(format='%Y-%m-%d', attrs={'type': 'date', 'autocomplete': 'bday'}),
@@ -69,6 +70,7 @@ class DashboardSeekerForm(ProfileValidationMixin, forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.fields['portfolio_url'].label = 'Portfolio URL (optional)'
         category = self.data.get('job_category') if self.is_bound else self.initial.get('job_category', 'any')
         choices = WHITE_TYPES if category == 'white' else BLUE_TYPES if category == 'blue' else list(dict(BLUE_TYPES + WHITE_TYPES).items())
         self.fields['blue_collar_type'].label = 'Job type'

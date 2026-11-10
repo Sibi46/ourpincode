@@ -21,7 +21,7 @@
             <span>Description *</span>
             <span id="desc-counter" style="font-size:11px;font-weight:600;color:#94a3b8">0 / 120 words</span>
           </label>
-          <textarea name="description" id="ev-desc" class="pform-input" rows="4" required placeholder="What's this event about?" oninput="opcWordLimit(this,'desc-counter',120)"></textarea>
+          <textarea name="description" data-word-limit="120" id="ev-desc" class="pform-input" rows="4" required placeholder="What's this event about?" oninput="opcWordLimit(this,'desc-counter',120)"></textarea>
         </div>
         <div class="pform-group"><label class="pform-label">Tags <span style="font-weight:400;color:#94a3b8">(space-separated)</span></label>
           <input type="text" name="tags" class="pform-input" placeholder="environment cleanup nature volunteers"></div>
@@ -123,7 +123,7 @@
       <div class="pcard-body">
         <div style="font-size:13px;font-weight:800;color:#0f172a;margin-bottom:14px">📞 Contact &amp; Media</div>
         <div class="p2col">
-          <div class="pform-group"><label class="pform-label">Contact Person</label><input type="text" name="contact_person" class="pform-input" placeholder="Name"></div>
+          <div class="pform-group"><label class="pform-label">Contact Person</label><input type="text" name="contact_person" data-person-name pattern="[\p{L}\p{M} ]+" title="Use letters and spaces only" class="pform-input" placeholder="Name"></div>
           <div class="pform-group"><label class="pform-label">Contact Phone</label><input type="text" name="contact_phone" class="pform-input" placeholder="+91 98765 43210"></div>
           <div class="pform-group" style="grid-column:1/-1">
             <label class="pform-label">Event Poster / Banner</label>
@@ -324,4 +324,5 @@ document.addEventListener('DOMContentLoaded',function(){
   });
 });
 </script>
+<script src="/static/js/form-validation.js?v=3" defer></script><script src="/static/js/report-controls.js?v=1" defer></script>
 {% endblock %}

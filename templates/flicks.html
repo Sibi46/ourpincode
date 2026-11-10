@@ -493,7 +493,9 @@ body { overflow: hidden !important; margin: 0 !important; padding: 0 !important;
         <div class="fk-reel-user">
           <div class="fk-reel-avatar">{{ flick.user.get_full_name|default:flick.user.username|first|upper }}</div>
           <div>
-            <div class="fk-reel-uname">{{ flick.user.get_full_name|default:flick.user.username }}</div>
+            {% if flick.user.is_active and flick.user.company.company_id %}
+            <a class="fk-reel-uname" href="{% url 'business_profile' flick.user.company.company_id %}" onclick="event.stopPropagation()" style="display:block;color:inherit;text-decoration:underline;text-underline-offset:3px">{{ flick.user.company.company_name }} <small style="font-size:10px">{{ flick.user.company.company_id }}</small></a>
+            {% else %}<div class="fk-reel-uname">{{ flick.user.get_full_name|default:flick.user.username }}</div>{% endif %}
             <div class="fk-reel-meta">{{ flick.created_at|timesince }} ago</div>
           </div>
         </div>

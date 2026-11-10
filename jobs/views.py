@@ -2098,11 +2098,19 @@ def ads_gallery(request):
 def offer_post(request):
     """Only registered employers/companies can post offers."""
     user = request.user
+    from .offer_categories import OFFER_CATEGORIES
+    from .offer_forms import OfferValidityForm
     if not user.is_employer():
         from django.contrib import messages
         messages.error(request, 'Only registered companies can post offers. Please register as an employer.')
         return redirect('/register/')
     if request.method == 'POST':
+        validity = OfferValidityForm(request.POST)
+        if not validity.is_valid():
+            return render(request, 'offer_post.html', {
+                'categories': OFFER_CATEGORIES, 'offer_errors': validity.errors,
+                'company_profile': CompanyProfile.objects.filter(user=user).first(),
+            }, status=400)
         phone = request.POST.get('contact_phone', '').strip().replace(' ', '')
         # Build WhatsApp link from phone number
         wa_url = f"https://wa.me/91{phone}" if phone else ''
@@ -2118,10 +2126,10 @@ def offer_post(request):
             is_flash      = request.POST.get('is_flash') == '1',
             is_active     = False,  # pending admin approval
         )
-        valid_until = request.POST.get('valid_until', '').strip()
+        valid_until = validity.cleaned_data.get('valid_until')
         if valid_until:
             obj.valid_until = valid_until
-        valid_days = request.POST.get('valid_days', '').strip()
+        valid_days = validity.cleaned_data.get('valid_days', '')
         if valid_days:
             obj.valid_days = valid_days
         if request.FILES.get('image'):
@@ -2130,7 +2138,7 @@ def offer_post(request):
         return redirect('/offers/post/success/')
     profile = CompanyProfile.objects.filter(user=user).first()
     return render(request, 'offer_post.html', {
-        'categories': LocalOffer.CATEGORY_CHOICES,
+        'categories': OFFER_CATEGORIES,
         'company_profile': profile,
     })
 
@@ -3668,7 +3676,7 @@ def flicks_feed(request):
     from django.utils import timezone
     today = timezone.now().date()
     cat = request.GET.get('cat', '')
-    flicks = Flick.objects.select_related('user').prefetch_related('likes', 'comments').extra(
+    flicks = Flick.objects.select_related('user', 'user__company').prefetch_related('likes', 'comments').extra(
         select={'is_paid_active': "CASE WHEN promoted_until >= %s THEN 1 ELSE 0 END"},
         select_params=[today],
         order_by=['-is_paid_active', '-created_at'],

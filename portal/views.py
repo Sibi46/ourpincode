@@ -866,6 +866,9 @@ def create_event_standalone(request):
 
     if request.method == 'POST':
         p = request.POST
+        if len(p.get('description', '').split()) > 120 or (p.get('contact_person', '').strip() and not valid_person_name(p.get('contact_person', '').strip())):
+            messages.error(request, 'Description must be at most 120 words and contact person must contain letters and spaces only.')
+            return render(request, 'portal/event_create_standalone.html', {'user_communities': user_communities, 'selected_community': selected_community, 'causes': causes}, status=400)
         community = None
         page_id = p.get('community_page_id', '').strip()
         if page_id:
@@ -941,6 +944,9 @@ def create_event(request, page_id):
     causes = community.causes.filter(is_active=True)
     if request.method == 'POST':
         p = request.POST
+        if len(p.get('description', '').split()) > 120 or (p.get('contact_person', '').strip() and not valid_person_name(p.get('contact_person', '').strip())):
+            messages.error(request, 'Description must be at most 120 words and contact person must contain letters and spaces only.')
+            return render(request, 'portal/event_create.html', {'community': community, 'causes': causes, 'is_admin': is_admin}, status=400)
         contact = p.get('contact_person', '').strip()
         if contact and not valid_person_name(contact):
             messages.error(request, 'Contact person must contain letters and spaces only.')
@@ -1119,6 +1125,9 @@ def edit_event(request, pk):
 
     if request.method == 'POST':
         p = request.POST
+        if len(p.get('description', '').split()) > 120 or (p.get('contact_person', '').strip() and not valid_person_name(p.get('contact_person', '').strip())):
+            messages.error(request, 'Description must be at most 120 words and contact person must contain letters and spaces only.')
+            return render(request, 'portal/event_edit.html', {'event': event}, status=400)
         event.name        = p.get('name', '').strip()
         event.description = p.get('description', '').strip()
         event.date        = p.get('date')

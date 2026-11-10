@@ -1,5 +1,6 @@
 from django import forms
 from jobs.profile_validation import ProfileValidationMixin
+from jobs.form_fields import FourDigitYearDateField
 from .models import Business, BusinessCategory, Branch, Employee, VoucherSlotPurchase, GiftVoucher, VoucherCategory
 
 
@@ -44,13 +45,25 @@ class BusinessRegistrationForm(ProfileValidationMixin, forms.ModelForm):
                 field.widget.attrs['class'] = (existing + ' form-control').strip()
 
 
-class BranchForm(forms.ModelForm):
+class BranchForm(ProfileValidationMixin, forms.ModelForm):
+    person_fields = ('branch_name',)
+    pincode = forms.RegexField(r'^[1-9][0-9]{5}$', max_length=6, label='Pincode',
+        widget=forms.TextInput(attrs={'inputmode': 'numeric', 'maxlength': '6', 'pattern': '[1-9][0-9]{5}', 'data-digits-only': ''}))
+    contact_number = forms.RegexField(r'^[0-9]{10}$', min_length=10, max_length=10, label='Contact number',
+        widget=forms.TextInput(attrs={'inputmode': 'numeric', 'maxlength': '10', 'pattern': '[0-9]{10}', 'data-digits-only': ''}),
+        error_messages={'invalid': 'Enter exactly 10 numeric digits.'})
+
+    def clean_address(self):
+        value = self.cleaned_data['address'].strip()
+        if not any(c.isalpha() for c in value):
+            raise forms.ValidationError('Enter an address with a street, area or locality name.')
+        return value
     class Meta:
         model = Branch
         fields = ['branch_name', 'address', 'pincode', 'contact_number', 'working_hours', 'is_active']
         widgets = {
             'branch_name':    forms.TextInput(attrs={'placeholder': 'e.g. Main Branch, Anna Nagar Branch'}),
-            'address':        forms.Textarea(attrs={'rows': 3, 'placeholder': 'Full branch address'}),
+            'address':        forms.Textarea(attrs={'rows': 3, 'placeholder': 'Full branch address', 'data-address-text': ''}),
             'pincode':        forms.TextInput(attrs={'placeholder': '6-digit pincode', 'maxlength': '10'}),
             'contact_number': forms.TextInput(attrs={'placeholder': '10-digit contact number'}),
             'working_hours':  forms.TextInput(attrs={'placeholder': 'e.g. Mon–Sat 9am–6pm'}),
@@ -115,6 +128,8 @@ class SlotRequestForm(forms.Form):
 
 
 class GiftVoucherForm(forms.ModelForm):
+    valid_from = FourDigitYearDateField(widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}, format='%Y-%m-%d'))
+    expiry_date = FourDigitYearDateField(widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}, format='%Y-%m-%d'))
     class Meta:
         model = GiftVoucher
         fields = [

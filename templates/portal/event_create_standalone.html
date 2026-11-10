@@ -83,7 +83,7 @@
         </div>
         <div class="pform-group">
           <label class="pform-label">Description *</label>
-          <textarea name="description" id="ev-desc" class="pform-input" rows="4" required placeholder="What's happening? Who should come? What to bring?" oninput="opcWordLimit(this,'desc-counter',120)"></textarea>
+          <textarea name="description" data-word-limit="120" id="ev-desc" class="pform-input" rows="4" required placeholder="What's happening? Who should come? What to bring?" oninput="opcWordLimit(this,'desc-counter',120)"></textarea>
           <div style="text-align:right;margin-top:3px"><span id="desc-counter" style="font-size:11px;font-weight:600;color:#94a3b8">0 / 120 words</span></div>
         </div>
         <div class="pform-group">
@@ -166,7 +166,7 @@
       <div class="ec-card-head">6. Contact &amp; Banner</div>
       <div class="ec-card-body">
         <div class="pform-grid2">
-          <div class="pform-group"><label class="pform-label">Contact Person</label><input type="text" name="contact_person" class="pform-input" placeholder="Your name"></div>
+          <div class="pform-group"><label class="pform-label">Contact Person</label><input type="text" name="contact_person" data-person-name pattern="[\p{L}\p{M} ]+" title="Use letters and spaces only" class="pform-input" placeholder="Your name"></div>
           <div class="pform-group"><label class="pform-label">Phone</label><input type="text" name="contact_phone" class="pform-input" placeholder="+91 98765 43210"></div>
         </div>
         <div class="pform-group">
@@ -419,4 +419,5 @@ document.addEventListener('DOMContentLoaded',function(){
     </div>
   </div>
 </div>
+<script src="/static/js/form-validation.js?v=3" defer></script><script src="/static/js/report-controls.js?v=1" defer></script>
 {% endblock %}
