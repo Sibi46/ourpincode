@@ -1,6 +1,7 @@
+{% load interface_language %}
 {% load static %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ LANGUAGE_CODE|default:'en' }}">
 <head>
     {% include "includes/ga4.html" %}
   <meta charset="UTF-8">
@@ -350,10 +351,10 @@ a{text-decoration:none;color:inherit}
 <div class="mob-menu" id="mobMenu">
   <a href="{% url 'newsdesk:feed' %}"><i class="fas fa-newspaper"></i> News Desk</a>
   <a href="{% url 'network_feed' %}"><i class="fas fa-user-friends"></i> My Ask</a>
-  <a href="/"><i class="fas fa-home"></i> Home</a>
+  <a href="/"><i class="fas fa-home"></i> {% ui "Home" %}</a>
   <a href="/portal/"><i class="fas fa-users"></i> Community</a>
   <a href="/campus/"><i class="fas fa-graduation-cap"></i> Campus</a>
-  <a href="/jobs/"><i class="fas fa-briefcase"></i> Jobs</a>
+  <a href="/jobs/"><i class="fas fa-briefcase"></i> {% ui "Jobs" %}</a>
   <a href="/vouchers/marketplace/"><i class="fas fa-gift"></i> Gift Vouchers</a>
   <a href="/advertise/register/"><i class="fas fa-bullhorn"></i> Promote Business</a>
   <a href="/portal/" style="background:linear-gradient(135deg,#eff6ff,#f0fdf4)"><i class="fas fa-users" style="color:#059669"></i> Communities (New)</a>
@@ -362,7 +363,7 @@ a{text-decoration:none;color:inherit}
     <a href="/{% if request.user.is_employer %}employer{% else %}jobseeker{% endif %}/dashboard/"><i class="fas fa-tachometer-alt"></i> {% if request.user.is_employer %}Business Dashboard{% else %}My Dashboard{% endif %}</a>
     <a href="/logout/"><i class="fas fa-sign-out-alt"></i> Logout</a>
   {% else %}
-    <a href="/login/"><i class="fas fa-sign-in-alt"></i> Sign In</a>
+    <a href="/login/"><i class="fas fa-sign-in-alt"></i> {% ui "Sign In" %}</a>
     <a href="#" onclick="document.getElementById('mobMenu').classList.remove('open');document.getElementById('regPop').classList.add('show');return false;"><i class="fas fa-user-plus"></i> Join Free</a>
   {% endif %}
 </div>
@@ -488,8 +489,8 @@ var heroAd2Cur = 0;
 <!-- BUSINESS LOGO STRIP -->
 <div style="max-width:640px;margin:18px auto 0;padding:0 16px">
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-    <div style="font-size:13px;font-weight:800;color:#111">🏪 {% if business_pincode %}Businesses in {{ business_pincode }}{% else %}Discover businesses{% endif %}</div>
-    <a href="{% url 'business_list' %}{% if business_pincode %}?pincode={{ business_pincode|urlencode }}{% endif %}" style="font-size:11px;color:#0a66c2;font-weight:700">All businesses near you</a>
+    <div style="font-size:13px;font-weight:800;color:#111">🏪 {% if business_pincode %}Businesses in {{ business_pincode }}{% else %}{% ui "Discover businesses" %}{% endif %}</div>
+    <a href="{% url 'business_list' %}{% if business_pincode %}?pincode={{ business_pincode|urlencode }}{% endif %}" style="font-size:11px;color:#0a66c2;font-weight:700">{% ui "All businesses near you" %}</a>
   </div>
   <div style="display:flex;gap:14px;overflow-x:auto;padding-bottom:6px;scrollbar-width:none">
     {% for biz in business_logos %}
@@ -985,7 +986,7 @@ document.addEventListener('DOMContentLoaded',function(){
         <input class="rp-input" type="password" id="rpPwd" data-password-toggle placeholder="Create a password">
       </div>
       <button class="rp-submit" onclick="rpSubmit()">Create Account →</button>
-      <div class="rp-footer">Already have an account? <a href="/login/">Sign In</a></div>
+      <div class="rp-footer">Already have an account? <a href="/login/">{% ui "Sign In" %}</a></div>
     </div>
   </div>
 </div>
@@ -1131,7 +1132,7 @@ body{top:0!important}
         <input id="regPhone" type="tel" placeholder="+91 99999 99999" style="width:100%;padding:10px 12px;border:1.5px solid #E2E8F0;border-radius:10px;font-size:13px;font-family:inherit;outline:none">
       </div>
       <div style="margin-bottom:10px">
-        <label style="font-size:11px;font-weight:700;color:#374151;display:block;margin-bottom:4px">Email</label>
+        <label style="font-size:11px;font-weight:700;color:#374151;display:block;margin-bottom:4px">{% ui "Email" %}</label>
         <input id="regEmail" type="email" placeholder="you@email.com" style="width:100%;padding:10px 12px;border:1.5px solid #E2E8F0;border-radius:10px;font-size:13px;font-family:inherit;outline:none">
       </div>
       <div style="margin-bottom:10px">

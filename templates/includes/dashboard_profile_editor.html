@@ -1,3 +1,4 @@
+{% load interface_language %}
 {% load static %}
 
 {% if personal_form.errors or location_form.errors or business_form.errors or seeker_form.errors %}<div class="account-errors" role="alert">Please correct the fields below.{{ personal_form.errors }}{{ location_form.errors }}{{ business_form.errors }}{{ seeker_form.errors }}</div>{% endif %}

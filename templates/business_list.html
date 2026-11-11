@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load interface_language %}
 {% block title %}Businesses Near You{% endblock %}
 {% block extra_css %}
 <style>
@@ -23,13 +24,13 @@ body{background:#f5f7fb}.biz-directory{max-width:1100px;margin:auto;padding:32px
 {% block content %}
 <main class="biz-directory">
 <header class="biz-hero"><span class="biz-eyebrow">Discover your neighbourhood</span>
-<div style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:24px"><div><h1>Businesses near you</h1><p style="margin-bottom:0">Find local shops, services and the people behind them.</p></div><a href="{% url 'register' %}?type=company" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:12px 20px;border-radius:12px;background:#0a66c2;color:#fff;font-size:14px;font-weight:700;text-decoration:none">Register your business</a></div>
+<div style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:24px"><div><h1>{% ui "Businesses near you" %}</h1><p style="margin-bottom:0">Find local shops, services and the people behind them.</p></div><a href="{% url 'register' %}?type=company" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:12px 20px;border-radius:12px;background:#0a66c2;color:#fff;font-size:14px;font-weight:700;text-decoration:none">Register your business</a></div>
 <form method="get" class="biz-search" role="search">
 <label for="business-query">Business name<input id="business-query" name="q" value="{{ query }}" placeholder="Search shops, companies and more"></label>
 <label for="business-pincode">Pincode<input id="business-pincode" name="pincode" value="{{ pincode }}" placeholder="e.g. 600073" inputmode="numeric" pattern="[0-9]{6}" maxlength="6"></label>
 <label for="business-sort">Sort by<select name="sort" id="business-sort" style="padding:12px;width:100%"><option value="name">Name</option><option value="popular" {% if sort == 'popular' %}selected{% endif %}>Most reviewed</option><option value="trending" {% if sort == 'trending' %}selected{% endif %}>Trending this month</option><option value="rating" {% if sort == 'rating' %}selected{% endif %}>Highest rated</option></select></label>
-<button type="submit"><i class="fas fa-search" aria-hidden="true"></i> Find businesses</button></form><p style="margin-top:12px;font-size:12px">Trending uses reviews from the last 30 days. Popularity uses total reviews.</p></header>
-<div class="biz-summary"><strong>{{ businesses.paginator.count }} business{{ businesses.paginator.count|pluralize:"es" }}{% if pincode %} in {{ pincode }}{% endif %}</strong>{% if query or pincode %}<a href="{% url 'business_list' %}">Clear filters</a>{% endif %}</div>
+<button type="submit"><i class="fas fa-search" aria-hidden="true"></i> {% ui "Find businesses" %}</button></form><p style="margin-top:12px;font-size:12px">Trending uses reviews from the last 30 days. Popularity uses total reviews.</p></header>
+<div class="biz-summary"><strong>{{ businesses.paginator.count }} business{{ businesses.paginator.count|pluralize:"es" }}{% if pincode %} in {{ pincode }}{% endif %}</strong>{% if query or pincode %}<a href="{% url 'business_list' %}">{% ui "Clear filters" %}</a>{% endif %}</div>
 <nav class="account-social-stats" aria-label="Business discovery"><a href="/businesses/">All businesses</a><a href="/businesses/?following=1&amp;pincode=">Following</a></nav><div class="biz-grid">
 {% for biz in businesses %}
 <article class="biz-card"><a class="biz-card-link" href="{% url 'business_profile' biz.company_id %}" style="display:block;color:inherit;text-decoration:none">
@@ -40,7 +41,7 @@ body{background:#f5f7fb}.biz-directory{max-width:1100px;margin:auto;padding:32px
 <p><strong data-business-followers="{% url 'business_follow' biz.company_id %}">{{ biz.follower_count }}</strong> followers</p>
 <p>{% if biz.review_count %}{{ biz.average_rating|floatformat:1 }}/5 · {{ biz.review_count }} review{{ biz.review_count|pluralize }}{% else %}No reviews yet{% endif %}</p>
 <p class="biz-location"><i class="fas fa-map-marker-alt" aria-hidden="true"></i> {% if biz.user.city or biz.user.pincode %}{{ biz.user.city }} {{ biz.user.pincode }}{% else %}Location not added{% endif %}</p>
-<div class="biz-card-footer"><span>View business</span><i class="fas fa-arrow-right" aria-hidden="true"></i></div></div></a>
+<div class="biz-card-footer"><span>{% ui "View business" %}</span><i class="fas fa-arrow-right" aria-hidden="true"></i></div></div></a>
 {% if biz.pk in followed_business_ids %}{% include 'includes/follow_button.html' with business=biz following=True %}{% else %}{% include 'includes/follow_button.html' with business=biz following=False %}{% endif %}
 </article>
 {% empty %}<div class="biz-empty"><i class="fas fa-store" aria-hidden="true"></i><h2>No businesses found</h2><p>Try a different name or pincode.</p><a href="{% url 'business_list' %}">View all businesses</a></div>{% endfor %}

@@ -1,34 +1,35 @@
+{% load interface_language %}
 {% load static %}
 <section class="hp-section hp-overview" aria-label="Explore your neighbourhood">
-  <div class="hp-heading"><div><p class="hp-eyebrow">MAKE YOURSELF AT HOME</p><h1>Everything nearby.</h1></div></div>
+  <div class="hp-heading"><div><p class="hp-eyebrow">{% ui "MAKE YOURSELF AT HOME" %}</p><h1>{% ui "Everything nearby." %}</h1></div></div>
   <div class="hp-shortcuts">
-    <a class="hp-tile hp-pink" href="/businesses/"><span>🛍️</span><strong>Shops</strong></a>
-    <a class="hp-tile hp-mint" href="/advertise/"><span>🏷️</span><strong>Offers</strong></a>
-    <a class="hp-tile hp-lilac" href="/portal/"><span>🏘️</span><strong>Community</strong></a>
-    <a class="hp-tile hp-peach" href="/coupons/activate/"><span>🎟️</span><strong>Gift Points</strong></a>
-    <a class="hp-tile hp-blue" href="/news/"><span>📰</span><strong>News</strong></a>
-    <a class="hp-tile hp-mint" href="{% url 'network_feed' %}"><span>👥</span><strong>My Ask</strong></a>
+    <a class="hp-tile hp-pink" href="/businesses/"><span>🛍️</span><strong>{% ui "Shops" %}</strong></a>
+    <a class="hp-tile hp-mint" href="/advertise/"><span>🏷️</span><strong>{% ui "Offers" %}</strong></a>
+    <a class="hp-tile hp-lilac" href="/portal/"><span>🏘️</span><strong>{% ui "Community" %}</strong></a>
+    <a class="hp-tile hp-peach" href="/coupons/activate/"><span>🎟️</span><strong>{% ui "Gift Points" %}</strong></a>
+    <a class="hp-tile hp-blue" href="/news/"><span>📰</span><strong>{% ui "News" %}</strong></a>
+    <a class="hp-tile hp-mint" href="{% url 'network_feed' %}"><span>👥</span><strong>{% ui "My Ask" %}</strong></a>
   </div>
-  <button class="hp-explore-trigger" type="button" data-explore-open aria-haspopup="dialog"><span class="hp-explore-icon" aria-hidden="true">✦</span><span><strong>Explore more</strong><small>Show all sections · Jobs, Family, Health &amp; more</small></span><span aria-hidden="true">↗</span></button>
-  <aside class="hp-advertise"><span class="hp-megaphone" aria-hidden="true">📣</span><div><h2>Help your neighbourhood find you</h2><p>Share your business and offers with people in your local area.</p></div><a href="{% if request.user.is_authenticated and request.user.advertiser.status == 'approved' %}/advertiser/dashboard/{% else %}/advertise/register/{% endif %}">Get started <span aria-hidden="true">↗</span></a></aside>
+  <button class="hp-explore-trigger" type="button" data-explore-open aria-haspopup="dialog"><span class="hp-explore-icon" aria-hidden="true">✦</span><span><strong>{% ui "Explore more" %}</strong><small>Show all sections · Jobs, Family, Health &amp; more</small></span><span aria-hidden="true">↗</span></button>
+  <aside class="hp-advertise"><span class="hp-megaphone" aria-hidden="true">📣</span><div><h2>{% ui "Help your neighbourhood find you" %}</h2><p>{% ui "Share your business and offers with people in your local area." %}</p></div><a href="{% if request.user.is_authenticated and request.user.advertiser.status == 'approved' %}/advertiser/dashboard/{% else %}/advertise/register/{% endif %}">Get started <span aria-hidden="true">↗</span></a></aside>
 </section>
 <dialog id="home-explore" class="hp-dialog" aria-labelledby="hp-explore-title">
-  <div class="hp-dialog-header"><div><p class="hp-eyebrow">A LITTLE CLOSER TO HOME</p><h2 id="hp-explore-title">Explore your pincode</h2></div><button type="button" data-explore-close aria-label="Close Explore">✕</button></div>
+  <div class="hp-dialog-header"><div><p class="hp-eyebrow">{% ui "A LITTLE CLOSER TO HOME" %}</p><h2 id="hp-explore-title">{% ui "Explore your pincode" %}</h2></div><button type="button" data-explore-close aria-label="Close Explore">✕</button></div>
   <div class="hp-explore-grid">
-    <a class="hp-pink" href="/businesses/"><span>🛍️</span><strong>Shops</strong><small>Discover local businesses</small></a>
-    <a class="hp-mint" href="/advertise/"><span>🏷️</span><strong>Offers</strong><small>Find local deals</small></a>
-    <a class="hp-pink" href="/portal/"><span>👥</span><strong>Community</strong><small>Meet your neighbours</small></a>
-    <a class="hp-peach" href="/community/family/"><span>🏡</span><strong>Family</strong><small>Your family space</small></a>
-    <a class="hp-lilac" href="/jobs/"><span>💼</span><strong>Jobs</strong><small>Find work nearby</small></a>
-    <a class="hp-mint" href="{% url 'network_feed' %}"><span>👥</span><strong>My Ask</strong><small>Connect with neighbours</small></a>
-    <a class="hp-blue" href="/news/"><span>📰</span><strong>News</strong><small>Read your local edition</small></a>
+    <a class="hp-pink" href="/businesses/"><span>🛍️</span><strong>{% ui "Shops" %}</strong><small>Discover local businesses</small></a>
+    <a class="hp-mint" href="/advertise/"><span>🏷️</span><strong>{% ui "Offers" %}</strong><small>Find local deals</small></a>
+    <a class="hp-pink" href="/portal/"><span>👥</span><strong>{% ui "Community" %}</strong><small>Meet your neighbours</small></a>
+    <a class="hp-peach" href="/community/family/"><span>🏡</span><strong>{% ui "Family" %}</strong><small>Your family space</small></a>
+    <a class="hp-lilac" href="/jobs/"><span>💼</span><strong>{% ui "Jobs" %}</strong><small>Find work nearby</small></a>
+    <a class="hp-mint" href="{% url 'network_feed' %}"><span>👥</span><strong>{% ui "My Ask" %}</strong><small>Connect with neighbours</small></a>
+    <a class="hp-blue" href="/news/"><span>📰</span><strong>{% ui "News" %}</strong><small>Read your local edition</small></a>
     <a class="hp-lilac" href="/flicks/"><span>🎬</span><strong>Flick</strong><small>Watch community posts</small></a>
-    <a class="hp-peach" href="/quiz/play/"><span>🧠</span><strong>Quiz</strong><small>Test your knowledge</small></a>
-    <a class="hp-blue" href="/advertise/register/"><span>📣</span><strong>Advertise</strong><small>Promote your business</small></a>
+    <a class="hp-peach" href="/quiz/play/"><span>🧠</span><strong>{% ui "Quiz" %}</strong><small>Test your knowledge</small></a>
+    <a class="hp-blue" href="/advertise/register/"><span>📣</span><strong>{% ui "Advertise" %}</strong><small>Promote your business</small></a>
     <a class="hp-mint" href="{% url 'tuition:discover' %}"><span aria-hidden="true">📚</span><strong>Tuitions</strong><small>Find a teacher</small></a>
     <a class="hp-mint" href="/community/school-corner/"><span>🏫</span><strong>School</strong><small>School community</small></a>
-    <a class="hp-lilac" href="/campus/"><span>🎓</span><strong>Campus</strong><small>College community</small></a>
-    <a class="hp-pink" href="/health/"><span>❤️</span><strong>Health</strong><small>Care &amp; wellbeing</small></a>
+    <a class="hp-lilac" href="/campus/"><span>🎓</span><strong>{% ui "Campus" %}</strong><small>College community</small></a>
+    <a class="hp-pink" href="/health/"><span>❤️</span><strong>{% ui "Health" %}</strong><small>Care &amp; wellbeing</small></a>
   </div>
   <h3>More services</h3>
   <div class="hp-explore-grid">

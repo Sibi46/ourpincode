@@ -1,6 +1,7 @@
-﻿{% load static %}
+{% load interface_language %}
+{% load static %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ LANGUAGE_CODE|default:'en' }}">
 <head>
     {% include "includes/ga4.html" %}
   <meta charset="UTF-8">
@@ -185,7 +186,7 @@
     <div class="ig-meta">
       {% if request.user.city %}<span><i class="fas fa-map-marker-alt" style="color:#e65100"></i> {{ request.user.city }}</span>{% endif %}
       {% if request.user.pincode %}<span><i class="fas fa-map-pin" style="color:#0a66c2"></i> {{ request.user.pincode }}</span>{% endif %}
-      {% if profile and profile.website %}<span><i class="fas fa-globe"></i> <a href="{{ profile.website }}" target="_blank" style="color:#0a66c2;text-decoration:none">Website</a></span>{% endif %}
+      {% if profile and profile.website %}<span><i class="fas fa-globe"></i> <a href="{{ profile.website }}" target="_blank" style="color:#0a66c2;text-decoration:none">{% ui "Website" %}</a></span>{% endif %}
     </div>
     {% if profile_incomplete %}
     <div class="ig-incomplete"><i class="fas fa-exclamation-circle"></i> Profile {{ profile_pct }}% complete — finish to unlock job posting</div>
@@ -212,15 +213,15 @@
     <div class="ig-stats">
       <div class="ig-stat" onclick="showSection('active-jobs')">
         <div class="ig-stat-num">{{ active_jobs.count }}</div>
-        <div class="ig-stat-lbl">Jobs</div>
+        <div class="ig-stat-lbl">{% ui "Jobs" %}</div>
       </div>
       <div class="ig-stat" onclick="showSection('applications')">
         <div class="ig-stat-num">{{ all_apps.count }}</div>
-        <div class="ig-stat-lbl">Applications</div>
+        <div class="ig-stat-lbl">{% ui "Applications" %}</div>
       </div>
       <div class="ig-stat" onclick="showSection('shortlisted')">
         <div class="ig-stat-num">{{ shortlisted.count }}</div>
-        <div class="ig-stat-lbl">Shortlisted</div>
+        <div class="ig-stat-lbl">{% ui "Shortlisted" %}</div>
       </div>
       <div class="ig-stat" onclick="showSection('wallet')">
         <div class="ig-stat-num">{{ wallet_balance|default:"0" }}</div>
@@ -238,10 +239,10 @@
   <!-- TABS -->
   <div class="employer-workspace">
   <nav class="ig-tabs" id="igTabs" aria-label="Dashboard sections">
-    <h2>Your workspace</h2>
-    <a class="ig-tab" href="{% url 'logout' %}" style="color:#b42318">Sign out</a>
-    <button type="button" class="ig-tab" onclick="showSection('my-profile',this)" data-sec="my-profile">Edit Profile</button>
-    <button type="button" class="ig-tab" onclick="showSection('account-tools',this)" data-sec="account-tools">Account services</button>
+    <h2>{% ui "Your workspace" %}</h2>
+    <a class="ig-tab" href="{% url 'logout' %}" style="color:#b42318">{% ui "Sign out" %}</a>
+    <button type="button" class="ig-tab" onclick="showSection('my-profile',this)" data-sec="my-profile">{% ui "Edit Profile" %}</button>
+    <button type="button" class="ig-tab" onclick="showSection('account-tools',this)" data-sec="account-tools">{% ui "Account services" %}</button>
     <button type="button" class="ig-tab" onclick="showSection('paid-pending',this)" data-sec="paid-pending">Payment Review ({{ paid_pending_jobs.count }})</button>
     <button type="button" class="ig-tab" onclick="showSection('expired-jobs',this)" data-sec="expired-jobs">Expired ({{ expired_jobs.count }})</button>
     <button type="button" class="ig-tab" onclick="showSection('closed-jobs',this)" data-sec="closed-jobs">Closed ({{ closed_jobs.count }})</button>
@@ -249,23 +250,23 @@
     <button type="button" class="ig-tab" onclick="showSection('approval-pending',this)" data-sec="approval-pending">Under review ({{ approval_pending.count }})</button>
     <button type="button" class="ig-tab" onclick="showSection('pending-jobs',this)" data-sec="pending-jobs">Drafts ({{ pending_jobs.count }})</button>
     <button type="button" class="ig-tab" onclick="showSection('plan-pending',this)" data-sec="plan-pending">Choose Plan ({{ plan_pending.count }})</button>
-    <button type="button" class="ig-tab" onclick="showSection('coupons',this)" data-sec="coupons">Coupons</button>
-    <button type="button" class="ig-tab" onclick="window.location.href='/offers/post/'">Post an offer</button>
-    <button type="button" class="ig-tab" onclick="showSection('flicks',this)" data-sec="flicks">Flicks</button>
-    <button type="button" class="ig-tab" onclick="showSection('business-profile',this)" data-sec="business-profile">Business Profile{% if profile_incomplete %} <span style="background:#e65100;color:#fff;border-radius:10px;padding:1px 5px;font-size:9px">!</span>{% endif %}</button>
-    <button type="button" class="ig-tab" onclick="window.location.href='/advertiser/dashboard/'">Advertisements</button>
-    <button type="button" class="ig-tab" onclick="window.location.href='/vouchers/business/register/'">Vouchers</button>
-    <button type="button" class="ig-tab" onclick="window.location.href='/quiz/'">Quiz</button>
-    <button type="button" class="ig-tab" onclick="showSection('gallery',this)" data-sec="gallery">Gallery</button>
-    <button type="button" class="ig-tab" onclick="showSection('notifications',this)" data-sec="notifications">Notifications{% if unread_notif_count %} <span style="background:#e65100;color:#fff;border-radius:10px;padding:1px 5px;font-size:9px">{{ unread_notif_count }}</span>{% endif %}</button>
-    <button type="button" class="ig-tab" onclick="showSection('messages',this)" data-sec="messages">Messages{% if unread_msg_count %} <span style="background:#e65100;color:#fff;border-radius:10px;padding:1px 5px;font-size:9px">{{ unread_msg_count }}</span>{% endif %}</button>
-    <button type="button" class="ig-tab active" onclick="showSection('active-jobs',this)" data-sec="active-jobs">Jobs</button>
-    <button type="button" class="ig-tab" onclick="showSection('applications',this)" data-sec="applications">Applications</button>
-    <button type="button" class="ig-tab" onclick="showSection('shortlisted',this)" data-sec="shortlisted">Shortlisted</button>
-    <button type="button" class="ig-tab" onclick="showSection('subscription',this)" data-sec="subscription">Subscription</button>
-    <button type="button" class="ig-tab" onclick="showSection('wallet',this)" data-sec="wallet">Wallet</button>
-    <button type="button" class="ig-tab" onclick="showSection('billing',this)" data-sec="billing">Billing</button>
-    <button type="button" class="ig-tab" onclick="showSection('feedback',this)" data-sec="feedback">Feedback</button>
+    <button type="button" class="ig-tab" onclick="showSection('coupons',this)" data-sec="coupons">{% ui "Coupons" %}</button>
+    <button type="button" class="ig-tab" onclick="window.location.href='/offers/post/'">{% ui "Post an offer" %}</button>
+    <button type="button" class="ig-tab" onclick="showSection('flicks',this)" data-sec="flicks">{% ui "Flicks" %}</button>
+    <button type="button" class="ig-tab" onclick="showSection('business-profile',this)" data-sec="business-profile">{% ui "Business Profile" %}{% if profile_incomplete %} <span style="background:#e65100;color:#fff;border-radius:10px;padding:1px 5px;font-size:9px">!</span>{% endif %}</button>
+    <button type="button" class="ig-tab" onclick="window.location.href='/advertiser/dashboard/'">{% ui "Advertisements" %}</button>
+    <button type="button" class="ig-tab" onclick="window.location.href='/vouchers/business/register/'">{% ui "Vouchers" %}</button>
+    <button type="button" class="ig-tab" onclick="window.location.href='/quiz/'">{% ui "Quiz" %}</button>
+    <button type="button" class="ig-tab" onclick="showSection('gallery',this)" data-sec="gallery">{% ui "Gallery" %}</button>
+    <button type="button" class="ig-tab" onclick="showSection('notifications',this)" data-sec="notifications">{% ui "Notifications" %}{% if unread_notif_count %} <span style="background:#e65100;color:#fff;border-radius:10px;padding:1px 5px;font-size:9px">{{ unread_notif_count }}</span>{% endif %}</button>
+    <button type="button" class="ig-tab" onclick="showSection('messages',this)" data-sec="messages">{% ui "Messages" %}{% if unread_msg_count %} <span style="background:#e65100;color:#fff;border-radius:10px;padding:1px 5px;font-size:9px">{{ unread_msg_count }}</span>{% endif %}</button>
+    <button type="button" class="ig-tab active" onclick="showSection('active-jobs',this)" data-sec="active-jobs">{% ui "Jobs" %}</button>
+    <button type="button" class="ig-tab" onclick="showSection('applications',this)" data-sec="applications">{% ui "Applications" %}</button>
+    <button type="button" class="ig-tab" onclick="showSection('shortlisted',this)" data-sec="shortlisted">{% ui "Shortlisted" %}</button>
+    <button type="button" class="ig-tab" onclick="showSection('subscription',this)" data-sec="subscription">{% ui "Subscription" %}</button>
+    <button type="button" class="ig-tab" onclick="showSection('wallet',this)" data-sec="wallet">{% ui "Wallet" %}</button>
+    <button type="button" class="ig-tab" onclick="showSection('billing',this)" data-sec="billing">{% ui "Billing" %}</button>
+    <button type="button" class="ig-tab" onclick="showSection('feedback',this)" data-sec="feedback">{% ui "Feedback" %}</button>
   </nav>
 
   <!-- CONTENT AREA -->
@@ -380,7 +381,7 @@
             <h4>{{ job.title }}</h4>
             <div class="jl-meta">
               <span><i class="fas fa-map-marker-alt"></i> {{ job.location|default:"—" }}</span>
-              <span style="color:#c62828"><i class="fas fa-calendar-times"></i> Expired {{ job.plan_expires_at|date:"d M Y" }}</span>
+              <span style="color:#c62828"><i class="fas fa-calendar-times"></i> {% ui "Expired" %} {{ job.plan_expires_at|date:"d M Y" }}</span>
             </div>
           </div>
           <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end">
@@ -414,7 +415,7 @@
             <div class="jl-meta">
               <span><i class="fas fa-map-marker-alt"></i> {{ job.location|default:"—" }}</span>
               <span><i class="fas fa-rupee-sign"></i> ₹499 paid — 12 Weeks</span>
-              <span style="color:#856404"><i class="fas fa-clock"></i> Submitted {{ job.created_at|date:"d M Y" }}</span>
+              <span style="color:#856404"><i class="fas fa-clock"></i> {% ui "Submitted" %} {{ job.created_at|date:"d M Y" }}</span>
             </div>
           </div>
           <span style="background:#fff3cd;color:#856404;font-size:11px;font-weight:700;padding:4px 12px;border-radius:20px;white-space:nowrap">
@@ -473,7 +474,7 @@
             <h4>{{ job.title }}</h4>
             <div class="jl-meta">
               <span><i class="fas fa-map-marker-alt"></i> {{ job.location|default:"Location not set" }}</span>
-              <span><i class="fas fa-calendar-alt"></i> Submitted {{ job.created_at|date:"d M Y" }}</span>
+              <span><i class="fas fa-calendar-alt"></i> {% ui "Submitted" %} {{ job.created_at|date:"d M Y" }}</span>
               <span><i class="fas fa-tag"></i> {{ job.get_collar_type_display }}</span>
             </div>
           </div>
@@ -507,7 +508,7 @@
               <span><i class="fas fa-calendar-alt"></i> Saved {{ job.created_at|date:"d M Y" }}</span>
             </div>
           </div>
-          <span class="status-pill draft">Draft</span>
+          <span class="status-pill draft">{% ui "Draft" %}</span>
           <div class="jl-actions">
             <a href="/jobs/{{ job.pk }}/edit/" class="jl-btn edit" title="Edit"><i class="fas fa-pen"></i></a>
             <a href="/jobs/{{ job.pk }}/publish/" class="jl-btn view" title="Publish"><i class="fas fa-paper-plane"></i></a>
@@ -554,15 +555,15 @@
     <!-- ═══ APPLICATIONS ═══ -->
     <section class="dsec hidden" id="sec-applications">
       <div class="dsec-header">
-        <div><h2><i class="fas fa-file-alt"></i> Applications</h2><p>All candidates who applied to your jobs</p></div>
+        <div><h2><i class="fas fa-file-alt"></i> {% ui "Applications" %}</h2><p>All candidates who applied to your jobs</p></div>
         <select class="dsec-filter" onchange="filterApps(this.value)">
           <option value="">All Status</option>
-          <option value="pending">Pending</option>
-          <option value="shortlisted">Shortlisted</option>
+          <option value="pending">{% ui "Pending" %}</option>
+          <option value="shortlisted">{% ui "Shortlisted" %}</option>
           <option value="interview_scheduled">Interview Scheduled</option>
           <option value="offer_sent">Offer Sent</option>
           <option value="hired">Hired</option>
-          <option value="rejected">Rejected</option>
+          <option value="rejected">{% ui "Rejected" %}</option>
         </select>
       </div>
       {% if all_apps %}
@@ -676,7 +677,7 @@
       <!-- Conversation list -->
       <div id="msg-list-view">
         <div class="dsec-header">
-          <div><h2><i class="fas fa-comment-dots"></i> Messages</h2><p>Conversations with candidates &amp; admins</p></div>
+          <div><h2><i class="fas fa-comment-dots"></i> {% ui "Messages" %}</h2><p>Conversations with candidates &amp; admins</p></div>
         </div>
         {% if recent_messages %}
         <div class="msg-list">
@@ -739,7 +740,7 @@
     <!-- ═══ NOTIFICATIONS ═══ -->
     <section class="dsec hidden" id="sec-notifications">
       <div class="dsec-header">
-        <div><h2><i class="fas fa-bell"></i> Notifications</h2><p>Updates and alerts</p></div>
+        <div><h2><i class="fas fa-bell"></i> {% ui "Notifications" %}</h2><p>Updates and alerts</p></div>
         {% if notifs %}<a href="/notifications/mark-all-read/" class="dsec-btn-ghost"><i class="fas fa-check-double"></i> Mark all read</a>{% endif %}
       </div>
       {% if notifs %}
@@ -771,7 +772,7 @@
     <!-- ═══ WALLET ═══ -->
     <section class="dsec hidden" id="sec-wallet">
       <div class="dsec-header">
-        <div><h2><i class="fas fa-wallet"></i> Wallet</h2><p>Your account balance</p></div>
+        <div><h2><i class="fas fa-wallet"></i> {% ui "Wallet" %}</h2><p>Your account balance</p></div>
         <a href="/wallet/add-money/" class="dsec-btn"><i class="fas fa-plus"></i> Add Money</a>
       </div>
 
@@ -815,7 +816,7 @@
     <!-- ═══ SUBSCRIPTION ═══ -->
     <section class="dsec hidden" id="sec-subscription">
       <div class="dsec-header">
-        <div><h2><i class="fas fa-crown"></i> Subscription</h2><p>Current plan and upgrades</p></div>
+        <div><h2><i class="fas fa-crown"></i> {% ui "Subscription" %}</h2><p>Current plan and upgrades</p></div>
       </div>
 
       {% if current_sub %}
@@ -960,7 +961,7 @@
       <div class="table-wrap">
         <table class="dash-table">
           <thead>
-            <tr><th>#</th><th>Invoice</th><th>Description</th><th>Amount</th><th>Date</th><th>Status</th><th></th></tr>
+            <tr><th>#</th><th>Invoice</th><th>{% ui "Description" %}</th><th>{% ui "Amount" %}</th><th>Date</th><th>Status</th><th></th></tr>
           </thead>
           <tbody>
             {% for bill in billing_records %}
@@ -998,7 +999,7 @@
       <!-- Flicks header -->
       <div style="background:linear-gradient(135deg,#7c3aed,#0a66c2);border-radius:14px;padding:16px 18px;display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
         <div>
-          <div style="color:#fff;font-size:17px;font-weight:900;display:flex;align-items:center;gap:8px"><i class="fas fa-bolt"></i> Flicks</div>
+          <div style="color:#fff;font-size:17px;font-weight:900;display:flex;align-items:center;gap:8px"><i class="fas fa-bolt"></i> {% ui "Flicks" %}</div>
           <div style="color:rgba(255,255,255,.75);font-size:12px;margin-top:2px">Short videos from your network</div>
         </div>
         <div style="display:flex;gap:8px">
@@ -1128,7 +1129,7 @@
 
     <!-- ══ FEEDBACK ══ -->
     <section class="dash-section" data-sec="feedback">
-      <div class="sec-hdr"><h2><i class="fas fa-comment-dots"></i> Feedback</h2></div>
+      <div class="sec-hdr"><h2><i class="fas fa-comment-dots"></i> {% ui "Feedback" %}</h2></div>
       <div style="max-width:560px">
         <div style="background:#fff;border:1.5px solid #e5e7eb;border-radius:16px;padding:32px;text-align:center">
           <div style="font-size:48px;margin-bottom:12px">💬</div>
@@ -1442,7 +1443,7 @@ document.addEventListener('DOMContentLoaded', function(){
         <input id="refPopupLink" type="text" value="{{ referral_link }}" readonly
                style="flex:1;border:none;background:none;font-size:12px;color:#333;outline:none;min-width:0;font-weight:600">
         <button onclick="copyRefPopup(event)" style="background:#0a66c2;color:#fff;border:none;border-radius:7px;padding:7px 12px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">
-          <i class="fas fa-copy"></i> Copy
+          <i class="fas fa-copy"></i> {% ui "Copy" %}
         </button>
       </div>
       <a href="https://wa.me/?text=Join%20MY%20PINCOD%20-%20Local%20Jobs!%20Register%20here%3A%20{{ referral_link|urlencode }}"
@@ -1547,7 +1548,7 @@ function postAction(url){
 
       {% elif voucher_business.status == 'rejected' %}
       <div style="background:#fee2e2;border:1px solid #fca5a5;border-radius:10px;padding:14px 16px;font-size:13px;color:#991b1b;margin-bottom:14px">
-        <i class="fas fa-times-circle"></i> Registration rejected. {{ voucher_business.rejection_reason }}
+        <i class="fas fa-times-circle"></i> {% ui "Registration rejected." %} {{ voucher_business.rejection_reason }}
         <button onclick="openGvFrame('/vouchers/business/register/','Register Business')" style="color:#991b1b;font-weight:700;margin-left:8px;background:none;border:none;cursor:pointer;font-size:13px">Re-register →</button>
       </div>
 
@@ -1560,7 +1561,7 @@ function postAction(url){
         </div>
         <div style="background:#d1fae5;border-radius:12px;padding:12px;text-align:center">
           <div style="font-size:1.4rem;font-weight:900;color:#059669">{{ voucher_count|default:0 }}</div>
-          <div style="font-size:11px;color:#6b7280;font-weight:700;text-transform:uppercase;margin-top:2px">Vouchers</div>
+          <div style="font-size:11px;color:#6b7280;font-weight:700;text-transform:uppercase;margin-top:2px">{% ui "Vouchers" %}</div>
         </div>
         <div style="background:#dbeafe;border-radius:12px;padding:12px;text-align:center">
           <div style="font-size:1.4rem;font-weight:900;color:#2563eb">{{ voucher_purchases|default:0 }}</div>
