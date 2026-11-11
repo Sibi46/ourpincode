@@ -8,9 +8,10 @@
   <fieldset style="border:0;padding:0;margin:20px 0"><legend><strong>Personal details</strong></legend>{{ personal_form.as_p }}<p>Account phone: {{ request.user.phone|default:'Not provided' }}</p></fieldset>
   <fieldset id="profile-location" style="border:0;padding:0;margin:20px 0"><legend><strong>Main and preferred areas</strong></legend><p>One main pincode and up to two optional preferred (Quest) pincodes. Use different six-digit pincodes.</p>{{ location_form.as_p }}</fieldset>
   {% if seeker_form %}<fieldset style="border:0;padding:0;margin:20px 0"><legend><strong>Work and education details</strong></legend>{{ seeker_form.as_p }}</fieldset>{% endif %}
+  <p id="profile-save-status" role="status" aria-live="polite" style="margin:12px 0;font-weight:700"></p>
   <button type="submit" class="business-follow-button">Save profile</button>
 </form>
 
-<script src="{% static 'js/dashboard-profile.js' %}?v=2" defer></script>
+<script src="{% static 'js/dashboard-profile.js' %}?v=3" defer></script>
 
 <script src="/static/js/report-controls.js?v=1" defer></script>

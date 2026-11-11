@@ -2,6 +2,41 @@
   'use strict';
   const form = document.getElementById('dashboard-profile-form');
   if (!form) return;
+  const status = document.getElementById('profile-save-status');
+  if (status) form.addEventListener('submit', async event => {
+    event.preventDefault();
+    const button = form.querySelector('button[type="submit"]');
+    if (button.disabled) return;
+    const data = new FormData(form);
+    button.disabled = true;
+    status.style.color = '#344054';
+    status.textContent = 'Saving profile...';
+    try {
+      const response = await fetch(form.action, {
+        method: 'POST', body: data, credentials: 'same-origin',
+        headers: {'X-Requested-With': 'XMLHttpRequest'}
+      });
+      if (response.redirected) {
+        window.location.assign(response.url);
+        return;
+      }
+      if (response.ok && (response.headers.get('Content-Type') || '').includes('application/json')) {
+        const result = await response.json();
+        status.style.color = '#166534';
+        status.textContent = result.message;
+      } else {
+        const page = new DOMParser().parseFromString(await response.text(), 'text/html');
+        const errors = page.querySelector('.account-errors');
+        status.style.color = '#b42318';
+        status.textContent = errors ? errors.textContent : 'Unable to save. Please check your details and try again.';
+      }
+    } catch (error) {
+      status.style.color = '#b42318';
+      status.textContent = 'Unable to connect. Please try saving again.';
+    } finally {
+      button.disabled = false;
+    }
+  });
   form.querySelectorAll('[data-profile-name],[data-profile-text]').forEach(field => {
     function validate() {
       const invalid = field.hasAttribute('data-profile-name')

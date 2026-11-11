@@ -5,6 +5,7 @@ from django.contrib.auth import authenticate, login, get_user_model
 from django.contrib import messages
 from django.utils import timezone
 from django.db.models import Count, Q
+from django.db import transaction
 from django.http import JsonResponse
 
 from .models import (
@@ -1190,6 +1191,7 @@ def campus_auth_landing(request):
     return render(request, 'campus/auth_landing.html')
 
 
+@transaction.atomic
 def campus_student_signup(request):
     UserModel = get_user_model()
     institutions = Institution.objects.filter(status='verified').order_by('name')
@@ -1264,6 +1266,7 @@ def campus_student_login_view(request):
     return render(request, 'campus/student_login.html', {'error': error})
 
 
+@transaction.atomic
 def campus_po_signup(request):
     UserModel = get_user_model()
     institutions = Institution.objects.filter(status='verified').order_by('name')
@@ -1309,7 +1312,7 @@ def campus_po_signup(request):
                     phone       = phone,
                     email       = email,
                 )
-                login(request, user)
+                login(request, user, backend='django.contrib.auth.backends.ModelBackend')
                 messages.success(request, f'Welcome {parts[0]}! Your Placement Officer account is created.')
                 return redirect('campus_po_dashboard')
 
@@ -1318,6 +1321,7 @@ def campus_po_signup(request):
     })
 
 
+@transaction.atomic
 def campus_hr_signup(request):
     UserModel = get_user_model()
     error = None
@@ -1359,7 +1363,7 @@ def campus_hr_signup(request):
                 phone          = phone,
                 status         = 'pending',
             )
-            login(request, user)
+            login(request, user, backend='django.contrib.auth.backends.ModelBackend')
             messages.success(request, f'Welcome {parts[0]}! Your HR account is created. Awaiting verification.')
             return redirect('campus_company_dashboard')
 

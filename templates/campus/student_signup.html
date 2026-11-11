@@ -31,6 +31,7 @@
   .foot a { color: #2563eb; text-decoration: none; font-weight: 600; }
 </style>
 {% include "includes/site_ui.html" %}
+{% include 'campus/signup_controls.html' %}
 </head>
 <body>
 <div class="box">
@@ -65,12 +66,7 @@
     <input type="email" name="email" placeholder="you@email.com" required>
 
     <label>College / Institution *</label>
-    <select name="institution_id" required>
-      <option value="">— Select your institution —</option>
-      {% for inst in institutions %}
-      <option value="{{ inst.pk }}">{{ inst.name }} {% if inst.city %}({{ inst.city }}){% endif %}</option>
-      {% endfor %}
-    </select>
+    {% include 'campus/institution_choices.html' %}
 
     <div class="row">
       <div>
@@ -83,7 +79,7 @@
       </div>
     </div>
 
-    <button type="submit" class="btn">Create Student Account</button>
+    <button type="submit" class="btn" {% if not institutions %}disabled title="A verified institution is required"{% endif %}>Create Student Account</button>
   </form>
 
   <div class="foot">

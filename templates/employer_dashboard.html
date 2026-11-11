@@ -271,6 +271,7 @@
 
   <!-- CONTENT AREA -->
   <div class="ig-content">
+  {% for message in messages %}<div class="account-notice" role="status" style="padding:14px;margin-bottom:16px;background:#edf8ef;border:1px solid #bddbc4;border-radius:10px">{{ message }}</div>{% endfor %}
   <div id="igToast" class="ig-toast"></div>
     <section class="dash-section" data-sec="coupons">
       <h2>Business coupons</h2>

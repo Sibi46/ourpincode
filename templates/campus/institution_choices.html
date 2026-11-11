@@ -1,0 +1,5 @@
+<select name="institution_id" id="campus-institution" required aria-describedby="institution-help" {% if not institutions %}disabled{% endif %}>
+  {% if institutions %}<option value="">Select your institution</option>{% for inst in institutions %}<option value="{{ inst.pk }}" {% if request.POST.institution_id == inst.pk|stringformat:'s' %}selected{% endif %}>{{ inst.name }}{% if inst.city %} ({{ inst.city }}){% endif %}</option>{% endfor %}
+  {% else %}<option value="">No verified institutions available</option>{% endif %}
+</select>
+<p id="institution-help" style="font-size:13px;line-height:1.5;margin:0 0 18px;color:#475569">{% if not institutions %}No institutions have been verified yet. Register your institution and ask the Campus admin to verify it before signing up.{% else %}Institution missing? Only verified institutions appear here.{% endif %} <a href="{% url 'campus_institution_register' %}">Register your institution</a>.</p>

@@ -4307,7 +4307,9 @@ def profile_edit(request):
                 response.status_code = 400
                 return response
             return render(request, 'profile_edit.html', context(application_missing=missing), status=400)
-        messages.success(request, 'Profile updated successfully.')
+        if business_user and request.headers.get('X-Requested-With') == 'XMLHttpRequest' and not next_url:
+            return JsonResponse({'success': True, 'message': 'Profile saved successfully.'})
+        messages.success(request, 'Profile saved successfully.')
         if next_url:
             return redirect(safe_return(request))
         return redirect('/employer/dashboard/#my-profile' if business_user else 'profile_edit')

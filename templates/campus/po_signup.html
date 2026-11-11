@@ -34,6 +34,7 @@
   .divider { border: none; border-top: 1px solid #e5e7eb; margin: 20px 0; }
 </style>
 {% include "includes/site_ui.html" %}
+{% include 'campus/signup_controls.html' %}
 </head>
 <body>
 <div class="box">
@@ -72,12 +73,7 @@
     <input type="email" name="email" placeholder="official@college.edu" required>
 
     <label>Your Institution *</label>
-    <select name="institution_id" required>
-      <option value="">— Select your institution —</option>
-      {% for inst in institutions %}
-      <option value="{{ inst.pk }}">{{ inst.name }} {% if inst.city %}({{ inst.city }}){% endif %}</option>
-      {% endfor %}
-    </select>
+    {% include 'campus/institution_choices.html' %}
 
     <label>Designation</label>
     <input type="text" name="designation" placeholder="e.g. Placement Officer, Training &amp; Placement Head" value="Placement Officer">
@@ -95,7 +91,7 @@
       </div>
     </div>
 
-    <button type="submit" class="btn">Create Placement Officer Account</button>
+    <button type="submit" class="btn" {% if not institutions %}disabled title="A verified institution is required"{% endif %}>Create Placement Officer Account</button>
   </form>
 
   <div class="foot">
