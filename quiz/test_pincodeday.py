@@ -58,18 +58,32 @@ class PincodeDayTests(TestCase):
                 record_answer(self.event.pk, self.user, answers[0].pk, 'A')
 
     def test_public_and_private_views_and_templates(self):
-        self.assertEqual(self.client.get(reverse('day_landing')).status_code, 200)
-        self.assertEqual(self.client.get(reverse('day_event', args=[self.event.pk])).status_code, 200)
+        self.assertEqual(self.client.get(reverse('day_landing')).status_code, 302)
+        self.assertEqual(self.client.get(reverse('day_event', args=[self.event.pk])).status_code, 302)
         self.assertEqual(self.client.get(reverse('day_daily', args=[self.event.pk])).status_code, 302)
         self.client.force_login(self.user)
+        self.assertRedirects(self.client.get(reverse('day_landing')), reverse('day_daily', args=[self.event.pk]))
+        self.assertEqual(self.client.get(reverse('day_event', args=[self.event.pk])).status_code, 403)
         self.assertEqual(self.client.get(reverse('day_admin')).status_code, 403)
         response = self.client.get(reverse('day_daily', args=[self.event.pk]))
         self.assertEqual(response.status_code, 200)
         self.assertNotContains(response, 'quizPopup')
         self.assertNotContains(response, 'correct_answer')
+        for hidden in ('Promotion admin', 'Manage events', 'leaderboard', 'Event agenda', 'Gifts for top scorers'):
+            self.assertNotContains(response, hidden)
         self.client.force_login(self.admin)
+        self.assertEqual(self.client.get(reverse('day_event', args=[self.event.pk])).status_code, 200)
         self.assertEqual(self.client.get(reverse('day_admin_event', args=[self.event.pk])).status_code, 200)
         self.assertEqual(self.client.get(reverse('day_admin')).status_code, 200)
+
+    def test_no_active_quiz_shows_only_saved_points(self):
+        self.event.published = False; self.event.save()
+        DayParticipant.objects.create(event=self.event, user=self.user, points=41)
+        self.client.force_login(self.user)
+        response = self.client.get(reverse('day_landing'))
+        self.assertContains(response, '41 points')
+        for hidden in ('Promotion admin', 'December 20', 'agenda', 'leaderboard', 'gifts'):
+            self.assertNotContains(response, hidden)
 
     def test_promotion_permission_grant_revoke_and_no_escalation(self):
         self.client.force_login(self.admin)

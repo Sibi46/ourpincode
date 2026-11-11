@@ -1,8 +1,10 @@
 PincodeDay promotion
 ===================
 
-Homepage Quiz links to `/quiz/pincodeday/`. Published events are public; daily
-answers and attendance registration require a signed-in account.
+Homepage Quiz links to `/quiz/pincodeday/`. Users sign in and go directly to
+their daily questions and points. If no quiz is active, they see a short
+availability message and their saved score. Event details, gifts, leaderboard
+and management are restricted to super admins and appointed promotion admins.
 
 Setup
 -----
@@ -20,10 +22,11 @@ Setup
    are never recycled when the pool is exhausted.
 4. Configure gifts by leaderboard rank and minimum qualifying points. Gift
    rules may be edited or removed before results are finalized.
-5. Publish the event. Users receive the same three allocated questions when
+5. Publish the event. The homepage Quiz button opens the active daily quiz.
+   Users receive the same three allocated questions when
    returning that day; the following day starts at midnight India time.
-6. Users can register attendance on the event page. Promotion admins mark or
-   undo check-in in the participant list, independently of quiz participation.
+6. Promotion admins review attendance and mark or undo check-in in the
+   participant list, independently of quiz scoring.
 7. On or after the event starts, after the final quiz date has passed, finalize
    the leaderboard and gift winners. This action permanently locks event
    configuration, scoring and gift assignments. Mark each awarded gift delivered

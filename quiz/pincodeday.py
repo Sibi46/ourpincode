@@ -114,13 +114,21 @@ def record_answer(event_id, user, answer_id, choice):
     return answer
 
 
+@login_required
 def landing(request):
-    events = PincodeDay.objects.filter(published=True)
-    return render(request, 'quiz/day_landing.html', {'events': events, 'can_manage': manager(request.user)})
+    event = PincodeDay.objects.filter(published=True, finalized_at__isnull=True,
+        quiz_opens_on__lte=today(), quiz_closes_on__gte=today()).order_by('-quiz_opens_on', '-pk').first()
+    if event:
+        return redirect('day_daily', pk=event.pk)
+    participant = DayParticipant.objects.filter(user=request.user).order_by('-event__starts_at', '-pk').first()
+    return render(request, 'quiz/day_landing.html', {'points': participant.points if participant else 0})
 
 
+@login_required
 def event_page(request, pk):
-    event = get_object_or_404(PincodeDay, pk=pk, published=True)
+    if not manager(request.user):
+        raise PermissionDenied
+    event = get_object_or_404(PincodeDay, pk=pk)
     participant = event.participants.filter(user=request.user).first() if request.user.is_authenticated else None
     leaders = list(ranking(event)[:50])
     return render(request, 'quiz/day_event.html', {'event': event, 'participant': participant, 'leaders': leaders,
@@ -131,8 +139,8 @@ def event_page(request, pk):
 def daily(request, pk):
     event = get_object_or_404(PincodeDay, pk=pk, published=True)
     if event.finalized_at or not event.quiz_opens_on <= today() <= event.quiz_closes_on:
-        messages.info(request, 'The daily quiz is closed. See the event schedule.')
-        return redirect('day_event', pk=pk)
+        messages.info(request, 'This quiz is closed. Your earned points are saved.')
+        return redirect('day_landing')
     if request.method == 'POST':
         try:
             answer_id = int(request.POST.get('answer_id', '0'))
