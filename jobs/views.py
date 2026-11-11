@@ -433,7 +433,9 @@ def login_view(request):
             login(request, user)
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                 from django.http import JsonResponse as _JR
-                return _JR({'success': True, 'redirect': next_url or '/'})
+                from quiz.models import PromotionAdmin
+                destination = '/quiz/promotion-admin/' if PromotionAdmin.objects.filter(user=user, is_active=True).exists() else '/'
+                return _JR({'success': True, 'redirect': next_url or destination})
             return redirect(next_url or 'dashboard')
         # Check if the user exists at all
         user_exists = User.objects.filter(phone=username).exists() or \
@@ -470,6 +472,9 @@ def dashboard(request):
         return redirect('state_admin_dashboard')
     if role == 'district_admin':
         return redirect('district_admin_dashboard')
+    from quiz.models import PromotionAdmin
+    if request.user.is_active and PromotionAdmin.objects.filter(user=request.user, is_active=True).exists():
+        return redirect('day_admin')
     if request.user.user_type in User.EMPLOYER_TYPES or CompanyProfile.objects.filter(user=request.user).exists():
         return redirect('employer_dashboard')
     if request.user.user_type == 'advertiser' or hasattr(request.user, 'advertiser'):
@@ -2648,9 +2653,13 @@ def admin_panel_login(request):
         messages.error(request, 'Too many login attempts. Please wait 5 minutes.')
         return redirect('home')
     phone    = request.POST.get('phone', '').strip()
-    password = request.POST.get('password', '').strip()
+    password = request.POST.get('password', '')
     user = authenticate(request, username=phone, password=password)
-    if user and getattr(user, 'admin_role', None):
+    from quiz.models import PromotionAdmin
+    if user and user.is_active and PromotionAdmin.objects.filter(user=user, is_active=True).exists() and not user.admin_role:
+        login(request, user, backend='jobs.backends.PhoneOrEmailBackend')
+        return redirect('day_admin')
+    if user and user.is_active and getattr(user, 'admin_role', None):
         login(request, user, backend='jobs.backends.PhoneOrEmailBackend')
         role = user.admin_role
         if role == 'scoped_admin':

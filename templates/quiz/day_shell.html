@@ -1,4 +1,4 @@
 {% extends 'base.html' %}{% load static %}
 {% block title %}PincodeDay Quiz | OUR PINCODE{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{% static 'css/pincodeday.css' %}">{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/pincodeday.css' %}?v=2"><script src="{% static 'js/campus-signup.js' %}?v=1" defer></script>{% endblock %}
 {% block content %}<main class="pd-wrap"><nav class="pd-nav"><a href="/">Home</a>{% if '/quiz/promotion-admin/' in request.path %}<a href="{% url 'day_admin' %}">Promotion admin</a>{% endif %}</nav>{% block day_content %}{% endblock %}</main>{% endblock %}

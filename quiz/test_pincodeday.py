@@ -230,3 +230,61 @@ class PincodeDayTests(TestCase):
         self.assertEqual(result.context['history'].paginator.count, 1)
         self.assertEqual(result.context['history'][0].participant_id, participant.pk)
         self.assertEqual(self.client.get(reverse('day_admin_event', args=[self.event.pk])).status_code, 403)
+
+    def create_promotion_account(self, **changes):
+        data = {'action': 'create_admin', 'full_name': 'Promotion Manager', 'phone': '9876501234',
+            'password': 'Promotion!Secure42', 'confirm_password': 'Promotion!Secure42', **changes}
+        return self.client.post(reverse('day_admin_event', args=[self.event.pk]), data)
+
+    def test_super_admin_creates_phone_account_and_promotion_admin_creates_content(self):
+        self.client.force_login(self.admin)
+        self.assertEqual(self.create_promotion_account().status_code, 302)
+        user = get_user_model().objects.get(phone='9876501234')
+        self.assertTrue(user.check_password('Promotion!Secure42'))
+        self.assertNotEqual(user.password, 'Promotion!Secure42')
+        self.assertFalse(user.is_staff or user.is_superuser)
+        self.assertEqual(user.admin_role, '')
+        self.assertTrue(PromotionAdmin.objects.get(user=user).is_active)
+        self.assertEqual(self.client.session['_auth_user_id'], str(self.admin.pk))
+        self.client.logout()
+        result = self.client.post('/login/', {'username': user.phone, 'password': 'Promotion!Secure42'}, follow=True)
+        self.assertEqual(result.status_code, 200)
+        self.assertContains(result, 'PincodeDay workspace')
+        self.assertNotContains(result, 'Create Promotional Admin')
+        self.assertEqual(self.client.session['_auth_user_id'], str(user.pk))
+        response = self.client.post(reverse('day_admin')+'?new=1', {'action': 'event', 'title': 'Created by phone admin',
+            'starts_at': (timezone.now()+timedelta(days=4)).isoformat(), 'ends_at': (timezone.now()+timedelta(days=4,hours=8)).isoformat(),
+            'quiz_opens_on': today().isoformat(), 'quiz_closes_on': (today()+timedelta(days=3)).isoformat()})
+        self.assertEqual(response.status_code, 302)
+        event = PincodeDay.objects.get(title='Created by phone admin')
+        response = self.client.post(reverse('day_admin_event', args=[event.pk]), {'action': 'question',
+            'text': 'Question by new promotional admin', 'option_a': 'One', 'option_b': 'Two', 'option_c': 'Three', 'option_d': 'Four', 'correct_answer': 'B'})
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(event.questions.count(), 1)
+        self.assertEqual(self.create_promotion_account(phone='9876501235').status_code, 403)
+        self.assertEqual(self.client.get('/super-admin/').status_code, 302)
+
+    def test_phone_account_validation_and_existing_password_preserved(self):
+        self.client.force_login(self.admin)
+        for changes in [{'phone': 'abc'}, {'password': 'short', 'confirm_password': 'short'}, {'confirm_password': 'different'}]:
+            response = self.create_promotion_account(**changes)
+            self.assertEqual(response.status_code, 200)
+            self.assertTrue(response.context['promotion_form'].errors)
+        self.assertFalse(get_user_model().objects.filter(phone='9876501234').exists())
+        self.user.phone = '9876501234'; self.user.save()
+        response = self.create_promotion_account()
+        self.assertTrue(response.context['promotion_form'].errors)
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.check_password('test-password'))
+        self.assertFalse(PromotionAdmin.objects.filter(user=self.user).exists())
+
+    def test_promotion_account_admin_login_and_ajax_login(self):
+        self.user.phone = '9876501234'; self.user.save()
+        PromotionAdmin.objects.create(user=self.user)
+        response = self.client.post('/admin-panel/login/', {'phone': self.user.phone, 'password': 'test-password'})
+        self.assertRedirects(response, reverse('day_admin'), fetch_redirect_response=False)
+        self.client.logout()
+        response = self.client.post('/login/', {'username': self.user.phone, 'password': 'test-password'}, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        self.assertEqual(response.json()['redirect'], reverse('day_admin'))
+        PromotionAdmin.objects.filter(user=self.user).update(is_active=False)
+        self.assertEqual(self.client.get(reverse('day_admin')).status_code, 403)

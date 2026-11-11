@@ -24,9 +24,18 @@ questions in admin does not reset a user's daily allowance.
 Setup
 -----
 
-1. Open Super Admin > PincodeDay & Promotion Admins
-   (`/quiz/promotion-admin/`). Grant promotion access using an existing active
-   account's exact username. Revoking the grant removes this access immediately.
+1. Open Super Admin > Promotional Admin (`/quiz/promotion-admin/`). Under
+   Create Promotional Admin, enter an optional name, a new 10-digit mobile
+   number, a password of at least eight characters and its confirmation. The
+   password is hashed. This creates a separate account and leaves Super Admin
+   signed in. Existing phone numbers are rejected without changing passwords;
+   use Grant existing account access to appoint an existing active user instead.
+   Revoking the grant removes promotion access immediately.
+   The new person can sign in at `/login/?next=/quiz/promotion-admin/` with their
+   phone and password. Normal login, Dashboard and the Admin Login endpoint also
+   route promotion accounts into this workspace. They can create events,
+   questions, gifts and reports but cannot create other admins, appoint users,
+   or access Super Admin or Django staff controls.
 2. Open the December 20, 2026 draft created by migration 0004. Set the venue,
    description, agenda, event times and quiz dates. Times use Asia/Kolkata.
    The draft initially uses 10 AM–6 PM with scoring through December 19;

@@ -5,9 +5,10 @@ from zoneinfo import ZoneInfo
 from django import forms
 from django.contrib import messages
 from django.contrib.auth import get_user_model
+from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied, ValidationError
-from django.db import transaction
+from django.db import transaction, IntegrityError
 from django.db.models import Count, Q, Sum
 from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404, redirect, render
@@ -51,6 +52,30 @@ def user_results(user, event=None):
     summary['points'] = participants.aggregate(total=Sum('points', default=0))['total']
     return {'summary': summary, 'today_summary': answer_summary(answers.filter(day=today())),
         'history': history}
+
+
+class PromotionAccountForm(forms.Form):
+    full_name = forms.CharField(label='Name', max_length=150, required=False)
+    phone = forms.RegexField(r'^[6-9][0-9]{9}$', label='Phone number', max_length=10,
+        error_messages={'invalid': 'Enter a valid 10-digit mobile number.'},
+        widget=forms.TextInput(attrs={'inputmode': 'numeric', 'autocomplete': 'off', 'maxlength': 10}))
+    password = forms.CharField(min_length=8, strip=False,
+        widget=forms.PasswordInput(attrs={'autocomplete': 'new-password', 'minlength': 8}))
+    confirm_password = forms.CharField(strip=False, widget=forms.PasswordInput(attrs={'autocomplete': 'new-password'}))
+
+    def clean_phone(self):
+        phone = self.cleaned_data['phone']
+        if get_user_model().objects.filter(Q(phone=phone) | Q(business_phone=phone) | Q(username__iexact=phone)).exists():
+            raise ValidationError('This phone already has an account. Use Grant existing account access below instead.')
+        return phone
+
+    def clean(self):
+        data = super().clean()
+        if data.get('password'):
+            validate_password(data['password'], get_user_model()(username=data.get('phone', ''), first_name=data.get('full_name', '')))
+        if data.get('password') and data.get('confirm_password') != data['password']:
+            self.add_error('confirm_password', 'Passwords do not match.')
+        return data
 
 
 class EventForm(forms.ModelForm):
@@ -210,11 +235,29 @@ def administration(request, pk=None):
     event_form = EventForm(instance=event, initial={'starts_at': datetime(2026, 12, 20, 10), 'ends_at': datetime(2026, 12, 20, 18),
         'quiz_opens_on': today(), 'quiz_closes_on': date(2026, 12, 19)} if event is None else None)
     question_form, gift_form = QuestionForm(), GiftForm()
+    promotion_form = PromotionAccountForm()
     if action:
         with transaction.atomic():
             if event:
                 event = PincodeDay.objects.select_for_update().get(pk=event.pk)
-            if action == 'grant':
+            if action == 'create_admin':
+                if request.user.admin_role != 'super_admin':
+                    raise PermissionDenied
+                promotion_form = PromotionAccountForm(request.POST)
+                if promotion_form.is_valid():
+                    data = promotion_form.cleaned_data
+                    parts = data['full_name'].split(' ', 1)
+                    try:
+                        with transaction.atomic():
+                            user = get_user_model().objects.create_user(username=data['phone'], phone=data['phone'],
+                                password=data['password'], first_name=parts[0], last_name=parts[1] if len(parts) > 1 else '', user_type='individual')
+                            PromotionAdmin.objects.create(user=user)
+                    except IntegrityError:
+                        promotion_form.add_error('phone', 'An account with this phone already exists.')
+                    else:
+                        messages.success(request, 'Promotional Admin created. They can sign in with their phone number and password.')
+                        return redirect(reverse('day_admin_event', kwargs={'pk': event.pk}) + '#promotion-admins' if event else reverse('day_admin') + '?new=1#promotion-admins')
+            elif action == 'grant':
                 if request.user.admin_role != 'super_admin':
                     raise PermissionDenied
                 user = get_user_model().objects.filter(username=request.POST.get('username', '').strip(), is_active=True).first()
@@ -294,6 +337,7 @@ def administration(request, pk=None):
         wrong_count=Count('answers', filter=Q(answers__answered_at__isnull=False, answers__points=1))) if event else []
     return render(request, 'quiz/day_admin.html', {'event': event, 'events': PincodeDay.objects.annotate(question_count=Count('questions')).all(),
         'event_form': event_form, 'question_form': question_form, 'gift_form': gift_form,
+        'promotion_form': promotion_form,
         'admins': PromotionAdmin.objects.select_related('user'), 'super_admin': request.user.admin_role == 'super_admin',
         'participants': participants.order_by('-points', 'registered_at') if event else [],
         'questions': questions, 'answer_summary': answer_summary(DayAnswer.objects.filter(participant__event=event)),
