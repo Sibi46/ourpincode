@@ -1,0 +1,15 @@
+<section class="pd-card" id="question-pool" style="scroll-margin-top:24px">
+  <h2>Saved quiz questions</h2><p>{{ questions|length }} saved questions. This list remains visible after saving or refreshing.</p>
+  <div class="pd-table"><table><thead><tr><th>Question</th><th>Correct option</th><th>Users answered</th><th>Correct</th><th>Wrong</th><th>Points earned</th><th>Details</th></tr></thead><tbody>
+  {% for q in questions %}<tr><td>#{{ q.pk }} · {{ q.text }}</td><td>{{ q.correct_answer }}</td><td>{{ q.answered_count }}</td><td>{{ q.correct_count }}</td><td>{{ q.wrong_count }}</td><td>{{ q.earned_points }}</td><td><a href="?question={{ q.pk }}#answer-report">View answers</a></td></tr>{% empty %}<tr><td colspan="7">No questions saved yet. Use Create Quiz Question above.</td></tr>{% endfor %}
+  </tbody></table></div>
+</section>
+<section class="pd-card" id="answer-report" style="scroll-margin-top:24px">
+  <h2>Quiz answer report · {{ event.title }}</h2><p><strong>{{ answered_users }} users answered</strong> · {{ answer_summary.answered }} answers · {{ answer_summary.correct }} correct · {{ answer_summary.wrong }} wrong · {{ answer_summary.points }} points earned</p>
+  {% if selected_question %}<h3>{{ selected_question.text }}</h3><p><a href="?view=all#answer-report">Show all question results</a></p>{% endif %}
+  <div class="pd-table"><table><thead><tr><th>User name</th><th>Account</th><th>Question</th><th>Answer</th><th>Result</th><th>Points</th><th>Answered</th></tr></thead><tbody>
+  {% for answer in responses %}<tr><td>{{ answer.participant.user.get_full_name|default:answer.participant.user.username }}</td><td>{{ answer.participant.user.username }}</td><td>{{ answer.question.text }}</td><td>{{ answer.answer }}. {{ answer.selected_text }}</td><td>{% if answer.points == 5 %}Correct{% else %}Wrong{% endif %}</td><td>+{{ answer.points }}</td><td>{{ answer.answered_at|date:'j M Y g:i A' }}</td></tr>{% empty %}<tr><td colspan="7">No answers submitted yet.</td></tr>{% endfor %}
+  </tbody></table></div>
+  {% if responses.has_previous %}<a href="?answers_page={{ responses.previous_page_number }}{% if selected_question %}&amp;question={{ selected_question.pk }}{% endif %}#answer-report">Previous</a>{% endif %}
+  {% if responses.has_next %}<a href="?answers_page={{ responses.next_page_number }}{% if selected_question %}&amp;question={{ selected_question.pk }}{% endif %}#answer-report">Next</a>{% endif %}
+</section>

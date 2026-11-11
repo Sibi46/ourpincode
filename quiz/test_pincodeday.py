@@ -64,7 +64,7 @@ class PincodeDayTests(TestCase):
         self.client.force_login(self.user)
         self.assertRedirects(self.client.get(reverse('day_landing')), reverse('day_daily', args=[self.event.pk]))
         self.assertEqual(self.client.get(reverse('day_event', args=[self.event.pk])).status_code, 403)
-        self.assertEqual(self.client.get(reverse('day_admin')).status_code, 403)
+        self.assertEqual(self.client.get(reverse('day_admin'), follow=True).status_code, 403)
         response = self.client.get(reverse('day_daily', args=[self.event.pk]))
         self.assertEqual(response.status_code, 200)
         self.assertNotContains(response, 'quizPopup')
@@ -74,7 +74,7 @@ class PincodeDayTests(TestCase):
         self.client.force_login(self.admin)
         self.assertEqual(self.client.get(reverse('day_event', args=[self.event.pk])).status_code, 200)
         self.assertEqual(self.client.get(reverse('day_admin_event', args=[self.event.pk])).status_code, 200)
-        self.assertEqual(self.client.get(reverse('day_admin')).status_code, 200)
+        self.assertEqual(self.client.get(reverse('day_admin'), follow=True).status_code, 200)
 
     def test_no_active_quiz_shows_only_saved_points(self):
         self.event.published = False; self.event.save()
@@ -90,13 +90,13 @@ class PincodeDayTests(TestCase):
         self.client.post(reverse('day_admin'), {'action': 'grant', 'username': self.user.username})
         self.assertTrue(PromotionAdmin.objects.get(user=self.user).is_active)
         self.client.force_login(self.user)
-        self.assertEqual(self.client.get(reverse('day_admin')).status_code, 200)
+        self.assertEqual(self.client.get(reverse('day_admin'), follow=True).status_code, 200)
         self.assertEqual(self.client.post(reverse('day_admin'), {'action': 'grant', 'username': self.other.username}).status_code, 403)
         self.assertEqual(self.client.get('/super-admin/').status_code, 302)
         self.client.force_login(self.admin)
         self.client.post(reverse('day_admin'), {'action': 'revoke', 'admin_id': PromotionAdmin.objects.get(user=self.user).pk})
         self.client.force_login(self.user)
-        self.assertEqual(self.client.get(reverse('day_admin')).status_code, 403)
+        self.assertEqual(self.client.get(reverse('day_admin'), follow=True).status_code, 403)
 
     def test_finalization_rank_minimum_and_lock(self):
         first = DayParticipant.objects.create(event=self.event, user=self.user, points=15, attending=True)
@@ -156,7 +156,7 @@ class PincodeDayTests(TestCase):
         self.user.admin_role = 'scoped_admin'; self.user.save()
         PromotionAdmin.objects.create(user=self.user)
         self.client.force_login(self.user)
-        self.assertEqual(self.client.get(reverse('day_admin')).status_code, 200)
+        self.assertEqual(self.client.get(reverse('day_admin'), follow=True).status_code, 200)
 
     def test_publish_requires_pool_and_rejects_invalid_dates(self):
         event = PincodeDay.objects.create(starts_at=self.event.starts_at, ends_at=self.event.ends_at,
@@ -169,3 +169,64 @@ class PincodeDayTests(TestCase):
         form = EventForm(data, instance=event)
         self.assertFalse(form.is_valid()); self.assertIn('ends_at', form.errors)
         self.assertIn('quiz_closes_on', form.errors)
+
+    def test_full_admin_create_publish_user_answer_and_reports_flow(self):
+        self.client.force_login(self.admin)
+        data = {'action': 'event', 'title': 'New daily promotion',
+            'starts_at': (timezone.now()+timedelta(days=3)).isoformat(),
+            'ends_at': (timezone.now()+timedelta(days=3, hours=8)).isoformat(),
+            'quiz_opens_on': today().isoformat(), 'quiz_closes_on': (today()+timedelta(days=2)).isoformat()}
+        response = self.client.post(reverse('day_admin')+'?new=1', data)
+        event = PincodeDay.objects.get(title='New daily promotion')
+        url = reverse('day_admin_event', args=[event.pk])
+        self.assertRedirects(response, url)
+        for index in range(3):
+            response = self.client.post(url, {'action': 'question', 'text': f'Fresh saved question {index}',
+                'option_a': 'Correct choice', 'option_b': 'Wrong choice', 'option_c': 'Third', 'option_d': 'Fourth', 'correct_answer': 'A'})
+            self.assertRedirects(response, url+'#question-pool')
+        refreshed = self.client.get(url)
+        self.assertContains(refreshed, 'Fresh saved question 2')
+        self.assertContains(refreshed, '3 saved questions')
+        self.assertRedirects(self.client.get(reverse('day_admin')), url)
+        self.client.post(url, {'action': 'publish'})
+        event.refresh_from_db(); self.assertTrue(event.published)
+        self.user.first_name = 'Ravi'; self.user.last_name = 'Kumar'; self.user.save()
+        self.client.force_login(self.user)
+        daily_url = reverse('day_daily', args=[event.pk])
+        self.assertRedirects(self.client.get(reverse('day_landing')), daily_url)
+        answers = list(DayAnswer.objects.filter(participant__user=self.user, participant__event=event).order_by('slot'))
+        for answer, choice in zip(answers, ['A', 'B', 'A']):
+            self.assertRedirects(self.client.post(daily_url, {'answer_id': answer.pk, 'choice': choice}), daily_url)
+        refreshed = self.client.get(daily_url)
+        self.assertContains(refreshed, "Today's quiz is complete")
+        self.assertContains(refreshed, '11 points')
+        self.assertEqual(refreshed.context['summary']['correct'], 2)
+        self.assertEqual(refreshed.context['summary']['wrong'], 1)
+        self.assertEqual(refreshed.context['history'].paginator.count, 3)
+        self.assertNotContains(refreshed, 'Quiz answer report')
+        self.assertEqual(DayAnswer.objects.filter(participant__user=self.user, participant__event=event).count(), 3)
+        self.client.force_login(self.admin)
+        report = self.client.get(url)
+        self.assertContains(report, 'Ravi Kumar')
+        self.assertContains(report, '1 users answered')
+        self.assertEqual(report.context['answer_summary']['answered'], 3)
+        participant = report.context['participants'].get(user=self.user)
+        self.assertEqual((participant.answered_count, participant.correct_count, participant.wrong_count, participant.points), (3, 2, 1, 11))
+        filtered = self.client.get(url, {'question': answers[0].question_id})
+        self.assertEqual(filtered.context['responses'].paginator.count, 1)
+        self.assertEqual(self.client.get(url, {'question': 'invalid'}).status_code, 404)
+
+    def test_user_history_is_private_and_survives_closed_event(self):
+        participant, answers = allocate(self.event, self.user)
+        record_answer(self.event.pk, self.user, answers[0].pk, 'B')
+        other_participant, other_answers = allocate(self.event, self.other)
+        record_answer(self.event.pk, self.other, other_answers[0].pk, 'A')
+        self.event.published = False; self.event.save()
+        self.client.force_login(self.user)
+        result = self.client.get(reverse('day_landing'))
+        self.assertEqual(result.context['summary']['points'], 1)
+        self.assertEqual(result.context['summary']['wrong'], 1)
+        self.assertEqual(result.context['summary']['correct'], 0)
+        self.assertEqual(result.context['history'].paginator.count, 1)
+        self.assertEqual(result.context['history'][0].participant_id, participant.pk)
+        self.assertEqual(self.client.get(reverse('day_admin_event', args=[self.event.pk])).status_code, 403)

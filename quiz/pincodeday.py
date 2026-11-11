@@ -8,7 +8,11 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import transaction
+from django.db.models import Count, Q, Sum
+from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
+from django.http import Http404
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
@@ -27,6 +31,26 @@ def today():
 def ranking(event):
     # Stable, published tie-break: earliest participant registration, then account ID.
     return event.participants.filter(points__gt=0).select_related('user').order_by('-points', 'registered_at', 'user_id')
+
+
+def answer_summary(answers):
+    return answers.filter(answered_at__isnull=False).aggregate(
+        answered=Count('pk'), correct=Count('pk', filter=Q(points=5)),
+        wrong=Count('pk', filter=Q(points=1)), points=Sum('points', default=0))
+
+
+def user_results(user, event=None):
+    answers = DayAnswer.objects.filter(participant__user=user)
+    if event:
+        answers = answers.filter(participant__event=event)
+    history = answers.filter(answered_at__isnull=False).select_related('question').order_by('-answered_at', '-pk')
+    summary = answer_summary(answers)
+    participants = DayParticipant.objects.filter(user=user)
+    if event:
+        participants = participants.filter(event=event)
+    summary['points'] = participants.aggregate(total=Sum('points', default=0))['total']
+    return {'summary': summary, 'today_summary': answer_summary(answers.filter(day=today())),
+        'history': history}
 
 
 class EventForm(forms.ModelForm):
@@ -120,8 +144,9 @@ def landing(request):
         quiz_opens_on__lte=today(), quiz_closes_on__gte=today()).order_by('-quiz_opens_on', '-pk').first()
     if event:
         return redirect('day_daily', pk=event.pk)
-    participant = DayParticipant.objects.filter(user=request.user).order_by('-event__starts_at', '-pk').first()
-    return render(request, 'quiz/day_landing.html', {'points': participant.points if participant else 0})
+    results = user_results(request.user)
+    results['history'] = Paginator(results['history'], 20).get_page(request.GET.get('page'))
+    return render(request, 'quiz/day_landing.html', results)
 
 
 @login_required
@@ -152,8 +177,11 @@ def daily(request, pk):
     participant, answers = allocate(event, request.user)
     question = next((answer for answer in answers if not answer.answered_at), None)
     options = [(key, getattr(question.question, 'option_' + key.lower())) for key in 'ABCD'] if question else []
+    results = user_results(request.user, event)
+    results['history'] = Paginator(results['history'], 20).get_page(request.GET.get('page'))
     return render(request, 'quiz/day_daily.html', {'event': event, 'participant': participant, 'question': question,
-        'options': options, 'answers': answers, 'completed': sum(bool(a.answered_at) for a in answers)})
+        'options': options, 'answers': answers, 'completed': sum(bool(a.answered_at) for a in answers),
+        **results})
 
 
 @login_required
@@ -174,7 +202,10 @@ def attend(request, pk):
 def administration(request, pk=None):
     if not manager(request.user):
         raise PermissionDenied
-    event = get_object_or_404(PincodeDay, pk=pk) if pk else None
+    event = get_object_or_404(PincodeDay, pk=pk) if pk else (
+        None if request.GET.get('new') == '1' else PincodeDay.objects.order_by('-quiz_opens_on', '-pk').first())
+    if request.method == 'GET' and pk is None and event:
+        return redirect('day_admin_event', pk=event.pk)
     action = request.POST.get('action') if request.method == 'POST' else None
     event_form = EventForm(instance=event, initial={'starts_at': datetime(2026, 12, 20, 10), 'ends_at': datetime(2026, 12, 20, 18),
         'quiz_opens_on': today(), 'quiz_closes_on': date(2026, 12, 19)} if event is None else None)
@@ -198,6 +229,12 @@ def administration(request, pk=None):
                 PromotionAdmin.objects.filter(pk=request.POST.get('admin_id')).update(is_active=False)
             elif event and event.finalized_at and action not in ('delivered', 'present'):
                 messages.error(request, 'Winner results are final. This event is locked.')
+            elif event and action == 'publish':
+                event_form = EventForm({field: getattr(event, field) for field in EventForm.Meta.fields} | {'published': True}, instance=event)
+                if event_form.is_valid():
+                    event_form.save()
+                    messages.success(request, 'Quiz published. Users can play during the quiz dates.')
+                    return redirect('day_admin_event', pk=event.pk)
             elif action == 'event':
                 event_form = EventForm(request.POST, instance=event)
                 if event_form.is_valid():
@@ -209,7 +246,7 @@ def administration(request, pk=None):
                 if question_form.is_valid():
                     question_form.save()
                     messages.success(request, 'New question added. Issued questions stay unchanged.')
-                    return redirect('day_admin_event', pk=event.pk)
+                    return redirect(reverse('day_admin_event', kwargs={'pk': event.pk}) + '#question-pool')
             elif event and action == 'gift':
                 gift = get_object_or_404(DayGift, pk=request.POST['gift_id'], event=event) if request.POST.get('gift_id') else DayGift(event=event)
                 gift_form = GiftForm(request.POST, instance=gift)
@@ -237,8 +274,30 @@ def administration(request, pk=None):
                     messages.success(request, 'Winners finalized from the leaderboard.')
             elif event and event.finalized_at and action == 'delivered':
                 event.gifts.filter(pk=request.POST.get('gift_id'), winner__isnull=False).update(delivered=True)
-    return render(request, 'quiz/day_admin.html', {'event': event, 'events': PincodeDay.objects.all(),
+    questions = event.questions.annotate(
+        answered_count=Count('dayanswer', filter=Q(dayanswer__answered_at__isnull=False)),
+        correct_count=Count('dayanswer', filter=Q(dayanswer__answered_at__isnull=False, dayanswer__points=5)),
+        wrong_count=Count('dayanswer', filter=Q(dayanswer__answered_at__isnull=False, dayanswer__points=1)),
+        earned_points=Sum('dayanswer__points', default=0)).order_by('pk') if event else []
+    responses = DayAnswer.objects.filter(participant__event=event, answered_at__isnull=False).select_related('participant__user', 'question')
+    selected_question = None
+    if event and request.GET.get('question'):
+        try:
+            question_id = forms.IntegerField(min_value=1).clean(request.GET['question'])
+        except ValidationError:
+            raise Http404('Question not found.')
+        selected_question = get_object_or_404(event.questions, pk=question_id)
+        responses = responses.filter(question=selected_question)
+    participants = event.participants.select_related('user').annotate(
+        answered_count=Count('answers', filter=Q(answers__answered_at__isnull=False)),
+        correct_count=Count('answers', filter=Q(answers__answered_at__isnull=False, answers__points=5)),
+        wrong_count=Count('answers', filter=Q(answers__answered_at__isnull=False, answers__points=1))) if event else []
+    return render(request, 'quiz/day_admin.html', {'event': event, 'events': PincodeDay.objects.annotate(question_count=Count('questions')).all(),
         'event_form': event_form, 'question_form': question_form, 'gift_form': gift_form,
         'admins': PromotionAdmin.objects.select_related('user'), 'super_admin': request.user.admin_role == 'super_admin',
-        'participants': event.participants.select_related('user').order_by('-points', 'registered_at') if event else [],
+        'participants': participants.order_by('-points', 'registered_at') if event else [],
+        'questions': questions, 'answer_summary': answer_summary(DayAnswer.objects.filter(participant__event=event)),
+        'answered_users': event.participants.filter(answers__answered_at__isnull=False).distinct().count() if event else 0,
+        'selected_question': selected_question,
+        'responses': Paginator(responses.order_by('-answered_at', '-pk'), 50).get_page(request.GET.get('answers_page')),
         'gifts': event.gifts.select_related('winner__user') if event else []})

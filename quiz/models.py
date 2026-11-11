@@ -121,6 +121,10 @@ class DayAnswer(models.Model):
     points = models.PositiveSmallIntegerField(default=0)
     answered_at = models.DateTimeField(null=True, blank=True)
 
+    @property
+    def selected_text(self):
+        return getattr(self.question, 'option_' + self.answer.lower(), '') if self.answer else ''
+
     class Meta:
         constraints = [
             models.UniqueConstraint(fields=['participant', 'question'], name='day_never_repeat'),

@@ -6,6 +6,21 @@ their daily questions and points. If no quiz is active, they see a short
 availability message and their saved score. Event details, gifts, leaderboard
 and management are restricted to super admins and appointed promotion admins.
 
+The promotion workspace opens its latest event automatically. Its saved-question
+table is always visible, including after a refresh, and successful question saves
+return directly to that table. Use `Create another event` for a new draft.
+
+The quiz answer report shows the event title, users who answered, answer totals,
+correct/wrong counts, and earned points. Each question has a `View answers` link
+listing user names, submitted choices, results, points and times. Participant rows
+show each account's total answers, correct answers, wrong answers and score.
+Only promotion admins and super admins can access these reports.
+
+Users see their own total points, today's points, correct/wrong counts and paged
+answer history. Results persist on refresh and remain available when scoring
+closes. Completing three questions ends that day's quiz; refreshing or adding
+questions in admin does not reset a user's daily allowance.
+
 Setup
 -----
 
@@ -22,7 +37,8 @@ Setup
    are never recycled when the pool is exhausted.
 4. Configure gifts by leaderboard rank and minimum qualifying points. Gift
    rules may be edited or removed before results are finalized.
-5. Publish the event. The homepage Quiz button opens the active daily quiz.
+5. Publish the event using `Publish Quiz` or the event form's Published option.
+   Saving questions alone does not publish a draft. The homepage Quiz button opens the active daily quiz.
    Users receive the same three allocated questions when
    returning that day; the following day starts at midnight India time.
 6. Promotion admins review attendance and mark or undo check-in in the

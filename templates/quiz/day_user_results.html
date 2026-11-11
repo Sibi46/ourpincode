@@ -1,0 +1,9 @@
+<section class="pd-card" aria-label="Your quiz results">
+  <h2>Your points and answers</h2>
+  <div class="pd-grid"><p><strong>{{ summary.points }} points</strong><br>Total earned</p><p><strong>{{ summary.answered }} answered</strong><br>{{ summary.correct }} correct · {{ summary.wrong }} wrong</p><p><strong>Today: {{ today_summary.points }} points</strong><br>{{ today_summary.correct }} correct · {{ today_summary.wrong }} wrong</p></div>
+  <details {% if not question %}open{% endif %}><summary>Your answer history</summary>
+    {% for answer in history %}<article style="border-top:1px solid #e1e7f0;margin-top:12px;padding-top:12px"><p><small>{{ answer.day|date:'j M Y' }}</small></p><h3>{{ answer.question.text }}</h3><p>Your answer: {{ answer.answer }}. {{ answer.selected_text }}</p><p><strong>{% if answer.points == 5 %}Correct{% else %}Wrong{% endif %} · +{{ answer.points }} points</strong></p></article>{% empty %}<p>You haven't answered any questions yet.</p>{% endfor %}
+    {% if history.has_previous %}<a href="?page={{ history.previous_page_number }}">Newer answers</a>{% endif %}
+    {% if history.has_next %}<a href="?page={{ history.next_page_number }}">Older answers</a>{% endif %}
+  </details>
+</section>

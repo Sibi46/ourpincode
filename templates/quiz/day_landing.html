@@ -1,5 +1,6 @@
 {% extends 'quiz/day_shell.html' %}
 {% block day_content %}
-<header class="pd-hero"><h1>Daily Quiz</h1><p><strong>{{ points }} points</strong></p></header>
+<header class="pd-hero"><h1>Daily Quiz</h1><p><strong>{{ summary.points }} points</strong></p></header>
 <section class="pd-card"><h2>Your next quiz is coming soon</h2><p>Please check back for new questions. Your earned points are saved.</p><a href="/">Back to home</a></section>
+{% include 'quiz/day_user_results.html' %}
 {% endblock %}
