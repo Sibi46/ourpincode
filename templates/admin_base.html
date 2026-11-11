@@ -104,6 +104,9 @@
       </a>
 
       <div class="ap-nav-section">Admins</div>
+      <a href="{% url 'day_admin' %}" class="ap-nav-link {% if '/quiz/promotion-admin/' in request.path %}active{% endif %}">
+        <i class="fas fa-bullhorn" aria-hidden="true"></i> Promotional Admin
+      </a>
       <a href="{% url 'marketing_admin' %}" class="ap-nav-link {% if request.path == '/marketing/admin/' %}active{% endif %}">
         <i class="fas fa-user-tie" aria-hidden="true"></i> Marketing Agents
       </a>
