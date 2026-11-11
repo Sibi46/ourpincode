@@ -3,6 +3,7 @@
 <section class="hp-section hp-overview" aria-label="Explore your neighbourhood">
   <div class="hp-heading"><div><p class="hp-eyebrow">{% ui "MAKE YOURSELF AT HOME" %}</p><h1>{% ui "Everything nearby." %}</h1></div></div>
   <div class="hp-shortcuts">
+    <a class="hp-tile hp-peach" href="{% url 'day_landing' %}"><span aria-hidden="true">&#129504;</span><strong>{% ui "Quiz" %}</strong></a>
     <a class="hp-tile hp-pink" href="/businesses/"><span>🛍️</span><strong>{% ui "Shops" %}</strong></a>
     <a class="hp-tile hp-mint" href="/advertise/"><span>🏷️</span><strong>{% ui "Offers" %}</strong></a>
     <a class="hp-tile hp-lilac" href="/portal/"><span>🏘️</span><strong>{% ui "Community" %}</strong></a>
@@ -24,7 +25,7 @@
     <a class="hp-mint" href="{% url 'network_feed' %}"><span>👥</span><strong>{% ui "My Ask" %}</strong><small>Connect with neighbours</small></a>
     <a class="hp-blue" href="/news/"><span>📰</span><strong>{% ui "News" %}</strong><small>Read your local edition</small></a>
     <a class="hp-lilac" href="/flicks/"><span>🎬</span><strong>Flick</strong><small>Watch community posts</small></a>
-    <a class="hp-peach" href="/quiz/play/"><span>🧠</span><strong>{% ui "Quiz" %}</strong><small>Test your knowledge</small></a>
+    <a class="hp-peach" href="{% url 'day_landing' %}"><span>🧠</span><strong>{% ui "Quiz" %}</strong><small>PincodeDay daily points</small></a>
     <a class="hp-blue" href="/advertise/register/"><span>📣</span><strong>{% ui "Advertise" %}</strong><small>Promote your business</small></a>
     <a class="hp-mint" href="{% url 'tuition:discover' %}"><span aria-hidden="true">📚</span><strong>Tuitions</strong><small>Find a teacher</small></a>
     <a class="hp-mint" href="/community/school-corner/"><span>🏫</span><strong>School</strong><small>School community</small></a>

@@ -1,0 +1,4 @@
+{% extends 'base.html' %}{% load static %}
+{% block title %}PincodeDay Quiz | OUR PINCODE{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/pincodeday.css' %}">{% endblock %}
+{% block content %}<main class="pd-wrap"><nav class="pd-nav"><a href="/">Home</a><a href="{% url 'day_landing' %}">PincodeDay Quiz</a>{% if request.user.admin_role == 'super_admin' or request.user.promotionadmin.is_active %}<a href="{% url 'day_admin' %}">Promotion admin</a>{% endif %}</nav>{% block day_content %}{% endblock %}</main>{% endblock %}

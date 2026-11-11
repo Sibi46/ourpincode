@@ -87,6 +87,7 @@
 {% endblock %}
 
 {% block content %}
+<p><a class="sa-action" href="{% url 'day_admin' %}">PincodeDay &amp; Promotion Admins</a></p>
 {% include "assigned_admin/main_overview.html" %}
 <!-- ── NEEDS ATTENTION BANNER ── -->
 {% if pending_jobs_count or paid_verify_count or pending_ad_posts or community_pending_count or voucher_biz_pending or voucher_slot_pending or pending_offers_count %}

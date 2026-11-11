@@ -1,7 +1,14 @@
 from django.urls import path
 from . import views
+from . import pincodeday as day
 
 urlpatterns = [
+    path('pincodeday/', day.landing, name='day_landing'),
+    path('promotion-admin/', day.administration, name='day_admin'),
+    path('promotion-admin/<int:pk>/', day.administration, name='day_admin_event'),
+    path('pincodeday/<int:pk>/', day.event_page, name='day_event'),
+    path('pincodeday/<int:pk>/daily/', day.daily, name='day_daily'),
+    path('pincodeday/<int:pk>/attend/', day.attend, name='day_attend'),
     path('play/', views.quiz_play, name='quiz_play'),
     # Employer
     path('', views.employer_quiz_list, name='quiz_list'),

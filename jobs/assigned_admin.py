@@ -48,6 +48,11 @@ class AssignedAdminMiddleware:
         if not request.user.is_authenticated or request.user.admin_role != 'scoped_admin':
             return None
         name = request.resolver_match.url_name
+        if name in {'day_admin', 'day_admin_event'}:
+            # An explicit promotion appointment is independent of geographic moderation.
+            from quiz.pincodeday import manager
+            if manager(request.user):
+                return None
         if getattr(getattr(request.user, 'admin_profile', None), 'hierarchy_level', ''):
             from .admin_hierarchy import authority
             authority(request.user)

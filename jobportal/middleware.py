@@ -20,6 +20,7 @@ PUBLIC_PREFIXES = [
     '/api/pincode/',
     '/api/reset-password/',
     '/quiz/play/',                # quiz landing page; answer APIs require login
+    '/quiz/pincodeday/',          # public event pages; participation views require login
     '/flicks/',                   # browse flicks
     '/health/',                   # browse health
     '/vouchers/marketplace/',     # browse vouchers

@@ -848,7 +848,7 @@ document.addEventListener('DOMContentLoaded',function(){
 })();
 </script>
 
-{% if request.resolver_match.url_name != 'quiz_play' %}{% include "includes/quiz_popup.html" %}{% endif %}
+{% if request.resolver_match.url_name != 'quiz_play' and '/quiz/pincodeday/' not in request.path and '/quiz/promotion-admin/' not in request.path %}{% include "includes/quiz_popup.html" %}{% endif %}
 
 <!-- ── PAGE LOADING INDICATOR ── -->
 <div id="opc-bar" style="position:fixed;top:0;left:0;width:0%;height:3px;background:linear-gradient(90deg,#1d4ed8,#f97316,#059669);z-index:99999;transition:width .25s ease,opacity .3s ease;opacity:0;pointer-events:none"></div>
