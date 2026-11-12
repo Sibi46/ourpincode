@@ -20,6 +20,8 @@
 <div class="pj-wrapper">
   {% if company %}<header class="pj-company" style="padding:16px 0;overflow-wrap:anywhere"><strong>Posting for {{ company.company_name }}</strong>{% if company.description %}<p style="font-size:13px;line-height:1.7;color:#64748b;margin-top:8px">{{ company.description|truncatechars:240 }}</p>{% endif %}</header>{% endif %}
 
+  {% if job_errors %}<div id="job-errors" role="alert" style="padding:18px;background:#fff1f1;border:1px solid #e8b4b4;border-radius:12px;margin:16px 0"><strong>Please correct these fields:</strong>{{ job_errors }}</div>{% endif %}
+  {% if posted_data %}{{ posted_data|json_script:'job-posted-data' }}{% endif %}
   <!-- STEP INDICATOR -->
   <div class="pj-steps">
     <div class="pj-step active" id="step-ind-1"><span>1</span><div class="pj-step-label">Job Type</div></div>
@@ -159,7 +161,7 @@
               <i class="fas fa-exclamation-circle"></i> Maximum 3 industries allowed. Deselect one to choose another.
             </p>
             <div style="display:flex;gap:6px;margin-top:8px">
-              <input type="text" id="indCustomInput" placeholder="Type your industry & press Enter" maxlength="40" style="flex:1;padding:7px 12px;border:1.5px solid #dde1ea;border-radius:20px;font-size:12px;outline:none;font-family:inherit" onkeydown="indAddCustom(event)">
+              <input type="text" id="indCustomInput" placeholder="Type an industry name & press Enter" maxlength="40" style="flex:1;padding:7px 12px;border:1.5px solid #dde1ea;border-radius:20px;font-size:12px;outline:none;font-family:inherit" onkeydown="indAddCustom(event)">
               <button type="button" onclick="indAddCustom({key:'Enter'})" style="padding:7px 14px;background:#0a66c2;color:#fff;border:none;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer">Add</button>
             </div>
           </div>
@@ -289,8 +291,8 @@
 
           <div class="pj-field full">
             <label><i class="fas fa-align-left"></i> Job Description *</label>
-            <textarea name="description" id="f-desc" rows="6" placeholder="Describe the role, responsibilities, and what a typical day looks like…" required></textarea>
-            <div class="char-count"><span id="desc-count">0</span>/150</div>
+            <textarea name="description" id="f-desc" data-job-word-limit="150" rows="6" placeholder="Describe the role, responsibilities, and what a typical day looks like…" required></textarea>
+            <div class="char-count"><span id="desc-count">0</span> / 150 words</div>
           </div>
 
         </div>
@@ -334,9 +336,9 @@
 
           <div class="pj-field full">
             <label><i class="fas fa-tools"></i> Skills Required</label>
-            <input type="text" name="skills" id="f-skills" placeholder="e.g. Python, Excel, Welding, MS Word (comma-separated)">
+            <div style="display:flex;gap:8px;align-items:center;min-width:0"><input type="text" name="skills" id="f-skills" placeholder="e.g. Python, Excel, Welding" style="flex:1;min-width:0"><button type="button" id="add-skill" class="pj-btn-primary">Add</button></div>
             <div class="skill-tags-row" id="skill-tags"></div>
-            <small style="color:#888">Press comma or Enter to add a skill tag</small>
+            <small style="color:#888">Enter a skill and click Add. You can add several skills separated by commas.</small>
           </div>
 
           <div class="pj-field full">
@@ -386,7 +388,7 @@
 
           <div class="pj-field">
             <label><i class="fas fa-calendar-times"></i> Application Deadline</label>
-            <input type="date" name="last_date" id="f-deadline">
+            <input type="text" name="last_date" id="f-deadline" inputmode="numeric" placeholder="DD/MM/YYYY" maxlength="10" pattern="[0-9]{2}/[0-9]{2}/[0-9]{4}" aria-describedby="deadline-help"><small id="deadline-help">DD/MM/YYYY &middot; four-digit year</small>
           </div>
 
           <div class="pj-field">
@@ -454,13 +456,13 @@
           <div class="pj-field">
             <label><i class="fas fa-map-pin"></i> PIN Code *</label>
             <input type="text" name="pincode" id="f-pincode" placeholder="6-digit PIN code"
-                   maxlength="6" pattern="[0-9]{6}" required
-                   oninput="onPincodeInput(this.value)" data-pinlookup>
+                   maxlength="6" inputmode="numeric" pattern="[1-9][0-9]{5}" required
+                   oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,6);onPincodeInput(this.value)">
             <div class="pin-area-preview" id="pin-area-preview"></div>
           </div>
           <div class="pj-field">
             <label><i class="fas fa-city"></i> Location / Area Name</label>
-            <input type="text" name="location" id="f-location" placeholder="e.g. Anna Nagar, Coimbatore">
+            <input type="text" name="location" id="f-location" data-job-location placeholder="e.g. Anna Nagar, Coimbatore">
           </div>
         </div>
 
@@ -671,13 +673,15 @@ function indAddCustom(e) {
   const inp = document.getElementById('indCustomInput');
   const val = inp.value.trim();
   if (!val) return;
+  if (!/\p{L}/u.test(val)) { inp.setCustomValidity('Enter an industry name containing letters.'); inp.reportValidity(); return; }
+  inp.setCustomValidity('');
   const selected = document.querySelectorAll('.ind-chip.selected');
   if (selected.length >= 3) {
     document.getElementById('indMaxWarn').style.display = 'flex';
     return;
   }
   // Check if already exists as a chip
-  const existing = document.querySelector('.ind-chip[data-val="' + val + '"]');
+  const existing = Array.from(document.querySelectorAll('.ind-chip')).find(chip => chip.dataset.val === val);
   if (existing) {
     if (!existing.classList.contains('selected')) toggleIndustry(existing);
     inp.value = '';
@@ -852,18 +856,26 @@ function nextStep(from, to) {
     const ind   = document.getElementById('f-industry');
     const role  = document.getElementById('f-role');
     const desc  = document.getElementById('f-desc');
-    if (!title.value.trim()) { title.focus(); alert('Please enter a job title.'); return; }
+    if (!/\p{L}/u.test(title.value)) { title.focus(); alert('Enter a job title containing letters.'); return; }
     if (!ind.value)          { document.getElementById('indChipGrid').scrollIntoView({behavior:'smooth'}); alert('Please select at least 1 industry.'); return; }
     var roleVal = selectedCollar === 'blue'
       ? document.getElementById('f-role-val').value
       : (role ? role.value : '');
     if (!roleVal) { alert(selectedCollar === 'blue' ? 'Please tap to select who you are hiring.' : 'Please select a job role.'); return; }
     if (selectedCollar !== 'blue') document.getElementById('f-role-val').value = roleVal;
-    if (!desc.value.trim())  { desc.focus();  alert('Please enter a job description.'); return; }
+    if (!desc.value.trim() || desc.value.trim().split(/\s+/).length > 150) { desc.focus(); alert('Enter a job description of no more than 150 words.'); return; }
+  }
+  if (from === 3) {
+    const skills = document.getElementById('f-skills');
+    const deadline = document.getElementById('f-deadline');
+    if (skills.value.trim()) { skills.focus(); alert('Click Add to save your skill before continuing.'); return; }
+    if (!deadline.checkValidity()) { deadline.reportValidity(); return; }
   }
   if (from === 4) {
+    const location = document.getElementById('f-location');
+    if (!location.checkValidity()) { location.reportValidity(); return; }
     const pin = document.getElementById('f-pincode');
-    if (!pin.value || pin.value.length !== 6) { pin.focus(); alert('Please enter a valid 6-digit PIN code.'); return; }
+    if (!/^[1-9][0-9]{5}$/.test(pin.value)) { pin.focus(); alert('Please enter a valid 6-digit PIN code.'); return; }
     buildReview();
   }
   goStep(to);
@@ -920,25 +932,27 @@ document.addEventListener('DOMContentLoaded', function() {
 
   function addSkill(val) {
     val = val.trim().replace(/,/g, '');
-    if (!val || skills.includes(val)) return;
+    if (!val) return;
+    if (skills.includes(val)) { skillInput.value = ''; return; }
     skills.push(val);
     const tag = document.createElement('span');
     tag.className = 'skill-tag';
-    tag.innerHTML = val + ' <i class="fas fa-times" onclick="removeSkill(\'' + val + '\', this.parentElement)"></i>';
+    tag.appendChild(document.createTextNode(val + ' '));
+    const remove = document.createElement('button');
+    remove.type = 'button'; remove.textContent = 'x'; remove.setAttribute('aria-label', 'Remove ' + val);
+    remove.addEventListener('click', () => window.removeSkill(val, tag));
+    tag.appendChild(remove);
     tagsRow.appendChild(tag);
     skillInput.value = '';
     syncSkillsInput();
   }
 
   skillInput.addEventListener('keydown', function(e) {
-    if (e.key === 'Enter' || e.key === ',') {
-      e.preventDefault();
-      addSkill(this.value);
-    }
+    if (e.key === 'Enter') e.preventDefault();
   });
-
-  skillInput.addEventListener('blur', function() {
-    if (this.value.trim()) addSkill(this.value);
+  document.getElementById('add-skill').addEventListener('click', function() {
+    skillInput.value.split(',').forEach(value => addSkill(value));
+    skillInput.focus();
   });
 
   window.removeSkill = function(val, el) {
@@ -954,19 +968,23 @@ document.addEventListener('DOMContentLoaded', function() {
     if (!hidden) {
       hidden = document.createElement('input');
       hidden.type = 'hidden';
-      hidden.id   = 'skills-hidden';
+      hidden.id = 'skills-hidden';
       hidden.name = 'skills';
-      skillInput.parentElement.appendChild(hidden);
+      tagsRow.after(hidden);
     }
     hidden.value = skills.join(', ');
   }
+  syncSkillsInput();
+  window.restoreJobSkills = value => value.split(',').forEach(addSkill);
 
-  /* ── Description character count ── */
+  /* Description word count */
   const descEl  = document.getElementById('f-desc');
   const countEl = document.getElementById('desc-count');
   if (descEl) {
     function updateDescCount() {
-      var len = descEl.value.length;
+      const words = descEl.value.match(/\S+/gu) || [];
+      if (words.length > 150) descEl.value = words.slice(0, 150).join(' ');
+      var len = Math.min(words.length, 150);
       countEl.textContent = len;
       countEl.parentElement.style.color = len >= 150 ? '#16a34a' : len > 120 ? '#f59e0b' : '#64748b';
     }
@@ -1035,6 +1053,8 @@ var _pinCache = {};
 function onPincodeInput(val) {
   var preview = document.getElementById('pin-area-preview');
   var pin = val.replace(/\D/g, '');
+  document.getElementById('f-pincode').value = pin.slice(0, 6);
+  if (window._lastJobPin !== pin) { document.getElementById('f-location').value = ''; window._lastJobPin = pin; }
   if (pin.length !== 6) { preview.innerHTML = ''; return; }
   if (_pinCache[pin]) { applyPinResult(pin, _pinCache[pin], preview); return; }
   preview.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Looking up…';
@@ -1045,10 +1065,11 @@ function onPincodeInput(val) {
       if (data && data.success) {
         res = { area: data.area, district: data.district, state: data.state };
       }
-      _pinCache[pin] = res;
+      if (res) _pinCache[pin] = res;
+      if (document.getElementById('f-pincode').value !== pin) return;
       applyPinResult(pin, res, preview);
     })
-    .catch(function(){ preview.innerHTML = '<i class="fas fa-exclamation-triangle" style="color:#e65100"></i> Lookup failed'; });
+    .catch(function(){ if (document.getElementById('f-pincode').value === pin) preview.textContent = 'Area lookup unavailable. Please enter the area name.'; });
 }
 function applyPinResult(pin, res, preview) {
   if (!res) {
@@ -1056,16 +1077,10 @@ function applyPinResult(pin, res, preview) {
     return;
   }
   var label = res.area !== res.district ? res.area + ', ' + res.district : res.district;
-  preview.innerHTML = '<i class="fas fa-map-marker-alt" style="color:#2e7d32"></i> <strong>' + label + '</strong>, ' + res.state;
+  preview.textContent = label + (res.state ? ', ' + res.state : '');
   var locEl = document.getElementById('f-location');
-  if (locEl && !locEl._userTyped) locEl.value = label;
+  if (locEl) { locEl.value = label.replace(/\p{N}/gu, '').trim(); locEl.dispatchEvent(new Event('input')); }
 }
-// Don't overwrite if user manually typed in location
-document.addEventListener('DOMContentLoaded', function(){
-  var locEl = document.getElementById('f-location');
-  if (locEl) locEl.addEventListener('input', function(){ locEl._userTyped = true; });
-});
-
 /* ── Map functions (Leaflet + OpenStreetMap, no API key needed) ── */
 function initMap() {
   if (mapInstance || document.getElementById('panel-4').classList.contains('hidden')) return;
@@ -1243,7 +1258,7 @@ document.addEventListener('DOMContentLoaded',function(){
 });
 </script>
 <script src="/static/js/ac_roles.js?v=1"></script>
-<script src="/static/js/pincode_lookup.js?v=1"></script>
+<script src="/static/js/post-job-controls.js?v=1" defer></script>
 </body>
 </html>
 

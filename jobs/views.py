@@ -693,15 +693,19 @@ def post_job(request):
             return redirect('employer_dashboard')
 
     if request.method == 'POST':
-        import datetime
-        p = request.POST
-        last_date_str = p.get('last_date', '')
-        last_date = None
-        if last_date_str:
-            try:
-                last_date = datetime.datetime.strptime(last_date_str, '%Y-%m-%d').date()
-            except ValueError:
-                pass
+        from .job_post_validation import JobPostingValidationForm
+        validation = JobPostingValidationForm(request.POST)
+        if not validation.is_valid():
+            return render(request, 'post_job.html', {
+                'industries': Industry.objects.filter(is_active=True).prefetch_related('roles'),
+                'company': getattr(user, 'company', None), 'job_errors': validation.errors,
+                'posted_data': request.POST.dict(),
+            }, status=400)
+        p = request.POST.copy()
+        for field, value in validation.cleaned_data.items():
+            if field != 'last_date':
+                p[field] = value
+        last_date = validation.cleaned_data['last_date']
 
         action = p.get('action', 'publish')
         status = 'draft' if action == 'draft' else 'active'

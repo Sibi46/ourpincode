@@ -10,7 +10,7 @@ from django.shortcuts import get_object_or_404, redirect
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 
-from .models import BusinessFollow, CompanyProfile, JobSeekerProfile, User
+from .models import BusinessFollow, CompanyProfile, JobSeekerProfile, User, Industry
 from .profile_validation import ProfileValidationMixin, BLUE_TYPES, WHITE_TYPES
 from .form_fields import FourDigitYearDateField
 
@@ -40,6 +40,20 @@ class LocationPreferencesForm(forms.Form):
 
 class BusinessDetailsForm(forms.ModelForm):
     review_reward_percent = forms.IntegerField(required=False, min_value=0, max_value=50)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        names = ['Food & Beverage', 'Healthcare', 'Education', 'Technology', 'Retail',
+                 'Manufacturing', 'Construction', 'Agriculture', 'Transport & Logistics',
+                 'Hospitality', 'Finance', 'Professional Services', 'Groceries',
+                 'Software', 'Automotive', 'Beauty & Wellness', 'Real Estate', 'Textiles', 'Other']
+        names += [name for name in Industry.objects.filter(is_active=True).values_list('name', flat=True)
+                  if any(c.isalpha() for c in name)]
+        current = self.initial.get('industry', '')
+        if current and current not in names:
+            names.append(current)
+        self.fields['industry'] = forms.ChoiceField(required=False,
+            choices=[('', 'Select an industry')] + [(name, name) for name in dict.fromkeys(names)])
 
     class Meta:
         model = CompanyProfile
