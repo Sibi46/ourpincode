@@ -1,5 +1,5 @@
 """PincodeDay promotion: event-scoped, auditable daily quiz scores."""
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 from zoneinfo import ZoneInfo
 
 from django import forms
@@ -204,8 +204,14 @@ def daily(request, pk):
     options = [(key, getattr(question.question, 'option_' + key.lower())) for key in 'ABCD'] if question else []
     results = user_results(request.user, event)
     results['history'] = Paginator(results['history'], 20).get_page(request.GET.get('page'))
+    completed = sum(bool(a.answered_at) for a in answers)
+    next_quiz_at = None
+    quiz_day = answers[0].day if answers else today()
+    if completed == 3 and quiz_day < event.quiz_closes_on:
+        next_quiz_at = datetime.combine(quiz_day + timedelta(days=1), datetime.min.time(), tzinfo=ZoneInfo('Asia/Kolkata'))
     return render(request, 'quiz/day_daily.html', {'event': event, 'participant': participant, 'question': question,
-        'options': options, 'answers': answers, 'completed': sum(bool(a.answered_at) for a in answers),
+        'options': options, 'answers': answers, 'completed': completed,
+        'next_quiz_at': next_quiz_at, 'quiz_server_now': timezone.now(),
         **results})
 
 

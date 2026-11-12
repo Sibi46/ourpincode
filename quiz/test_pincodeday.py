@@ -288,3 +288,25 @@ class PincodeDayTests(TestCase):
         self.assertEqual(response.json()['redirect'], reverse('day_admin'))
         PromotionAdmin.objects.filter(user=self.user).update(is_active=False)
         self.assertEqual(self.client.get(reverse('day_admin')).status_code, 403)
+
+    def test_countdown_starts_after_third_answer_and_persists_on_refresh(self):
+        self.client.force_login(self.user)
+        url = reverse('day_daily', args=[self.event.pk])
+        participant, answers = allocate(self.event, self.user)
+        self.assertNotContains(self.client.get(url), 'data-next-quiz-at=')
+        for answer in answers[:2]:
+            record_answer(self.event.pk, self.user, answer.pk, 'A')
+        self.assertNotContains(self.client.get(url), 'data-next-quiz-at=')
+        record_answer(self.event.pk, self.user, answers[2].pk, 'B')
+        response = self.client.get(url)
+        target = response.context['next_quiz_at']
+        self.assertEqual(target.date(), today()+timedelta(days=1))
+        self.assertEqual((target.hour, target.minute, target.second), (0, 0, 0))
+        self.assertEqual(target.utcoffset(), timedelta(hours=5, minutes=30))
+        self.assertContains(response, 'data-next-quiz-at=')
+        self.assertEqual(self.client.get(url).context['next_quiz_at'], target)
+        participant.refresh_from_db(); self.assertEqual(participant.points, 11)
+        self.event.quiz_closes_on = today(); self.event.save()
+        response = self.client.get(url)
+        self.assertNotContains(response, 'data-next-quiz-at=')
+        self.assertContains(response, 'completed the final day')

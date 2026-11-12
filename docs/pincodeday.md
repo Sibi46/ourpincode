@@ -20,6 +20,10 @@ Users see their own total points, today's points, correct/wrong counts and paged
 answer history. Results persist on refresh and remain available when scoring
 closes. Completing three questions ends that day's quiz; refreshing or adding
 questions in admin does not reset a user's daily allowance.
+After the third answer, a countdown shows the time until midnight in India.
+The reset time persists across refreshes and uses server time to handle an
+incorrect device clock. At zero, Start next quiz opens the normal daily quiz
+flow. No next-day timer is shown after the event's final scoring day.
 
 Setup
 -----
