@@ -6,8 +6,21 @@
     const location = document.getElementById('f-location');
     const deadline = document.getElementById('f-deadline');
     const customIndustry = document.getElementById('indCustomInput');
-    title.addEventListener('input', () => title.setCustomValidity(title.value && !/\p{L}/u.test(title.value)
-      ? 'Enter a job title containing letters.' : ''));
+    const titleHint = document.createElement('small');
+    titleHint.id = 'job-title-error';
+    titleHint.setAttribute('role', 'status');
+    titleHint.style.color = '#b42318';
+    title.after(titleHint);
+    title.setAttribute('aria-describedby', titleHint.id);
+    function validateTitle() {
+      const invalid = !!title.value && !/\p{L}/u.test(title.value);
+      const message = invalid ? 'Enter a job title containing letters. Numbers alone are not a valid job title.' : '';
+      title.setCustomValidity(message);
+      title.setAttribute('aria-invalid', String(invalid));
+      titleHint.textContent = message;
+    }
+    title.addEventListener('input', validateTitle);
+    title.addEventListener('blur', validateTitle);
     customIndustry.addEventListener('input', () => customIndustry.setCustomValidity(''));
     const locationHint = document.createElement('small');
     locationHint.setAttribute('role', 'status');
@@ -78,6 +91,7 @@
       goStep(2);
       document.getElementById('job-errors').scrollIntoView({block: 'start'});
     }
+    validateTitle();
   }
   if (document.readyState !== 'complete') document.addEventListener('DOMContentLoaded', start);
   else start();

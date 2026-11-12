@@ -7,7 +7,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Post a Job — OUR PINCODE</title>
   <link rel="stylesheet" href="{% static 'css/style.css' %}?v=3">
-  <link rel="stylesheet" href="{% static 'css/post_job.css' %}?v=6">
+  <link rel="stylesheet" href="{% static 'css/post_job.css' %}?v=7">
   <link rel="stylesheet" href="{% static 'css/bottom_nav.css' %}?v=3">
   <link rel="stylesheet" href="/static/fontawesome/css/all.min.css">
 {% include "includes/site_ui.html" %}
@@ -336,7 +336,7 @@
 
           <div class="pj-field full">
             <label><i class="fas fa-tools"></i> Skills Required</label>
-            <div style="display:flex;gap:8px;align-items:center;min-width:0"><input type="text" name="skills" id="f-skills" placeholder="e.g. Python, Excel, Welding" style="flex:1;min-width:0"><button type="button" id="add-skill" class="pj-btn-primary">Add</button></div>
+            <div class="pj-skill-entry"><input type="text" name="skills" id="f-skills" dir="ltr" placeholder="e.g. Python, Excel, Welding"><button type="button" id="add-skill" class="pj-btn-primary">Add</button></div>
             <div class="skill-tags-row" id="skill-tags"></div>
             <small style="color:#888">Enter a skill and click Add. You can add several skills separated by commas.</small>
           </div>
@@ -537,7 +537,7 @@
           <button type="button" class="pj-btn-ghost" onclick="goStep(4)"><i class="fas fa-arrow-left"></i> Back</button>
           <div class="post-actions">
             <button type="button" class="pj-btn-draft" onclick="submitForm('draft')"><i class="fas fa-save"></i> Save as Draft</button>
-            <button type="submit" class="pj-btn-post" onclick="submitForm('publish')"><i class="fas fa-paper-plane"></i> Post Job Now</button>
+            <button type="submit" class="pj-btn-post" onclick="return submitForm('publish')"><i class="fas fa-paper-plane"></i> Post Job Now</button>
           </div>
         </div>
       </div>
@@ -937,6 +937,7 @@ document.addEventListener('DOMContentLoaded', function() {
     skills.push(val);
     const tag = document.createElement('span');
     tag.className = 'skill-tag';
+    tag.dir = 'ltr';
     tag.appendChild(document.createTextNode(val + ' '));
     const remove = document.createElement('button');
     remove.type = 'button'; remove.textContent = 'x'; remove.setAttribute('aria-label', 'Remove ' + val);
@@ -1227,11 +1228,13 @@ function validateSalRange() {
 function submitForm(action) {
   if (!validateSalRange()) {
     document.getElementById('salAmountRow').scrollIntoView({behavior:'smooth', block:'center'});
-    return;
+    return false;
   }
   document.getElementById('action_input').value = action;
   syncLanguages();
   syncWorkingDays();
+  if (action === 'draft') document.getElementById('jobForm').requestSubmit();
+  return true;
 }
 
 </script>
@@ -1258,7 +1261,7 @@ document.addEventListener('DOMContentLoaded',function(){
 });
 </script>
 <script src="/static/js/ac_roles.js?v=1"></script>
-<script src="/static/js/post-job-controls.js?v=1" defer></script>
+<script src="/static/js/post-job-controls.js?v=2" defer></script>
 </body>
 </html>
 

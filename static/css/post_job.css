@@ -323,3 +323,4 @@
   .pj-step span{width:26px;height:26px;font-size:11px}
   .bc-role-grid{grid-template-columns:repeat(3,1fr)}
 }
+.pj-skill-entry{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center;min-width:0}.pj-skill-entry #f-skills{min-width:0;width:100%;direction:ltr;text-align:left;caret-color:currentColor}.pj-skill-entry .pj-btn-primary{width:auto;white-space:nowrap;justify-content:center;padding:12px 18px}.skill-tags-row .skill-tag{direction:ltr;unicode-bidi:isolate}.skill-tags-row .skill-tag button{border:0;background:transparent;color:inherit;cursor:pointer;padding:0 3px;font:inherit}
