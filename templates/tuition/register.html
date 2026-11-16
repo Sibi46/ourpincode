@@ -1,6 +1,6 @@
 {% extends 'base.html' %}{% load static %}
 {% block title %}Teaching profile · OUR PINCODE{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{% static 'tuition/simple-forms.css' %}?v=profile-management-1"><link rel="stylesheet" href="{% static 'tuition/learning.css' %}"><link rel="stylesheet" href="{% static 'tuition/register.css' %}?v=registration-5">{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'tuition/simple-forms.css' %}?v=profile-management-1"><link rel="stylesheet" href="{% static 'tuition/learning.css' %}"><link rel="stylesheet" href="{% static 'tuition/register.css' %}?v=registration-6">{% endblock %}
 {% block content %}
 <main class="learning teacher-register">
   <nav aria-label="Learning navigation">{% if request.user.is_authenticated %}<a class="button" href="{% url 'tuition:notifications' %}">Tuition notifications</a>{% endif %}<a href="{% url 'tuition:discover' %}">Find a teacher</a><a href="{% url 'tuition:dashboard' %}">My profile</a></nav>

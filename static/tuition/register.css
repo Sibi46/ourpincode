@@ -5,3 +5,13 @@
 #id_categories{display:block}#id_categories>.category-subject-row{display:grid;grid-template-columns:minmax(130px,1fr) minmax(0,2fr);gap:18px;align-items:start;padding:14px 0;border-bottom:1px solid #e0e8e3}#id_categories .category-subject-row>.registration-field>label{border:0;padding:0;font-size:13px}#id_categories .subject-row input{width:100%;height:auto;min-height:44px;flex:1;padding:10px}#id_categories .registration-field[hidden]{display:none}@media(max-width:480px){#id_categories>.category-subject-row{grid-template-columns:110px minmax(0,1fr);gap:10px}#id_categories .subject-row{flex-wrap:wrap}}
 
 .image-crop{margin:12px 0;padding:14px;border:1px solid #cddfd4;border-radius:12px;background:#f3f8f5}.image-crop[hidden]{display:none}.image-crop canvas{display:block;width:100%;max-height:300px;object-fit:contain;background:#e3e8e4}.image-crop label{display:block;margin-top:12px}.image-crop input[type=range]{width:100%;padding:0}.image-crop button{margin:8px 4px 0 0;font-size:13px}
+
+/* Category labels and their subject editors must shrink inside the form. */
+.teacher-register #id_categories>.category-subject-row{grid-template-columns:minmax(0,1fr) minmax(0,2fr);min-width:0}
+.teacher-register #id_categories .category-subject-row>label{min-width:0;box-sizing:border-box;white-space:normal;overflow-wrap:anywhere;align-items:flex-start}
+.teacher-register #id_categories .category-subject-row>label input{flex:0 0 18px;margin-top:2px}
+.teacher-register #id_categories .registration-field{min-width:0;max-width:100%}
+.teacher-register #id_categories .subject-row{min-width:0;max-width:100%;flex-wrap:wrap}
+.teacher-register #id_categories .subject-row input{flex:1 1 120px;min-width:0;box-sizing:border-box}
+.teacher-register #id_categories button{max-width:100%;white-space:normal;overflow-wrap:anywhere;box-sizing:border-box}
+@media(max-width:600px){.teacher-register #id_categories>.category-subject-row{grid-template-columns:minmax(0,1fr);gap:10px}}
