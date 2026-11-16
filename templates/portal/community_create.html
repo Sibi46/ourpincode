@@ -13,6 +13,15 @@
     {% endfor %}
   {% endif %}
 
+  <section class="pcard" style="margin-bottom:16px" aria-label="Published communities">
+    <div class="pcard-head"><div class="pcard-title">Published communities</div><a href="/portal/communities/">Browse all</a></div>
+    <div class="pcard-body">
+      {% for community in published_communities %}
+      <p><a href="{% url 'portal_community' community.page_id %}">{{ community.name }}</a> <small>{{ community.location }} · {{ community.pincode }}</small></p>
+      {% empty %}<p>No published communities yet.</p>{% endfor %}
+    </div>
+  </section>
+
   <form id="communityCreateForm" method="post" enctype="multipart/form-data">
     {% csrf_token %}
     <div class="pcard" style="margin-bottom:16px">
@@ -316,25 +325,23 @@ function onPincodeInput(el) {
 }
 
 function lookupPincode(pin) {
-  fetch('https://api.postalpincode.in/pincode/' + pin)
-    .then(function(r){ return r.json(); })
+  fetch('/api/pincode/' + pin + '/')
+    .then(function(r){ if (!r.ok) throw new Error('Lookup failed'); return r.json(); })
     .then(function(data) {
+      if (document.getElementById('pincodeInput').value !== pin) return;
       document.getElementById('pincodeSpinner').style.display = 'none';
       var msg = document.getElementById('pincodeMsg');
-      var locInput = document.getElementById('locationInput');
-      if (data && data[0] && data[0].Status === 'Success' && data[0].PostOffice && data[0].PostOffice.length > 0) {
-        var po = data[0].PostOffice[0];
-        var place = po.Block && po.Block !== 'NA' ? po.Block : po.District;
-        var full = place + ', ' + po.State;
-        locInput.value = full;
-        msg.textContent = '✅ ' + po.District + ', ' + po.State;
+      if (data.success && data.area) {
+        document.getElementById('locationInput').value = data.area + ', ' + data.state;
+        msg.textContent = data.area + ', ' + data.state;
         msg.style.color = '#059669';
       } else {
-        msg.textContent = '❌ Pincode not found — enter location manually';
+        msg.textContent = 'Pincode not found — enter location manually';
         msg.style.color = '#ef4444';
       }
     })
     .catch(function() {
+      if (document.getElementById('pincodeInput').value !== pin) return;
       document.getElementById('pincodeSpinner').style.display = 'none';
       document.getElementById('pincodeMsg').textContent = 'Could not fetch — enter location manually';
     });

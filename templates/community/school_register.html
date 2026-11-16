@@ -1,4 +1,4 @@
-﻿{% extends 'base.html' %}
+{% extends 'base.html' %}{% load static %}
 {% block title %}Register School – OUR PINCODE{% endblock %}
 {% block content %}
 <style>
@@ -29,13 +29,14 @@
 </div>
 
 <div class="sr-form">
+  {% if name_error %}<p role="alert" style="color:#b42318;background:#fff1f2;padding:14px;border-radius:10px">{{ name_error }}</p>{% endif %}
   <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
     <div class="form-card">
       <h3>School Details</h3>
       <div class="field">
         <label>School Name *</label>
-        <input type="text" name="name" placeholder="e.g. Government Higher Secondary School" required>
+        <input type="text" name="name" value="{{ request.POST.name }}" placeholder="e.g. Government Higher Secondary School" required>
       </div>
       <div class="field-row">
         <div class="field">
@@ -51,16 +52,16 @@
       </div>
       <div class="field">
         <label>Address</label>
-        <textarea name="address" placeholder="Full school address..."></textarea>
+        <textarea name="address" placeholder="Full school address...">{{ request.POST.address }}</textarea>
       </div>
       <div class="field-row">
         <div class="field">
           <label>Principal Name</label>
-          <input type="text" name="principal_name" placeholder="e.g. Mr. Ramesh Kumar">
+          <input type="text" name="principal_name" data-person-name value="{{ request.POST.principal_name }}" placeholder="e.g. Ramesh Kumar" title="Use letters and spaces only">
         </div>
         <div class="field">
           <label>Vice Principal Name</label>
-          <input type="text" name="vice_principal" placeholder="e.g. Mrs. Kavitha Devi">
+          <input type="text" name="vice_principal" data-person-name value="{{ request.POST.vice_principal }}" placeholder="e.g. Kavitha Devi" title="Use letters and spaces only">
         </div>
       </div>
       <div class="field-row">
@@ -115,4 +116,5 @@ function previewImg(input, id){
 }
 document.getElementById('coverInput').onchange=function(){ previewImg(this); };
 </script>
+<script src="{% static 'js/form-validation.js' %}?v=2" defer></script>
 {% endblock %}

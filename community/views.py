@@ -5,6 +5,7 @@ from django.http import JsonResponse
 from django.contrib import messages
 from django.db import transaction
 from django.http import Http404
+from jobs.person_names import valid_person_name
 import base64
 from django.core.files.base import ContentFile
 from .models import (FamilyStory, FamilyStoryLike, FamilyStoryComment,
@@ -1124,6 +1125,12 @@ def school_register(request):
         phone     = request.POST.get('phone', '').strip()
         principal = request.POST.get('principal_name', '').strip()
         vice_prin = request.POST.get('vice_principal', '').strip()
+        invalid_names = [label for label, value in [('Principal name', principal), ('Vice principal name', vice_prin)] if value and not valid_person_name(value)]
+        if invalid_names:
+            return render(request, 'community/school_register.html', {
+                'type_choices': School.TYPE_CHOICES,
+                'name_error': ', '.join(invalid_names) + ' must contain letters and spaces only.',
+            }, status=400)
         logo  = request.FILES.get('logo')
         cover = request.FILES.get('cover')
         if name:

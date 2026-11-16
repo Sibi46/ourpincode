@@ -42,7 +42,9 @@ def _is_member(community, user):
 def portal_home(request):
     communities = Community.objects.filter(is_active=True, is_verified=True).order_by('-created_at')
     from jobs.account import selected_area
-    pincode = selected_area(request)
+    pincode = request.GET.get('pincode', '').strip()
+    if request.GET.get('nearby') == '1' and not pincode:
+        pincode = selected_area(request)
     category = request.GET.get('category', '').strip()
     q = request.GET.get('q', '').strip()
 
@@ -71,7 +73,9 @@ def community_list(request):
     communities = Community.objects.filter(is_active=True, is_verified=True)
     q       = request.GET.get('q', '').strip()
     from jobs.account import selected_area
-    pincode = selected_area(request)
+    pincode = request.GET.get('pincode', '').strip()
+    if request.GET.get('nearby') == '1' and not pincode:
+        pincode = selected_area(request)
     cat     = request.GET.get('category', '').strip()
     if q:
         communities = communities.filter(Q(name__icontains=q) | Q(page_id__icontains=q))
@@ -287,6 +291,7 @@ def portal_search(request):
 @login_required
 def create_community(request):
     categories = Category.objects.all()
+    context = {'categories': categories, 'published_communities': Community.objects.filter(is_active=True, is_verified=True).order_by('-created_at')[:6]}
     if request.method == 'POST':
         p = request.POST
 
@@ -327,10 +332,10 @@ def create_community(request):
 
             if not email or not password:
                 messages.error(request, 'Email and password are required to create your account.')
-                return render(request, 'portal/community_create.html', {'categories': categories})
+                return render(request, 'portal/community_create.html', context)
             if User.objects.filter(email=email).exists():
                 messages.error(request, 'An account with this email already exists. Please log in first.')
-                return render(request, 'portal/community_create.html', {'categories': categories})
+                return render(request, 'portal/community_create.html', context)
 
             base_uname = email.split('@')[0]
             username = base_uname
@@ -386,7 +391,7 @@ def create_community(request):
         messages.success(request, f'Community "{community.name}" created! Page ID: {community.page_id}')
         return redirect('portal_community', page_id=community.page_id)
 
-    return render(request, 'portal/community_create.html', {'categories': categories})
+    return render(request, 'portal/community_create.html', context)
 
 
 def _notify_leader(leader, email, phone='', temp_password=''):

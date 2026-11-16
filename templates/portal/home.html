@@ -29,7 +29,7 @@
   <img src="/static/images/community.jpg" alt="">
   <div class="portal-hero-overlay"></div>
   <div class="portal-hero-content">
-    <div class="portal-hero-label">🏘️ Communities Near You</div>
+    <div class="portal-hero-label">🏘️ {% if pincode %}Communities Near You{% else %}All Communities{% endif %}</div>
     <h1 class="portal-hero-title">Don't just post.<br><span style="color:#f97316">Participate.</span></h1>
     <p class="portal-hero-desc portal-hero-desc-hide">Join communities around your Pincode. Support causes, attend events & create real-world impact.</p>
     <div class="portal-hero-btns">
@@ -72,7 +72,7 @@
 
   <!-- COMMUNITIES GRID -->
   <div class="psec-header">
-    <div class="psec-title">Communities Near You</div>
+    <div class="psec-title">{% if pincode %}Communities Near You{% else %}All Communities{% endif %}</div>
     <a href="/portal/communities/" style="font-size:12px;color:#1d4ed8;font-weight:700">View all →</a>
   </div>
 

@@ -1,6 +1,7 @@
 (function () {
   'use strict';
-  document.querySelectorAll('input[type="password"]').forEach((input, index) => {
+  const selector = document.currentScript?.dataset.passwordFields || 'input[type="password"]';
+  document.querySelectorAll(selector).forEach((input, index) => {
     if (input.closest('.campus-password')) return;
     if (!input.id) input.id = 'campus-password-' + index;
     const wrapper = document.createElement('div');
