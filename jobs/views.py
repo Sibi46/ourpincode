@@ -2619,7 +2619,7 @@ def super_admin_delete_user(request, user_id):
         counts = Counter(str(record._meta.verbose_name_plural) for record in records)
         details = ', '.join(f'{label} ({count})' for label, count in sorted(counts.items())) or 'related records'
         messages.error(request, f'User "{name}" could not be deleted because protected records are linked to this account: '
-                       f'{details}. Remove or reassign these records in their module before deleting the user. No records were deleted.')
+                       f'{details}. Use Delete everything on the users page to review and remove the account with its linked records. No records were deleted.')
         return redirect('super_admin_users')
     except IntegrityError:
         logger.warning('User deletion blocked by a database relationship: user_id=%s', user_id)
@@ -2632,6 +2632,7 @@ def super_admin_delete_user(request, user_id):
 
 def _users_list(request):
     from django.db.models import Q
+    from .models import AccountFileDeletion
     search   = request.GET.get('q', '').strip()
     utype    = request.GET.get('type', '')
 
@@ -2657,6 +2658,7 @@ def _users_list(request):
 
     return render(request, 'admin_users.html', {
         'users': qs,
+        'pending_account_files': AccountFileDeletion.objects.count() if request.user.admin_role == 'super_admin' else 0,
         'search': search,
         'utype': utype,
         'employer_count': employer_count,

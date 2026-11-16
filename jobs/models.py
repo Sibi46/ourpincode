@@ -944,6 +944,18 @@ class SavedCandidate(models.Model):
         return f"{self.employer.username} saved {self.candidate.get_full_name()}"
 
 
+class AccountFileDeletion(models.Model):
+    storage_model = models.CharField(max_length=100)
+    storage_field = models.CharField(max_length=100)
+    name = models.CharField(max_length=500)
+    user_id_snapshot = models.PositiveBigIntegerField()
+    attempts = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['storage_model', 'storage_field', 'name'], name='account_delete_file_unique')]
+
+
 class Wallet(models.Model):
     user       = models.OneToOneField(User, on_delete=models.CASCADE, related_name='wallet')
     balance    = models.DecimalField(max_digits=10, decimal_places=2, default=0)

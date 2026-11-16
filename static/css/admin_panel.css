@@ -668,3 +668,4 @@ body { background: var(--ap-bg); color: var(--ap-text); font-family: 'Inter', sy
   .ap-stats { grid-template-columns: 1fr 1fr; }
   .ap-stat h3 { font-size: 22px; }
 }
+@media(max-width:768px){.ap-topnav{height:auto;min-height:64px;flex-wrap:wrap;gap:8px;padding:10px 12px}.ap-topnav-logo span{display:none}.ap-topnav-actions{flex-shrink:1;flex-wrap:wrap;max-width:100%;margin-left:auto;gap:6px}.ap-topnav-name{display:none}}

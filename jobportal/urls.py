@@ -6,6 +6,7 @@ from django.conf.urls.static import static
 from jobs import views
 from jobs import business_reviews
 from jobs import account
+from jobs import account_deletion
 from jobs import postal_areas
 from django.contrib.sitemaps import views as sitemap_views
 from .seo import SITEMAPS, robots, sitemap_index
@@ -139,6 +140,8 @@ urlpatterns = [
 
     # ── SUPER ADMIN ─────────────────────────────────────────
     path('super-admin/users/',                          views.super_admin_users,     name='super_admin_users'),
+    path('super-admin/users/files/retry/', account_deletion.retry_uploaded_files, name='super_admin_retry_delete_files'),
+    path('super-admin/users/<int:user_id>/delete-all/',  account_deletion.delete_everything, name='super_admin_delete_all'),
     path('super-admin/users/<int:user_id>/delete/',     views.super_admin_delete_user, name='super_admin_delete_user'),
     path('super-admin/',                               views.super_admin_dashboard, name='super_admin_dashboard'),
     path('super-admin/badges/',                        views.super_admin_badges, name='super_admin_badges'),

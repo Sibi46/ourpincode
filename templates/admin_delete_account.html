@@ -1,0 +1,23 @@
+{% extends 'admin_base.html' %}
+{% block title %}Delete user account permanently{% endblock %}
+{% block content %}
+<div class="ap-card" style="max-width:820px;padding:24px;overflow-wrap:anywhere">
+  <h1>Delete account and linked records</h1>
+  <p><strong>{{ target.get_full_name|default:target.username }}</strong> · Account #{{ target.pk }}</p>
+  <p>Phone: {{ target.phone|default:'Not provided' }} · Username: {{ target.username }}</p>
+  <p>This permanently removes the selected account, its linked records and uploaded files. It cannot be undone from the website.</p>
+  <h2>Records to remove</h2>
+  <ul>{% for label,count in deletion_plan.summary %}<li>{{ label|capfirst }}: {{ count }}</li>{% endfor %}</ul>
+  <p>Total: <strong>{{ deletion_plan.total }}</strong> records · {{ deletion_plan.files|length }} uploaded files.</p>
+  <p>Other users' accounts remain. Shared student identities, prize configurations and admin audit history are kept. Links to this account are removed where needed. Files still used by another surviving record are kept.</p>
+  {% if deletion_plan.preserved %}<p>{{ deletion_plan.preserved }} shared records will be preserved.</p>{% endif %}
+  {% if error %}<p role="alert" style="color:#b42318;font-weight:700">{{ error }}</p>{% endif %}
+  <form method="post">
+    {% csrf_token %}<input type="hidden" name="plan_token" value="{{ plan_token }}">
+    <p><label for="deletion-confirmation">Type DELETE to confirm</label><br><input id="deletion-confirmation" name="confirmation" required pattern="DELETE" autocomplete="off" style="padding:12px;max-width:100%;box-sizing:border-box"></p>
+    <p><label><input type="checkbox" name="acknowledge" value="yes" required> I confirm permanent deletion of this account and the records listed above.</label></p>
+    <button type="submit" style="background:#b42318;color:white;border:0;padding:12px 18px;border-radius:8px;cursor:pointer">Delete everything permanently</button>
+    <a href="{% url 'super_admin_users' %}" style="display:inline-block;margin:12px">Cancel</a>
+  </form>
+</div>
+{% endblock %}
