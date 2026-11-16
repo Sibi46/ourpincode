@@ -2598,17 +2598,34 @@ def super_admin_users(request):
 
 
 def super_admin_delete_user(request, user_id):
-    if not request.user.is_authenticated or request.user.admin_role != 'super_admin':
+    if not request.user.is_authenticated or not request.user.is_active or request.user.admin_role != 'super_admin':
         messages.error(request, 'Super Admin access required.')
         return redirect('login')
     if request.method != 'POST':
         return redirect('super_admin_users')
     target = get_object_or_404(User, pk=user_id)
-    if target.admin_role == 'super_admin':
+    if target.admin_role == 'super_admin' or target.is_superuser:
         messages.error(request, 'Cannot delete another Super Admin.')
         return redirect('super_admin_users')
     name = target.get_full_name() or target.username
-    target.delete()
+    from collections import Counter
+    from django.db import IntegrityError
+    from django.db.models.deletion import ProtectedError, RestrictedError
+    try:
+        with transaction.atomic():
+            target.delete()
+    except (ProtectedError, RestrictedError) as error:
+        records = getattr(error, 'protected_objects', getattr(error, 'restricted_objects', ()))
+        counts = Counter(str(record._meta.verbose_name_plural) for record in records)
+        details = ', '.join(f'{label} ({count})' for label, count in sorted(counts.items())) or 'related records'
+        messages.error(request, f'User "{name}" could not be deleted because protected records are linked to this account: '
+                       f'{details}. Remove or reassign these records in their module before deleting the user. No records were deleted.')
+        return redirect('super_admin_users')
+    except IntegrityError:
+        logger.warning('User deletion blocked by a database relationship: user_id=%s', user_id)
+        messages.error(request, f'User "{name}" could not be deleted because linked records still reference this account. '
+                       'Resolve the linked records and try again. No records were deleted.')
+        return redirect('super_admin_users')
     messages.success(request, f'User "{name}" deleted.')
     return redirect('super_admin_users')
 
