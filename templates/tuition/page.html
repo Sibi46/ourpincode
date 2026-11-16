@@ -1,6 +1,6 @@
 {% extends 'base.html' %}{% load static %}
 {% block title %}{{ title }} · Learning · OUR PINCODE{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{% static 'tuition/learning.css' %}">{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'tuition/learning.css' %}"><link rel="stylesheet" href="{% static 'tuition/teaching-tools.css' %}?v=1">{% endblock %}
 {% block content %}
 <main class="learning">
   <nav aria-label="Learning navigation">{% if request.user.is_authenticated %}<a class="button" href="{% url 'tuition:notifications' %}">Tuition notifications</a>{% endif %}<a href="{% url 'tuition:discover' %}">Find a teacher</a><a href="{% url 'tuition:dashboard' %}">My profile</a><a href="{% url 'tuition:timetable' %}">Timetable</a><a href="{% url 'tuition:learner_hub' %}">Activities &amp; progress</a><a href="{% url 'tuition:register' %}">Teach with us</a>{% if request.user.admin_role == 'super_admin' or request.user.is_superuser %}<a href="{% url 'tuition:review' %}">Verification</a>{% endif %}</nav>
