@@ -46,17 +46,10 @@ class BusinessDetailsForm(forms.ModelForm):
         self.fields['website'].required = False
         self.fields['website'].label = 'Website (optional)'
         self.fields['website'].help_text = 'Leave blank if your business does not have a website.'
-        names = ['Food & Beverage', 'Healthcare', 'Education', 'Technology', 'Retail',
-                 'Manufacturing', 'Construction', 'Agriculture', 'Transport & Logistics',
-                 'Hospitality', 'Finance', 'Professional Services', 'Groceries',
-                 'Software', 'Automotive', 'Beauty & Wellness', 'Real Estate', 'Textiles', 'Other']
-        names += [name for name in Industry.objects.filter(is_active=True).values_list('name', flat=True)
-                  if any(c.isalpha() for c in name)]
-        current = self.initial.get('industry', '')
-        if current and current not in names:
-            names.append(current)
-        self.fields['industry'] = forms.ChoiceField(required=False,
-            choices=[('', 'Select an industry')] + [(name, name) for name in dict.fromkeys(names)])
+        from .business_categories import business_category_names
+        names = business_category_names(self.initial.get('industry', ''))
+        self.fields['industry'] = forms.ChoiceField(required=False, label='Business category',
+            choices=[('', 'Select a business category')] + [(name, name) for name in names])
 
     class Meta:
         model = CompanyProfile

@@ -407,6 +407,14 @@
                             <small id="business-pincode-help" style="display:block;margin-top:6px;color:#64748b;font-size:12px">Enter any 6-digit pincode. No prior registration or location assignment is required.</small>
                         </div>
                         <div class="form-group full">
+                            <label for="emp-category">Business category</label>
+                            <select id="emp-category" name="industry" aria-describedby="emp-category-help" style="width:100%;max-width:100%;box-sizing:border-box;padding:12px;border:1.5px solid #dde1ea;border-radius:10px;background:#fff;font:inherit">
+                                <option value="">Select a business category</option>
+                                {% for category in business_categories %}<option value="{{ category }}">{{ category }}</option>{% endfor %}
+                            </select>
+                            <small id="emp-category-help" style="display:block;margin-top:6px;color:#64748b">Choose what your business does. Select Other if it is not listed.</small>
+                        </div>
+                        <div class="form-group full">
                             <label for="emp-logo-upload">Business logo</label>
                             <input type="file" id="emp-logo-upload" name="logo" accept="image/*">
                         </div>

@@ -205,6 +205,7 @@ def home(request):
 
 # ── REGISTER ─────────────────────────────────────────────────────────────────
 def register(request):
+    from .business_categories import business_category_names
     ref_code = request.GET.get('ref', '').strip().upper()
     existing_business = None
     if request.user.is_authenticated and request.user.is_employer():
@@ -223,6 +224,7 @@ def register(request):
         company_name__isnull=False
     ).exclude(company_name='').order_by('-id')[:50]
     return render(request, 'register.html', {
+        'business_categories': business_category_names(),
         'ref_code': ref_code,
         'existing_business': existing_business,
         'registered_companies': registered_companies,
@@ -265,6 +267,12 @@ def register_process(request):
     confirmation = request.POST.get('confirm_password', request.POST.get('password2'))
     if confirmation is not None and password != confirmation:
         return err('Passwords do not match.')
+
+    category = request.POST.get('industry', '').strip()
+    if user_type in User.EMPLOYER_TYPES and category:
+        from .business_categories import business_category_names
+        if category not in business_category_names():
+            return err('Select a valid business category.')
 
     from django.db import IntegrityError as _IntegrityError
 
@@ -363,7 +371,7 @@ def register_process(request):
             if user_type == 'shop':
                 sp_defaults = dict(
                     shop_name=org_name,
-                    shop_type=request.POST.get('shop_type', '').strip(),
+                    shop_type=category or request.POST.get('shop_type', '').strip(),
                     owner_name=first_name,
                     website=request.POST.get('website', '').strip(),
                 )
