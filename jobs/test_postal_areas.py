@@ -42,3 +42,29 @@ class PostalAreaTests(TestCase):
     def test_invalid_pin_never_calls_external_service(self, lookup):
         self.assertFalse(self.client.get('/api/pincode/000000/').json()['success'])
         lookup.assert_not_called()
+
+    @patch('jobs.postal_areas.geoapify_lookup', return_value=None)
+    @patch('urllib.request.urlopen')
+    def test_selaiyur_is_default_for_shared_600073_pin_in_any_order(self, lookup, geo):
+        offices = [
+            {'Name': 'Gowriwakkam', 'BranchType': 'Sub Post Office'},
+            {'Name': 'Rajakilpakkam', 'BranchType': 'Branch Post Office'},
+            {'Name': 'Selaiyur', 'BranchType': 'Sub Post Office'},
+        ]
+        for office in offices:
+            office.update(District='Kanchipuram', State='Tamil Nadu')
+        for ordered in [offices, list(reversed(offices))]:
+            cache.clear()
+            lookup.return_value.__enter__.return_value.read.return_value = json.dumps(
+                [{'Status': 'Success', 'PostOffice': ordered}]).encode()
+            data = self.client.get('/api/pincode/600073/').json()
+            self.assertEqual(data['area'], 'Selaiyur')
+            self.assertEqual(data['areas'], ['Gowriwakkam', 'Rajakilpakkam', 'Selaiyur'])
+
+    @patch('jobs.postal_areas.geoapify_lookup', return_value=None)
+    @patch('urllib.request.urlopen')
+    def test_preference_does_not_invent_an_office_missing_from_provider(self, lookup, geo):
+        lookup.return_value.__enter__.return_value.read.return_value = json.dumps(
+            [{'Status': 'Success', 'PostOffice': [{'Name': 'Gowriwakkam', 'BranchType': 'Sub Post Office',
+             'District': 'Kanchipuram', 'State': 'Tamil Nadu'}]}]).encode()
+        self.assertEqual(self.client.get('/api/pincode/600073/').json()['area'], 'Gowriwakkam')

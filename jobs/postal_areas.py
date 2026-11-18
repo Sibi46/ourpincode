@@ -10,6 +10,10 @@ from django.http import JsonResponse
 
 from .models import PinCode
 
+# A PIN can cover several localities. These display preferences are applied
+# only when the preferred office is present in the postal provider response.
+PREFERRED_POSTAL_AREAS = {'600073': 'Selaiyur'}
+
 
 def geoapify_lookup(pin, area='', state=''):
     api_key = getattr(settings, 'GEOAPIFY_API_KEY', '')
@@ -45,7 +49,7 @@ def geoapify_lookup(pin, area='', state=''):
 def pincode_lookup(request, pin):
     if not re.fullmatch(r'[1-9][0-9]{5}', pin):
         return JsonResponse({'success': False, 'error': 'Invalid PIN code'})
-    key = 'postal-areas-v3:' + ('geo:' if getattr(settings, 'GEOAPIFY_API_KEY', '') else 'postal:') + pin
+    key = 'postal-areas-v4:' + ('geo:' if getattr(settings, 'GEOAPIFY_API_KEY', '') else 'postal:') + pin
     result = cache.get(key)
     if result:
         return JsonResponse(result)
@@ -58,7 +62,11 @@ def pincode_lookup(request, pin):
             offices = [office for office in offices if office.get('Name')]
             # The API orders offices alphabetically, not by postal importance.
             rank = {'Head Post Office': 0, 'Sub Post Office': 1, 'Branch Post Office': 2}
-            primary = min(offices, key=lambda office: rank.get(office.get('BranchType'), 3))
+            preferred = PREFERRED_POSTAL_AREAS.get(pin, '').casefold()
+            primary = min(offices, key=lambda office: (
+                rank.get(office.get('BranchType'), 3),
+                office['Name'].strip().casefold() != preferred,
+                office['Name'].strip().casefold()))
             result = {'success': True, 'area': primary['Name'].strip(),
                       'district': primary.get('District', '').strip(),
                       'state': primary.get('State', '').strip(),
