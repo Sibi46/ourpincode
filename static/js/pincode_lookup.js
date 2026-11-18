@@ -1,4 +1,4 @@
-/* PIN code → city/area/state/district auto-lookup via India Post API
+/* PIN code → city/area/state/district auto-lookup via our server lookup
    Usage: add data-pinlookup to any pincode input
    Optional: data-fill-city="<input-id>"          — auto-fill city text input
              data-fill-state="<input-id>"          — auto-fill state text input
@@ -15,7 +15,7 @@
       .then(function (data) {
         var result = null;
         if (data && data.success) {
-          result = { area: data.area, district: data.district, state: data.state };
+          result = { area: data.area, city: data.city, district: data.district, state: data.state };
         }
         cache[pin] = result;
         cb(result);
@@ -73,6 +73,7 @@
 
       lookup(pin, function (res) {
         if (input.value.replace(/\D/g, '') !== pin) return;
+        if (input.value.replace(/\D/g, '') !== pin) return;
         if (!res) {
           lastPin = '';
           hint.style.color = '#e65100';
@@ -86,7 +87,10 @@
         // Fill city text input
         if (cityId) {
           var cityEl = document.getElementById(cityId);
-          if (cityEl) cityEl.value = res.area !== res.district ? res.area + ', ' + res.district : res.district;
+          if (cityEl && res.city && (!cityEl.value || cityEl.value === cityEl.dataset.pinAutoValue)) {
+            cityEl.value = res.city;
+            cityEl.dataset.pinAutoValue = res.city;
+          }
         }
         // Fill state text input
         if (stateId) {

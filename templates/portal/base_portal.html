@@ -438,15 +438,14 @@ document.querySelector('.u-share-fab')?.addEventListener('click', function(e){
 <script>
 (function(){
   var cache={};
-  function lookupPin(pin,cb){
-    if(cache[pin]){cb(cache[pin]);return;}
-    fetch('https://api.postalpincode.in/pincode/'+pin).then(function(r){return r.json();}).then(function(d){
-      if(d&&d[0]&&d[0].Status==='Success'&&d[0].PostOffice&&d[0].PostOffice.length){
-        var po=d[0].PostOffice[0];
-        var res={area:po.Name,district:po.District,state:po.State,taluk:po.Taluk||po.Block||'',label:'📍 '+po.Name+', '+po.District+', '+po.State};
-        cache[pin]=res;cb(res);
-      }else{cb(null);}
-    }).catch(function(){cb(null);});
+  function lookupPin(pin,callback){
+    if(cache[pin]){callback(cache[pin]);return;}
+    fetch('/api/pincode/'+pin+'/').then(function(r){return r.json();}).then(function(data){
+      if(data && data.success){
+        data.label = [...new Set([data.area,data.city,data.district,data.state].filter(Boolean))].join(', ');
+        cache[pin]=data;callback(data);
+      }else{callback(null);}
+    }).catch(function(){callback(null);});
   }
   function getOrCreateHint(input){
     var h=input.parentNode.querySelector('.pin-hint');
@@ -456,7 +455,7 @@ document.querySelector('.u-share-fab')?.addEventListener('click', function(e){
   function fillNearbyFields(input,result){
     if(!result)return;
     var form=input.closest('form')||document.body;
-    [['area',['area','locality','village','place','town']],['district',['district','dist']],['state',['state']],['taluk',['taluk','block','mandal']]].forEach(function(pair){
+    [['city',['city']],['area',['area','locality','village','place','town']],['district',['district','dist']],['state',['state']],['taluk',['taluk','block','mandal']]].forEach(function(pair){
       pair[1].forEach(function(n){
         var el=form.querySelector('[name="'+n+'"]')||form.querySelector('[id="'+n+'"]');
         if(el&&!el.value&&result[pair[0]]){el.value=result[pair[0]];el.style.background='#f0fdf4';setTimeout(function(){el.style.background='';},1500);}
@@ -506,13 +505,15 @@ document.querySelector('.u-share-fab')?.addEventListener('click', function(e){
         var form = this.closest('form');
         var locEl = form && (form.querySelector('[name="location"]') || form.querySelector('[name="city"]') || form.querySelector('[name="area"]'));
         if(!locEl) return;
-        fetch('https://api.postalpincode.in/pincode/'+this.value)
+        var requestedPin=this.value;
+        fetch('/api/pincode/'+requestedPin+'/')
           .then(function(r){return r.json();})
-          .then(function(d){
-            if(d[0].Status==='Success'){
-              var po = d[0].PostOffice[0];
-              locEl.value = po.Name+', '+po.District+', '+po.State;
-            }
+          .then(function(data){
+            if(!data.success || !locEl.isConnected) return;
+            var pinInput=form.querySelector('input[name="pincode"],input[name*="pincode"]');
+            if(pinInput && pinInput.value!==requestedPin) return;
+            if(locEl.name==='city'){ if(data.city && !locEl.value) locEl.value=data.city; }
+            else if(!locEl.value){locEl.value=[...new Set([data.area,data.city,data.state].filter(Boolean))].join(', ');}
           }).catch(function(){});
       }
     });
@@ -595,5 +596,6 @@ document.addEventListener('DOMContentLoaded', function(){
 </script>
 {% include "includes/quiz_popup.html" %}
 {% include "includes/navigation.html" %}
+{% include 'includes/geocoding_attribution.html' %}
 </body>
 </html>

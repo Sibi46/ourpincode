@@ -1,4 +1,5 @@
 from django.utils import timezone
+from django.conf import settings
 from .models import Advertisement
 
 
@@ -34,6 +35,7 @@ def site_ads(request):
         pending_ad_posts = AdPost.objects.filter(status='pending').count()
 
     return {
+        'geoapify_enabled': bool(getattr(settings, 'GEOAPIFY_API_KEY', '')),
         'active_area': selected_area(request),
         'saved_areas': list(dict.fromkeys(value for value in (
             request.user.pincode, request.user.preferred_pincode_1, request.user.preferred_pincode_2) if value)) if request.user.is_authenticated else [],

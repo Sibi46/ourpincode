@@ -11,7 +11,7 @@
     return pending.get(pin);
   }
   function label(data) {
-    return [...new Set([data.area, data.district, data.state].map(value => (value || "").trim()).filter(Boolean))].join(', ');
+    return [...new Set([data.area, data.city, data.district, data.state].map(value => (value || "").trim()).filter(Boolean))].join(', ');
   }
   document.querySelectorAll('[data-area-name]').forEach(async node => {
     const pin = node.dataset.areaName;

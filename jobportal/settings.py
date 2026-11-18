@@ -416,3 +416,6 @@ CHANNEL_LAYERS = {
         },
     },
 }
+
+# Optional city enrichment; the key stays on the server.
+GEOAPIFY_API_KEY = os.environ.get('GEOAPIFY_API_KEY', '').strip()
