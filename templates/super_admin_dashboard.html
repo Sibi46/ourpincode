@@ -191,7 +191,7 @@
   <p style="margin:14px 18px;color:#64748B;font-size:13px">Approve teachers and academies, verify guardians, and manage learning activities, students and reports.</p>
   <div class="sa-action-grid">
     <a href="{% url 'tuition:admin_hub' %}" class="sa-action"><i class="fas fa-chalkboard-teacher" style="color:#047857" aria-hidden="true"></i> Manage Tuition &amp; Approvals</a>
-    <a href="{% url 'tuition:review' %}" class="sa-action"><i class="fas fa-user-shield" style="color:#4F46E5" aria-hidden="true"></i> Teacher &amp; Guardian Verification</a>
+    <a href="{% url 'tuition:review' %}" class="sa-action"><i class="fas fa-user-shield" style="color:#4F46E5" aria-hidden="true"></i> Teacher &amp; Guardian Verification ({{ pending_tuition_profiles }} pending)</a>
     <a href="{% url 'tuition:subject_create' %}" class="sa-action"><i class="fas fa-book" style="color:#9A3412" aria-hidden="true"></i> Add Teaching Subject</a>
     <a href="{% url 'tuition:discover' %}" class="sa-action"><i class="fas fa-search" style="color:#64748B" aria-hidden="true"></i> View Tuition Directory</a>
   </div>

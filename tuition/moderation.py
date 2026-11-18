@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.paginator import Paginator
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import Q, Case, When, IntegerField
 from django.shortcuts import get_object_or_404, redirect
 from django.views.decorators.http import require_POST
 from django.utils import timezone
@@ -37,7 +37,7 @@ def hub(request):
     enrolments = m.Enrolment.objects.filter(lesson__teacher__in=teachers).select_related('learner', 'lesson')
     complaints = m.TuitionComplaint.objects.filter(teacher__in=teachers).select_related('complaint')
     # Report aggregates are scoped exactly like the editable records.
-    reports = {'Teachers': teachers.count(), 'Active enrolments': enrolments.filter(status='active').count(),
+    reports = {'Pending teacher approvals': teachers.filter(status='pending').count(), 'Teachers': teachers.count(), 'Active enrolments': enrolments.filter(status='active').count(),
         'Events': m.LearningEvent.objects.filter(teacher__in=teachers).count(),
         'Open complaints': complaints.filter(complaint__status__in=['open', 'in_review']).count(),
         'Pending content': sum(content_queryset(k, teachers).filter(moderation='pending').count() for k in CONTENT)}
@@ -45,7 +45,7 @@ def hub(request):
     if not (request.user.is_superuser or request.user.admin_role == 'super_admin'):
         activity = activity.filter(details__teacher_uid__in=[str(x) for x in teachers.values_list('uid', flat=True)])
     pages = {
-        'teachers_page': Paginator(teachers.order_by('-created_at', '-pk'), 30).get_page(request.GET.get('teachers_page')),
+        'teachers_page': Paginator(teachers.annotate(review_priority=Case(When(status='pending', then=0), default=1, output_field=IntegerField())).order_by('review_priority', '-created_at', '-pk'), 30).get_page(request.GET.get('teachers_page')),
         'students_page': Paginator(enrolments.order_by('-created_at', '-pk'), 30).get_page(request.GET.get('students_page')),
         'complaints_page': Paginator(complaints.order_by('-created_at', '-pk'), 30).get_page(request.GET.get('complaints_page')),
         'activity_page': Paginator(activity.order_by('-created_at', '-pk'), 50).get_page(request.GET.get('activity_page')),
@@ -59,7 +59,7 @@ def hub(request):
                 navigation.append((f'{label} {key.removesuffix("_page")}', '?' + query.urlencode()))
     return page(request, 'Tuition administration', admin_teachers=pages['teachers_page'], moderation=content,
         admin_students=pages['students_page'], admin_complaints=pages['complaints_page'], reports=reports, activity=pages['activity_page'],
-        actions=[(key.title(), '?kind='+key) for key in CONTENT] + navigation + ([('Guardian verification', link('review'))] if request.user.is_superuser or request.user.admin_role == 'super_admin' else []),
+        actions=[(key.title(), '?kind='+key) for key in CONTENT] + navigation + ([('Teacher and guardian approvals', link('review'))] if request.user.is_superuser or request.user.admin_role == 'super_admin' else []),
         categories=m.Subject.objects.all() if request.user.is_superuser or request.user.admin_role == 'super_admin' else None)
 
 

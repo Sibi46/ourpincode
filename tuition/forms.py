@@ -103,6 +103,8 @@ class TeacherForm(SubjectEntryForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.fields['name'].widget.attrs['data-person-name'] = ''
+        self.fields['name'].help_text = 'Use letters and spaces only.'
         self.fields.pop('subjects')
         self.fields.pop('public_fees')
         self.fields['max_age'].widget.attrs['placeholder'] = '0'
@@ -121,6 +123,13 @@ class TeacherForm(SubjectEntryForm):
                 self.fields['new_subjects'].label = 'Other existing subjects'
             for name in ('opening_days', 'opening_time', 'closing_time'):
                 self.fields.pop(name)
+
+    def clean_name(self):
+        from jobs.person_names import valid_person_name
+        value = self.cleaned_data['name'].strip()
+        if not valid_person_name(value):
+            raise forms.ValidationError('Teacher or academy name must contain letters and spaces only.')
+        return value
 
     def clean(self):
         data = super().clean()

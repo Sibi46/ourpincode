@@ -1,7 +1,7 @@
 {% for profile in timetable_profiles %}
 <section class="card teacher-tools" id="teaching-{{ profile.uid }}" aria-label="{{ profile.name }} teaching tools">
   <p class="eyebrow">TEACHING</p><h2>{{ profile.name }}</h2>
-  <p class="learning-status">{{ profile.get_status_display }}</p>
+  {% if profile.status == 'pending' %}<p class="learning-status" role="status" style="padding:14px;border:1px solid #e8cf84;border-radius:10px;background:#fff8e4;color:#624a12"><strong>Waiting for admin approval.</strong> Your teaching profile has been submitted for review. It will appear in the directory after approval.</p>{% else %}<p class="learning-status">{{ profile.get_status_display }}</p>{% endif %}
   {% if profile.status != 'suspended' and profile.status != 'rejected' %}
     <nav class="quick-actions" aria-label="Main teaching actions">
       {% if profile.status == 'approved' %}<a href="{% url 'tuition:group_create' profile.uid %}"><span aria-hidden="true">+</span><strong>Create group</strong><small>Set subjects and class times</small></a>{% endif %}

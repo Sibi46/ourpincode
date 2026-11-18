@@ -23,6 +23,11 @@ def site_ads(request):
         t = ad.package.ad_type
         by_type.setdefault(t, []).append(ad)
 
+    pending_tuition_profiles = 0
+    if request.user.is_authenticated and (request.user.is_superuser or request.user.admin_role == 'super_admin'):
+        from tuition.models import TeacherProfile
+        pending_tuition_profiles = TeacherProfile.objects.filter(status='pending').count()
+
     pending_ad_posts = 0
     if request.user.is_authenticated and getattr(request.user, 'admin_role', '') == 'super_admin':
         from .models import AdPost
@@ -36,6 +41,7 @@ def site_ads(request):
         'profile_photo_url': photo_url,
         'ads_by_type': by_type,
         'pending_ad_posts': pending_ad_posts,
+        'pending_tuition_profiles': pending_tuition_profiles,
         'feature_catalog': FEATURES if request.path == '/' else [],
         'feature_query': request.GET.get('feature', '').strip() if request.path == '/' else '',
         'feature_matches': search_features(request.GET.get('feature', '')) if request.path == '/' else [],

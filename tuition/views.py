@@ -7,7 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.cache import cache
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.paginator import Paginator
-from django.db import transaction
+from django.db import transaction, models
 from django.db.models import Q, Count, F
 from django.http import FileResponse, HttpResponseRedirect, HttpResponseNotAllowed
 from django.shortcuts import get_object_or_404, redirect, render
@@ -187,6 +187,13 @@ def register_teacher(request, uid=None, academy_id=None):
         for pin in wanted:
             m.ServiceArea.objects.get_or_create(teacher=obj, pincode=pin)
         svc.audit(request.user, obj, 'profile_saved')
+        if obj.status == 'pending':
+            messages.info(request, 'Your teaching profile is waiting for admin approval.')
+            from jobs.models import User
+            admins = User.objects.filter(is_active=True).filter(Q(is_superuser=True) | Q(admin_role='super_admin')).values_list('pk', flat=True)
+            svc.notify(f'teacher-submitted:{obj.pk}:{obj.updated_at.isoformat()}',
+                       f'Tuition approval requested: {obj.name}', admins, reverse('tuition:review'))
+
         return teacher_url(obj)
     return form_page(request, 'Teacher / academy profile', form, save, template='tuition/register.html')
 
@@ -891,7 +898,8 @@ def review(request):
                     messages.error(request, '; '.join(exc.messages))
         return redirect('tuition:review')
     return page(request, 'Teacher and guardian verification', subject_form=SubjectForm(),
-        review_teachers=Paginator(m.TeacherProfile.objects.order_by('-created_at', '-pk'), 30).get_page(request.GET.get('teachers_page')),
+        pending_teacher_count=m.TeacherProfile.objects.filter(status='pending').count(),
+        review_teachers=Paginator(m.TeacherProfile.objects.annotate(review_priority=models.Case(models.When(status='pending', then=0), default=1, output_field=models.IntegerField())).order_by('review_priority', '-created_at', '-pk'), 30).get_page(request.GET.get('teachers_page')),
         review_guardians=Paginator(m.GuardianLink.objects.select_related('learner', 'user').order_by('-created_at', '-pk'), 30).get_page(request.GET.get('guardians_page')))
 
 

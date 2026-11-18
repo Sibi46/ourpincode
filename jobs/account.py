@@ -43,6 +43,9 @@ class BusinessDetailsForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.fields['website'].required = False
+        self.fields['website'].label = 'Website (optional)'
+        self.fields['website'].help_text = 'Leave blank if your business does not have a website.'
         names = ['Food & Beverage', 'Healthcare', 'Education', 'Technology', 'Retail',
                  'Manufacturing', 'Construction', 'Agriculture', 'Transport & Logistics',
                  'Hospitality', 'Finance', 'Professional Services', 'Groceries',

@@ -121,7 +121,8 @@ class AccountFeatureTests(TestCase):
         self.assertContains(response,'Other Store')
         self.assertNotContains(response,'Local Store')
         self.login()
-        self.assertEqual(self.client.get('/portal/').context['pincode'],'600001')
+        self.assertEqual(self.client.get('/portal/').context['pincode'],'')
+        self.assertEqual(self.client.get('/portal/?nearby=1').context['pincode'],'600001')
         self.assertEqual(self.client.get('/jobs/').context['pincode'],'600001')
 
     def test_area_switch_does_not_overwrite_primary_or_preferred_locations(self):

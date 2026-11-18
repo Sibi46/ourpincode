@@ -32,3 +32,6 @@ html[data-theme=dark] .hp-promo-diwali h2{color:#8b3522!important}
 html[data-theme=dark] .hp-feature-showcase>a{background:var(--opc-surface)!important;color:var(--opc-text)!important;border-color:var(--opc-line)!important}
 @media(prefers-reduced-motion:reduce){.mob-menu a,.hp-explore-grid>a,.hp-tile{transition:none;transform:none!important}}
 @media(max-width:600px){.msg-topbar{gap:8px;padding:0 12px}.msg-topnav>a{display:none}.msg-topnav{flex-shrink:0}.msg-topbar-title{min-width:0;font-size:13px}.msg-logo{min-width:0}.msg-logo span{font-size:12px}}
+
+/* Suppress mobile browser tap overlays; keyboard focus remains visible. */
+html{-webkit-tap-highlight-color:transparent}
