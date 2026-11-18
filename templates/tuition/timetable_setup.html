@@ -4,6 +4,7 @@
   {% if profile.status == 'pending' %}<p class="learning-status" role="status" style="padding:14px;border:1px solid #e8cf84;border-radius:10px;background:#fff8e4;color:#624a12"><strong>Waiting for admin approval.</strong> Your teaching profile has been submitted for review. It will appear in the directory after approval.</p>{% else %}<p class="learning-status">{{ profile.get_status_display }}</p>{% endif %}
   {% if profile.status != 'suspended' and profile.status != 'rejected' %}
     <nav class="quick-actions" aria-label="Main teaching actions">
+      <a href="{% url 'tuition:availability' profile.uid %}"><span aria-hidden="true">&#9201;</span><strong>Teaching hours</strong><small>Add the days and times you are available</small></a>
       {% if profile.status == 'approved' %}<a href="{% url 'tuition:group_create' profile.uid %}"><span aria-hidden="true">+</span><strong>Create group</strong><small>Set subjects and class times</small></a>{% endif %}
 {% if not simple_workflow %}      <a href="{% url 'tuition:timetable' %}"><span aria-hidden="true">&#9638;</span><strong>Timetable</strong><small>See your days and class times</small></a>{% endif %}
       <a href="{% url 'tuition:activity_upload' 'teacher' profile.uid %}"><span aria-hidden="true">&#8593;</span><strong>Upload gallery</strong><small>Add photos and flick videos</small></a>

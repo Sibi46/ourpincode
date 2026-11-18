@@ -162,7 +162,7 @@ def register_teacher(request, uid=None, academy_id=None):
         obj.mapped_pin = PinCode.objects.filter(code=obj.pincode, is_active=True, district__is_active=True, district__state__is_active=True).first()
         obj.save()
         form.save_m2m()
-        if is_new and obj.kind == 'academy':
+        if is_new and form.cleaned_data.get('opening_days'):
             for day in form.cleaned_data['opening_days']:
                 m.Availability.objects.create(teacher=obj, weekday=int(day), start=form.cleaned_data['opening_time'], end=form.cleaned_data['closing_time'])
         for source, target in [('existing_profile_image', 'profile_image'), ('existing_banner_image', 'banner_image')]:

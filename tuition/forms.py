@@ -75,9 +75,9 @@ class SubjectEntryForm(StyledForm):
 
 class TeacherForm(SubjectEntryForm):
     categories = forms.MultipleChoiceField(choices=m.TeacherProfile.CATEGORY_CHOICES, required=False, widget=forms.CheckboxSelectMultiple, label="Teaching categories", help_text="Choose all that apply.")
-    opening_days = forms.MultipleChoiceField(choices=m.DAYS, required=False, widget=forms.CheckboxSelectMultiple, label='Opening days')
-    opening_time = forms.TimeField(required=False, label='Opening time (India)')
-    closing_time = forms.TimeField(required=False, label='Closing time (India)')
+    opening_days = forms.MultipleChoiceField(choices=m.DAYS, required=False, widget=forms.CheckboxSelectMultiple, label='Teaching days')
+    opening_time = forms.TimeField(required=False, label='Available from (India time)')
+    closing_time = forms.TimeField(required=False, label='Available until (India time)')
     profile_photo = forms.FileField(required=False, label='Logo / profile image', help_text='Crop to 400 x 400 px (square). Choose an image, adjust the crop, then select Use cropped image.')
     banner_photo = forms.FileField(required=False, label='Banner upload', help_text='Crop to 1600 x 600 px. Keep important details near the centre; the edges may crop further on mobile.')
     publish_brand_images = forms.BooleanField(required=False, label='Publish my profile and banner images', help_text='I confirm these images contain no recognizable students. For student photos, use the gallery and consent process.')
@@ -94,7 +94,7 @@ class TeacherForm(SubjectEntryForm):
             ('Your teaching profile', ('kind', 'name', 'profile_photo', 'banner_photo', 'publish_brand_images', 'description', 'qualifications', 'experience')),
             ('Teaching categories', ('categories',)),
             ('What you teach', tuple('category_' + key for key, label in m.TeacherProfile.CATEGORY_CHOICES) + ('new_subjects', 'mode', 'min_age', 'max_age')),
-            ('Academy timings', ('opening_days', 'opening_time', 'closing_time')),
+            ('Teaching hours', ('opening_days', 'opening_time', 'closing_time')),
             ('Location & contact', ('address', 'pincode', 'service_pins', 'phone', 'email', 'public_fees')),
         ):
             fields = [self[name] for name in names if name in self.fields]
@@ -141,12 +141,12 @@ class TeacherForm(SubjectEntryForm):
             except forms.ValidationError as exc:
                 self.add_error(field_name, exc)
         self.instance.category_subjects = mapping
-        if not self.instance.pk and data.get('kind') == 'academy':
+        if not self.instance.pk and (data.get('kind') == 'academy' or any(data.get(name) for name in ('opening_days', 'opening_time', 'closing_time'))):
             for name in ('opening_days', 'opening_time', 'closing_time'):
                 if not data.get(name):
-                    self.add_error(name, 'Enter academy opening days and hours.')
+                    self.add_error(name, 'Select teaching days and enter both start and end times.')
             if data.get('opening_time') and data.get('closing_time') and data['closing_time'] <= data['opening_time']:
-                self.add_error('closing_time', 'Closing time must be after opening time.')
+                self.add_error('closing_time', 'End time must be after start time.')
         if (data.get('profile_photo') or data.get('banner_photo')) and not data.get('publish_brand_images'):
             self.add_error('publish_brand_images', 'Confirm these images contain no recognizable students, or upload student media through the gallery.')
         if data.get('publish_brand_images'):
