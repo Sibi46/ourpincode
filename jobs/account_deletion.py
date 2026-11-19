@@ -32,7 +32,12 @@ def make_plan(actor, target):
     check_access(actor, target)
     User = get_user_model()
     nodes, updates, seen, files = defaultdict(set), {}, set(), set()
-    queue = deque([target])
+    from .models import ManagedBusiness
+    managed_ids = set(ManagedBusiness.objects.filter(owner=target).values_list('account_id', flat=True))
+    owned_user_ids = {target.pk} | managed_ids
+    for child in User.objects.filter(pk__in=managed_ids):
+        check_access(actor, child)
+    queue = deque([target] + list(User.objects.filter(pk__in=managed_ids)))
     while queue:
         obj = queue.popleft()
         model, pk = type(obj), obj.pk
@@ -48,15 +53,15 @@ def make_plan(actor, target):
         if label == 'coupons.monthlydraw':
             updates[(model, pk)] = {'winner_id': None}
             continue
-        if label == 'tuition.teacherprofile' and obj.owner_id != target.pk:
+        if label == 'tuition.teacherprofile' and obj.owner_id not in owned_user_ids:
             updates[(model, pk)] = {'parent_academy_id': None}
             continue
-        if label == 'tuition.learner' and obj.user_id != target.pk:
-            other = obj.user_id or obj.guardians.filter(status='verified').exclude(user_id=target.pk).values_list('user_id', flat=True).first()
+        if label == 'tuition.learner' and obj.user_id not in owned_user_ids:
+            other = obj.user_id or obj.guardians.filter(status='verified').exclude(user_id__in=owned_user_ids).values_list('user_id', flat=True).first()
             if other:
                 updates[(model, pk)] = {'created_by_id': other}
                 continue
-        if model == User and pk != target.pk:
+        if model == User and pk not in owned_user_ids:
             raise ValidationError('This operation would remove another user account. Nothing was deleted.')
         nodes[model].add(pk)
         if label == 'tuition.mediaasset' and obj.storage_key:

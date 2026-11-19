@@ -244,7 +244,7 @@
           <div id="regBizBtnWrap" style="max-width:700px;margin:0 auto 18px;padding:0 16px">
             <button type="button" onclick="openBusinessRegistration()"
               style="width:100%;background:linear-gradient(135deg,#0a66c2,#1d4ed8);color:#fff;border:none;border-radius:14px;padding:16px;font-size:16px;font-weight:900;cursor:pointer;box-shadow:0 4px 16px rgba(10,102,194,.3)">
-              📣 Register Your Business
+              {% if existing_business %}Manage your businesses{% else %}📣 Register Your Business{% endif %}
             </button>
           </div>
 
@@ -253,6 +253,7 @@
                 <button type="button" class="back-btn" onclick="goBack()" style="margin-bottom:16px"><i class="fas fa-arrow-left"></i> Back</button>
 
                 {% if existing_business %}
+                {% include 'includes/business_workspaces.html' %}
                 <!-- Already registered — prominent card at top -->
                 <div style="background:linear-gradient(135deg,#f0fdf4,#dcfce7);border:2px solid #22c55e;border-radius:20px;padding:20px;margin-bottom:18px">
                   <div style="display:flex;align-items:center;gap:16px">

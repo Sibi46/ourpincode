@@ -6,6 +6,7 @@ from django.conf.urls.static import static
 from jobs import views
 from jobs import business_reviews
 from jobs import account
+from jobs import business_workspaces
 from jobs import employer_services
 from jobs import account_deletion
 from jobs import postal_areas
@@ -13,6 +14,8 @@ from django.contrib.sitemaps import views as sitemap_views
 from .seo import SITEMAPS, robots, sitemap_index
 
 urlpatterns = [
+    path('businesses/add/', business_workspaces.add_business, name='add_another_business'),
+    path('businesses/switch/<int:account_id>/', business_workspaces.switch_business, name='switch_business'),
     path('wallet/add-money/', employer_services.wallet_action, {'action': 'add-money'}, name='wallet_add_money'),
     path('wallet/withdraw/', employer_services.wallet_action, {'action': 'withdraw'}, name='wallet_withdraw'),
     path('subscription/buy/<int:pk>/', employer_services.subscription_plan, name='employer_subscription_plan'),

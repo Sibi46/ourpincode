@@ -1342,3 +1342,14 @@ class LocalOffer(models.Model):
 
     def __str__(self):
         return f"{self.business_name} – {self.discount_text}"
+
+
+class ManagedBusiness(models.Model):
+    """An additional isolated business managed through its owner's login."""
+    owner = models.ForeignKey(User, on_delete=models.PROTECT, related_name='managed_businesses')
+    account = models.OneToOneField(User, on_delete=models.CASCADE, related_name='managed_business_link')
+    registration_token = models.UUIDField(unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [models.CheckConstraint(condition=~models.Q(owner=models.F('account')), name='managed_business_distinct_owner')]
