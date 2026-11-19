@@ -1,245 +1,29 @@
-{% extends 'base.html' %}
-{% block title %}Dashboard – {{ business.business_name }}{% endblock %}
-
-{% block extra_css %}
-<style>
-.bd-hero{background:linear-gradient(135deg,#7c3aed,#4f46e5);color:#fff;padding:1.6rem 1rem 1rem}
-.bd-hero-inner{max-width:960px;margin:0 auto;display:flex;align-items:center;gap:1rem}
-.bd-logo{width:56px;height:56px;border-radius:12px;object-fit:cover;flex-shrink:0}
-.bd-logo-ph{width:56px;height:56px;border-radius:12px;background:rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0}
-.bd-name{font-size:1.2rem;font-weight:900}
-.bd-cat{font-size:.8rem;opacity:.8}
-.bd-badge{display:inline-flex;align-items:center;gap:.3rem;font-size:.72rem;font-weight:700;padding:.2rem .65rem;border-radius:12px;margin-top:.3rem}
-.bd-badge.pending{background:#fef3c7;color:#92400e}
-.bd-badge.approved{background:#d1fae5;color:#065f46}
-.bd-badge.suspended,.bd-badge.rejected{background:#fee2e2;color:#991b1b}
-
-.bd-wrap{max-width:960px;margin:0 auto;padding:1.2rem 1rem 3rem}
-
-.bd-alert{border-radius:10px;padding:.85rem 1.1rem;margin-bottom:1rem;font-size:.84rem;display:flex;gap:.6rem;align-items:flex-start}
-.bd-alert.warn{background:#fef3c7;border:1px solid #fde68a;color:#92400e}
-.bd-alert.danger{background:#fee2e2;border:1px solid #fca5a5;color:#991b1b}
-.bd-alert.info{background:#eff6ff;border:1px solid #bfdbfe;color:#1e40af}
-.bd-alert i{margin-top:.1rem;flex-shrink:0}
-
-.stat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:.75rem;margin-bottom:1.2rem}
-.stat-card{background:#fff;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,.07);padding:1rem .9rem;text-align:center;border-top:3px solid transparent}
-.stat-card.purple{border-top-color:#7c3aed}
-.stat-card.green{border-top-color:#059669}
-.stat-card.blue{border-top-color:#2563eb}
-.stat-card.amber{border-top-color:#d97706}
-.stat-num{font-size:1.65rem;font-weight:900;line-height:1}
-.stat-num.purple{color:#7c3aed}
-.stat-num.green{color:#059669}
-.stat-num.blue{color:#2563eb}
-.stat-num.amber{color:#d97706}
-.stat-label{font-size:.7rem;color:#6b7280;margin-top:.3rem;font-weight:600;text-transform:uppercase;letter-spacing:.03em}
-
-.mini-stats{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:1.1rem}
-.mini-stat{background:#fff;border-radius:10px;box-shadow:0 1px 6px rgba(0,0,0,.07);padding:.55rem .9rem;font-size:.78rem;display:flex;align-items:center;gap:.4rem;color:#374151;font-weight:700}
-.mini-stat .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
-
-.quick-links{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:.75rem;margin-bottom:1.3rem}
-.ql-btn{display:flex;align-items:center;gap:.6rem;padding:.8rem 1rem;background:#fff;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,.07);text-decoration:none;color:#374151;font-size:.83rem;font-weight:700;transition:box-shadow .15s}
-.ql-btn:hover{box-shadow:0 4px 18px rgba(124,58,237,.2);color:#7c3aed}
-.ql-btn i{font-size:1.1rem;color:#7c3aed;width:22px;text-align:center}
-.ql-btn.green i{color:#059669}
-.ql-btn.green:hover{box-shadow:0 4px 18px rgba(5,150,105,.2);color:#059669}
-
-.bd-section{background:#fff;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,.07);margin-bottom:1rem;overflow:hidden}
-.bd-section-head{padding:.65rem 1.1rem;background:#f8f7ff;border-bottom:1px solid #ede9fe;display:flex;align-items:center;justify-content:space-between}
-.bd-section-head h3{margin:0;font-size:.84rem;font-weight:800;color:#4f46e5}
-.bd-section-head a{font-size:.75rem;color:#7c3aed;text-decoration:none;font-weight:700}
-
-table.bd-table{width:100%;border-collapse:collapse;font-size:.81rem}
-.bd-table th{padding:.45rem .9rem;text-align:left;color:#6b7280;font-weight:700;border-bottom:1px solid #f3f4f6;font-size:.72rem;text-transform:uppercase}
-.bd-table td{padding:.55rem .9rem;border-bottom:1px solid #f9fafb;color:#374151;vertical-align:middle}
-.bd-table tr:last-child td{border-bottom:none}
-.mono{font-family:monospace;font-size:.78rem;color:#7c3aed;letter-spacing:.02em}
-
-.badge{padding:.2rem .55rem;border-radius:8px;font-size:.7rem;font-weight:700;white-space:nowrap}
-.badge-draft{background:#f3f4f6;color:#6b7280}
-.badge-published{background:#d1fae5;color:#065f46}
-.badge-paused{background:#fef3c7;color:#92400e}
-.badge-expired{background:#fee2e2;color:#991b1b}
-.badge-paid{background:#dbeafe;color:#1e40af}
-.badge-sent{background:#ede9fe;color:#5b21b6}
-.badge-redeemed{background:#d1fae5;color:#065f46}
-.badge-pending{background:#fef3c7;color:#92400e}
-.badge-cancelled{background:#f3f4f6;color:#6b7280}
-
-.empty-row td{text-align:center;color:#9ca3af;font-size:.8rem;padding:1.4rem}
-</style>
-{% endblock %}
-
+﻿{% extends 'base.html' %}{% load static %}
+{% block title %}Gift Voucher Dashboard · OUR PINCODE{% endblock %}
+{% block site_header %}{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'vouchers/dashboard.css' %}?v=1">{% endblock %}
 {% block content %}
-
-<div class="bd-hero">
-  <div class="bd-hero-inner">
-    {% if business.logo %}
-      <img src="{{ business.logo.url }}" class="bd-logo" alt="logo">
-    {% else %}
-      <div class="bd-logo-ph"><i class="fas fa-store"></i></div>
-    {% endif %}
-    <div>
-      <div class="bd-name">{{ business.business_name }}</div>
-      <div class="bd-cat">{{ business.category.name }}</div>
-      <span class="bd-badge {{ business.status }}">
-        {% if business.status == 'pending' %}<i class="fas fa-clock"></i> Under Review
-        {% elif business.status == 'approved' %}<i class="fas fa-check-circle"></i> Approved
-        {% elif business.status == 'suspended' %}<i class="fas fa-ban"></i> Suspended
-        {% elif business.status == 'rejected' %}<i class="fas fa-times-circle"></i> Rejected
-        {% endif %}
-      </span>
-    </div>
-  </div>
+<svg class="gv-sprite" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs>
+<symbol id="gv-gift" viewBox="0 0 32 32"><path d="M4 14h24v14H4zM2 9h28v6H2z" fill="currentColor"/><path d="M16 9v20" stroke="var(--icon-cut,#fff)" stroke-width="2"/><path d="M16 9C8 10 5 7 7 4c3-4 9 2 9 5Zm0 0c8 1 11-2 9-5-3-4-9 2-9 5Z" fill="none" stroke="currentColor" stroke-width="2.5"/></symbol>
+<symbol id="gv-cart" viewBox="0 0 32 32"><path d="M3 4h4l4 18h15l4-14H8M12 27h1m11 0h1" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+<symbol id="gv-ticket" viewBox="0 0 32 32"><path d="M4 5h24v7a4 4 0 0 0 0 8v7H4v-7a4 4 0 0 0 0-8Z" fill="currentColor"/><path d="m16 9 2 4 4 .5-3 3 .8 4.5-4-2-4 2 .8-4.5-3-3 4-.5Z" fill="#fff"/></symbol>
+<symbol id="gv-arrow" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+<symbol id="gv-plus" viewBox="0 0 32 32"><circle cx="16" cy="16" r="15" fill="currentColor"/><path d="M16 8v16M8 16h16" stroke="#8839ef" stroke-width="3" stroke-linecap="round"/></symbol>
+<symbol id="gv-user" viewBox="0 0 32 32"><circle cx="16" cy="11" r="5" fill="currentColor"/><path d="M6 27c0-10 20-10 20 0Z" fill="currentColor"/></symbol>
+</defs></svg>
+<main class="gv-dashboard">
+<header class="gv-header"><a href="/" aria-label="Our Pincode home"><img class="gv-brand" src="{% static 'images/ourpincod.jpeg' %}" alt="OUR PINCODE"></a><div class="gv-heading"><h1>Gift Voucher</h1><p>Dashboard</p></div><div class="gv-header-actions">{% include 'includes/language_switch.html' %}<a class="gv-avatar" href="{% url 'profile_edit' %}" aria-label="My profile">{% if profile_photo_url %}<img src="{{ profile_photo_url }}" alt="My profile">{% else %}<svg aria-hidden="true"><use href="#gv-user"/></svg>{% endif %}</a></div></header>
+{% for message in messages %}<p class="gv-notice" role="status">{{ message }}</p>{% endfor %}
+{% if business.status == 'pending' %}<p class="gv-notice" role="status">Your business is under review. After approval you can buy slots and create vouchers.</p>{% elif business.status == 'rejected' %}<p class="gv-notice" role="status">Registration rejected. {{ business.rejection_reason|default:'Please contact support.' }}</p>{% elif business.status == 'suspended' %}<p class="gv-notice" role="status">Your voucher business is suspended. Please contact support.</p>{% endif %}
+{% if slot_pending %}<p class="gv-notice">{{ slot_pending }} slot request{{ slot_pending|pluralize }} awaiting approval. <a href="{% url 'vouchers:slot_history' %}">View requests →</a></p>{% endif %}
+<section class="gv-revenue" aria-label="Revenue summary"><svg class="gv-revenue-icon" aria-hidden="true"><use href="#gv-gift"/></svg><div class="gv-money"><h2>Total Revenue</h2><strong>₹{{ total_revenue|floatformat:"-2" }}</strong></div><div class="gv-money"><h2>This Month Revenue</h2><strong>₹{{ month_revenue|floatformat:"-2" }}</strong></div><div class="gv-chart" aria-hidden="true"><span></span><span></span><span></span><span></span>↗</div></section>
+<section class="gv-totals" aria-label="Voucher and purchase totals"><div class="gv-total"><div class="gv-total-heading"><svg class="gv-ticket-icon" aria-hidden="true"><use href="#gv-ticket"/></svg><div><strong>{{ voucher_stats.total }}</strong><h2>Total Vouchers</h2></div></div><ul class="gv-legend"><li class="green">{{ voucher_stats.published }} Published</li><li class="gray">{{ voucher_stats.draft }} Draft</li><li class="orange">{{ voucher_stats.paused }} Paused</li></ul></div><div class="gv-total"><div class="gv-total-heading"><svg aria-hidden="true"><use href="#gv-cart"/></svg><div><strong>{{ purchase_stats.total }}</strong><h2>Total Purchases</h2></div></div><ul class="gv-legend"><li class="green">{{ purchase_stats.paid }} Paid</li><li class="blue">{{ purchase_stats.sent }} Sent</li><li class="purple">{{ purchase_stats.redeemed }} Redeemed</li></ul></div></section>
+<nav class="gv-actions" aria-label="Voucher actions">{% if business.status == 'approved' %}<a class="gv-action primary" href="{% url 'vouchers:voucher_create' %}"><svg aria-hidden="true"><use href="#gv-plus"/></svg><span>New Voucher</span><svg class="gv-chevron" aria-hidden="true"><use href="#gv-arrow"/></svg></a><a class="gv-action" href="{% url 'vouchers:slot_buy' %}"><svg aria-hidden="true"><use href="#gv-cart"/></svg><span>Buy Slots</span><svg class="gv-chevron" aria-hidden="true"><use href="#gv-arrow"/></svg></a><a class="gv-action redeem" href="{% url 'vouchers:redeem_lookup' %}"><svg aria-hidden="true"><use href="#gv-gift"/></svg><span>Redeem Voucher</span><svg class="gv-chevron" aria-hidden="true"><use href="#gv-arrow"/></svg></a>{% else %}<p class="gv-action unavailable">Voucher actions become available after approval.</p>{% endif %}</nav>
+<div class="gv-recent-grid">
+<section class="gv-recent"><header><h2><svg aria-hidden="true"><use href="#gv-ticket"/></svg>Recent Gift Vouchers</h2><a href="{% url 'vouchers:voucher_list' %}">View All →</a></header><ul>{% for v in recent_vouchers|slice:':3' %}<li><svg class="gv-row-icon ticket" aria-hidden="true"><use href="#gv-ticket"/></svg><div class="gv-row-text"><a href="{% url 'vouchers:voucher_edit' v.pk %}">{{ v.voucher_name }}</a><time>{{ v.created_at|date:'d M Y' }}</time></div><span class="gv-badge {{ v.status }}">{{ v.get_status_display }}</span></li>{% empty %}<li class="gv-empty">No gift vouchers yet.</li>{% endfor %}</ul></section>
+<section class="gv-recent"><header><h2><svg aria-hidden="true"><use href="#gv-cart"/></svg>Recent Purchases</h2><a href="?activity=purchases#activity-history">View All →</a></header><ul>{% for p in recent_purchases|slice:':3' %}<li><svg class="gv-row-icon" aria-hidden="true"><use href="#gv-cart"/></svg><div class="gv-row-text"><span>#P{{ p.pk }}</span><time>{{ p.purchased_at|date:'d M Y' }}</time></div><span class="gv-badge {{ p.status }}">{% if p.status == 'sent' %}Sent{% else %}{{ p.get_status_display }}{% endif %}</span></li>{% empty %}<li class="gv-empty">No purchases yet.</li>{% endfor %}</ul></section>
+<section class="gv-recent"><header><h2><svg aria-hidden="true"><use href="#gv-gift"/></svg>Recent Redemptions</h2><a href="?activity=redemptions#activity-history">View All →</a></header><ul>{% for r in recent_redemptions|slice:':3' %}<li><svg class="gv-row-icon" aria-hidden="true"><use href="#gv-gift"/></svg><div class="gv-row-text"><span>{{ r.purchase.voucher_code }}</span><time>{{ r.redeemed_at|date:'d M Y' }}</time></div><span class="gv-badge redeemed">Redeemed</span></li>{% empty %}<li class="gv-empty">No redemptions yet.</li>{% endfor %}</ul></section>
 </div>
-
-<div class="bd-wrap">
-
-  {% if business.status == 'pending' %}
-  <div class="bd-alert warn">
-    <i class="fas fa-hourglass-half"></i>
-    <div>Your business is <strong>under review</strong>. You'll receive an email once approved. After approval you can buy slots and create vouchers.</div>
-  </div>
-  {% endif %}
-
-  {% if business.status == 'rejected' %}
-  <div class="bd-alert danger">
-    <i class="fas fa-times-circle"></i>
-    <div><strong>Registration Rejected.</strong> Reason: {{ business.rejection_reason|default:"No reason provided." }}</div>
-  </div>
-  {% endif %}
-
-  {% if slot_pending %}
-  <div class="bd-alert info">
-    <i class="fas fa-info-circle"></i>
-    <div>You have <strong>{{ slot_pending }} pending slot request{{ slot_pending|pluralize }}</strong> awaiting admin approval.
-    <a href="{% url 'vouchers:slot_history' %}" style="color:#1e40af;font-weight:700">View →</a></div>
-  </div>
-  {% endif %}
-
-  <!-- Revenue & Slot Stats -->
-  <div class="stat-grid">
-    <div class="stat-card green">
-      <div class="stat-num green">&#8377;{{ total_revenue|floatformat:0 }}</div>
-      <div class="stat-label">Total Revenue</div>
-    </div>
-    <div class="stat-card blue">
-      <div class="stat-num blue">&#8377;{{ month_revenue|floatformat:0 }}</div>
-      <div class="stat-label">This Month</div>
-    </div>
-    <div class="stat-card purple">
-      <div class="stat-num purple">{{ business.available_slots }}</div>
-      <div class="stat-label">Available Slots</div>
-    </div>
-    <div class="stat-card amber">
-      <div class="stat-num amber">{{ business.total_slots_purchased }}</div>
-      <div class="stat-label">Slots Purchased</div>
-    </div>
-  </div>
-
-  <!-- Voucher breakdown -->
-  <div class="mini-stats">
-    <div class="mini-stat"><span class="dot" style="background:#6b7280"></span>{{ voucher_stats.total }} Total Vouchers</div>
-    <div class="mini-stat"><span class="dot" style="background:#059669"></span>{{ voucher_stats.published }} Published</div>
-    <div class="mini-stat"><span class="dot" style="background:#9ca3af"></span>{{ voucher_stats.draft }} Draft</div>
-    <div class="mini-stat"><span class="dot" style="background:#d97706"></span>{{ voucher_stats.paused }} Paused</div>
-  </div>
-
-  <!-- Purchase breakdown -->
-  <div class="mini-stats">
-    <div class="mini-stat"><span class="dot" style="background:#374151"></span>{{ purchase_stats.total }} Total Purchases</div>
-    <div class="mini-stat"><span class="dot" style="background:#2563eb"></span>{{ purchase_stats.paid }} Paid</div>
-    <div class="mini-stat"><span class="dot" style="background:#5b21b6"></span>{{ purchase_stats.sent }} Sent</div>
-    <div class="mini-stat"><span class="dot" style="background:#059669"></span>{{ purchase_stats.redeemed }} Redeemed</div>
-  </div>
-
-  {% if business.status == 'approved' %}
-  <div class="quick-links">
-    <a href="{% url 'vouchers:voucher_create' %}" class="ql-btn"><i class="fas fa-plus"></i> New Voucher</a>
-    <a href="{% url 'vouchers:slot_buy' %}" class="ql-btn"><i class="fas fa-shopping-bag"></i> Buy Slots</a>
-    <a href="{% url 'vouchers:branch_list' %}" class="ql-btn"><i class="fas fa-code-branch"></i> Branches</a>
-    <a href="{% url 'vouchers:employee_list' %}" class="ql-btn"><i class="fas fa-users"></i> Employees</a>
-    <a href="{% url 'vouchers:redeem_lookup' %}" class="ql-btn green"><i class="fas fa-qrcode"></i> Redeem Voucher</a>
-    <a href="{% url 'vouchers:marketplace' %}" class="ql-btn"><i class="fas fa-store"></i> Marketplace</a>
-  </div>
-  {% endif %}
-
-  <!-- Recent Vouchers -->
-  <div class="bd-section">
-    <div class="bd-section-head">
-      <h3><i class="fas fa-gift"></i> Recent Gift Vouchers</h3>
-      <a href="{% url 'vouchers:voucher_list' %}">View All →</a>
-    </div>
-    <div style="overflow-x:auto">
-      <table class="bd-table">
-        <thead><tr><th>Voucher</th><th>Value</th><th>Qty</th><th>Sold</th><th>Status</th></tr></thead>
-        <tbody>
-          {% for v in recent_vouchers %}
-          <tr>
-            <td>{{ v.voucher_name }}</td>
-            <td>&#8377;{{ v.voucher_value }}</td>
-            <td>{{ v.total_quantity }}</td>
-            <td>{{ v.sold_quantity }}</td>
-            <td><span class="badge badge-{{ v.status }}">{{ v.get_status_display }}</span></td>
-          </tr>
-          {% empty %}
-          <tr class="empty-row"><td colspan="5">No vouchers yet{% if business.status == 'approved' %} — <a href="{% url 'vouchers:voucher_create' %}" style="color:#7c3aed">Create your first</a>{% endif %}</td></tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- Recent Purchases -->
-  <div class="bd-section">
-    <div class="bd-section-head">
-      <h3><i class="fas fa-receipt"></i> Recent Purchases</h3>
-    </div>
-    <div style="overflow-x:auto">
-      <table class="bd-table">
-        <thead><tr><th>Code</th><th>Voucher</th><th>Buyer</th><th>Amount</th><th>Status</th></tr></thead>
-        <tbody>
-          {% for p in recent_purchases %}
-          <tr>
-            <td class="mono">{{ p.voucher_code }}</td>
-            <td>{{ p.gift_voucher.voucher_name }}</td>
-            <td>{{ p.buyer_name }}</td>
-            <td>&#8377;{{ p.amount_paid }}</td>
-            <td><span class="badge badge-{{ p.status }}">{{ p.get_status_display }}</span></td>
-          </tr>
-          {% empty %}
-          <tr class="empty-row"><td colspan="5">No purchases yet</td></tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- Recent Redemptions -->
-  <div class="bd-section">
-    <div class="bd-section-head">
-      <h3><i class="fas fa-check-circle"></i> Recent Redemptions</h3>
-    </div>
-    <div style="overflow-x:auto">
-      <table class="bd-table">
-        <thead><tr><th>Code</th><th>Voucher</th><th>Customer</th><th>Redeemed At</th></tr></thead>
-        <tbody>
-          {% for r in recent_redemptions %}
-          <tr>
-            <td class="mono">{{ r.purchase.voucher_code }}</td>
-            <td>{{ r.purchase.gift_voucher.voucher_name }}</td>
-            <td>{{ r.purchase.receiver_name }}</td>
-            <td style="font-size:.78rem;color:#6b7280">{{ r.redeemed_at|date:"d M Y, H:i" }}</td>
-          </tr>
-          {% empty %}
-          <tr class="empty-row"><td colspan="4">No redemptions yet</td></tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-  </div>
-
-</div>
-{% endblock %}
+{% if activity_history %}<section class="gv-history gv-recent" id="activity-history"><header><h2>{% if activity_type == 'purchases' %}Purchase history{% else %}Redemption history{% endif %}</h2><a href="{% url 'vouchers:business_dashboard' %}">Close</a></header><ul>{% for item in activity_history %}<li><div class="gv-row-text">{% if activity_type == 'purchases' %}<span>{{ item.voucher_code }} · {{ item.gift_voucher.voucher_name }}</span><time>{{ item.purchased_at|date:'d M Y' }} · ₹{{ item.amount_paid }}</time>{% else %}<span>{{ item.purchase.voucher_code }} · {{ item.purchase.gift_voucher.voucher_name }}</span><time>{{ item.redeemed_at|date:'d M Y' }}</time>{% endif %}</div>{% if activity_type == 'purchases' %}<span class="gv-badge {{ item.status }}">{{ item.get_status_display }}</span>{% else %}<span class="gv-badge redeemed">Redeemed</span>{% endif %}</li>{% endfor %}</ul><nav aria-label="Activity pages">{% if activity_history.has_previous %}<a href="?activity={{ activity_type }}&amp;page={{ activity_history.previous_page_number }}#activity-history">← Previous</a>{% endif %}<span>Page {{ activity_history.number }} of {{ activity_history.paginator.num_pages }}</span>{% if activity_history.has_next %}<a href="?activity={{ activity_type }}&amp;page={{ activity_history.next_page_number }}#activity-history">Next →</a>{% endif %}</nav></section>{% elif activity_type %}<p class="gv-notice" id="activity-history">No {{ activity_type }} yet.</p>{% endif %}
+<footer class="gv-management"><div><strong>{{ business.business_name }}</strong><span>{{ business.get_status_display }} · {{ business.available_slots }} available slots · {{ business.total_slots_purchased }} slots purchased</span></div><nav aria-label="Business management"><a href="{% url 'vouchers:marketplace' %}">Marketplace</a><a href="{% url 'vouchers:slot_history' %}">Slot history</a><a href="{% url 'vouchers:branch_list' %}">Branches</a><a href="{% url 'vouchers:employee_list' %}">Employees</a><a href="{% url 'dashboard' %}">My dashboard</a></nav></footer>
+</main>{% endblock %}

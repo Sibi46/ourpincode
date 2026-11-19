@@ -44,7 +44,7 @@ def business_dashboard(request):
     from django.db.models import Sum
     business = get_object_or_404(Business, owner=request.user)
 
-    now = timezone.now()
+    now = timezone.localtime()
     month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
 
     all_vouchers  = GiftVoucher.objects.filter(business=business)
@@ -80,7 +80,19 @@ def business_dashboard(request):
         purchase__gift_voucher__business=business
     ).select_related('purchase', 'purchase__gift_voucher').order_by('-redeemed_at')[:5]
 
+    from django.core.paginator import Paginator
+    activity_type = request.GET.get('activity', '')
+    activity_history = None
+    if activity_type == 'purchases':
+        activity_history = Paginator(all_purchases.select_related('gift_voucher').order_by('-purchased_at', '-pk'), 20).get_page(request.GET.get('page'))
+    elif activity_type == 'redemptions':
+        activity_history = Paginator(VoucherRedemption.objects.filter(purchase__gift_voucher__business=business).select_related('purchase__gift_voucher').order_by('-redeemed_at', '-pk'), 20).get_page(request.GET.get('page'))
+    else:
+        activity_type = ''
+
     context = {
+        'activity_type': activity_type,
+        'activity_history': activity_history,
         'business':           business,
         'voucher_stats':      voucher_stats,
         'purchase_stats':     purchase_stats,
