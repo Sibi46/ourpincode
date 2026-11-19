@@ -1,0 +1,5 @@
+{% extends 'base.html' %}{% load static %}
+{% block title %}Pending Approval · Gift Vouchers{% endblock %}
+{% block site_header %}{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'vouchers/dashboard.css' %}?v=1"><link rel="stylesheet" href="{% static 'vouchers/onboarding.css' %}?v=1">{% endblock %}
+{% block content %}{% include 'vouchers/icons.html' %}<main class="gv-dashboard gv-onboarding">{% include 'vouchers/header.html' %}{% include 'vouchers/approval_workflow.html' %}<p class="gv-back"><a href="{% url 'dashboard' %}">⌂ Back to Dashboard</a></p></main>{% endblock %}

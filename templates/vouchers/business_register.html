@@ -104,7 +104,7 @@ select.form-control{background:#fff}
         </div>
         <div class="form-group">
           <label>Business Description</label>
-          {{ form.description }}
+          {{ form.description }}<small id="voucher-description-help">Use words to describe your business. Numbers such as 24/7 are allowed alongside text.</small>{{ form.description.errors }}
         </div>
       </div>
     </div>
@@ -197,5 +197,5 @@ select.form-control{background:#fff}
     <p class="vr-login-note">By registering you agree to our <a href="/terms/">Terms of Service</a></p>
   </form>
 </div>
-<script src="{% static 'js/form-validation.js' %}?v=2" defer></script>
+<script src="{% static 'js/form-validation.js' %}?v=3" defer></script>
 {% endblock %}

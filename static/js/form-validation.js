@@ -18,6 +18,13 @@
       });
       validate();
     });
+    document.querySelectorAll('[data-description-text]').forEach(input => {
+      const validate = () => input.setCustomValidity(input.value.trim() && !/\p{L}/u.test(input.value)
+        ? 'Describe your business using words. Numbers alone are not allowed.' : '');
+      input.addEventListener('input', validate);
+      input.addEventListener('change', validate);
+      validate();
+    });
     const description = document.querySelector('textarea[name="description"][maxlength="500"]');
     const chars = document.getElementById('descCharValue');
     const words = document.getElementById('descWordCount');

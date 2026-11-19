@@ -28,7 +28,7 @@ class BusinessRegistrationForm(ProfileValidationMixin, forms.ModelForm):
             'state':         forms.TextInput(attrs={'placeholder': 'State'}),
             'gst_number':    forms.TextInput(attrs={'placeholder': 'GST number (optional)'}),
             'pan_number':    forms.TextInput(attrs={'placeholder': 'PAN number (optional)'}),
-            'description':   forms.Textarea(attrs={'rows': 4, 'placeholder': 'Brief description of your business'}),
+            'description':   forms.Textarea(attrs={'rows': 4, 'placeholder': 'Brief description of your business', 'data-description-text': '', 'aria-describedby': 'voucher-description-help'}),
             'facebook':      forms.URLInput(attrs={'placeholder': 'Facebook page URL (optional)'}),
             'instagram':     forms.URLInput(attrs={'placeholder': 'Instagram profile URL (optional)'}),
             'twitter':       forms.URLInput(attrs={'placeholder': 'Twitter/X profile URL (optional)'}),
@@ -43,6 +43,12 @@ class BusinessRegistrationForm(ProfileValidationMixin, forms.ModelForm):
                                          forms.URLInput, forms.Textarea, forms.Select)):
                 existing = field.widget.attrs.get('class', '')
                 field.widget.attrs['class'] = (existing + ' form-control').strip()
+
+    def clean_description(self):
+        value = self.cleaned_data.get('description', '').strip()
+        if value and not any(char.isalpha() for char in value):
+            raise forms.ValidationError('Describe your business using words. Numbers alone are not allowed.')
+        return value
 
 
 class BranchForm(ProfileValidationMixin, forms.ModelForm):

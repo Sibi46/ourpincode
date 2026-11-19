@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib import messages
 from .models import Business, Branch, Employee, VoucherSlotPurchase, GiftVoucher, VoucherCategory, VoucherPurchase, VoucherRedemption
-from django.db import models as dj_models
+from django.db import models as dj_models, transaction
 from .forms import BusinessRegistrationForm, BranchForm, EmployeeForm, SlotRequestForm, GiftVoucherForm, VoucherPurchaseForm, SLOT_PACKAGES, SLOT_PACKAGE_MAP
 import string
 import random
@@ -34,8 +34,12 @@ def business_register(request):
     return render(request, 'vouchers/business_register.html', {'form': form})
 
 
+@login_required
 def business_register_success(request):
-    return render(request, 'vouchers/business_register_success.html')
+    business = get_object_or_404(Business, owner=request.user)
+    if business.status != 'pending':
+        return redirect('vouchers:business_dashboard')
+    return render(request, 'vouchers/pending_approval.html', {'business': business})
 
 
 @login_required
@@ -43,6 +47,9 @@ def business_dashboard(request):
     from django.utils import timezone
     from django.db.models import Sum
     business = get_object_or_404(Business, owner=request.user)
+
+    if business.status == 'pending':
+        return render(request, 'vouchers/pending_approval.html', {'business': business})
 
     now = timezone.localtime()
     month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
@@ -284,10 +291,13 @@ def slot_buy(request):
 @login_required
 def slot_history(request):
     business = get_object_or_404(Business, owner=request.user)
+    if business.status == 'pending':
+        return render(request, 'vouchers/pending_approval.html', {'business': business})
     slot_requests = business.slot_purchases.all()
     return render(request, 'vouchers/slot_history.html', {
         'business': business,
         'slot_requests': slot_requests,
+        'slot_pending': business.status == 'approved' and slot_requests.filter(status='pending').exists(),
     })
 
 
@@ -782,9 +792,14 @@ def admin_dashboard(request):
 @staff_member_required
 def admin_approve_business(request, pk):
     if request.method == 'POST':
-        biz = get_object_or_404(Business, pk=pk)
-        biz.status = 'approved'
-        biz.save()
+        from jobs.models import UserNotification
+        with transaction.atomic():
+            biz = get_object_or_404(Business.objects.select_for_update(), pk=pk)
+            changed = biz.status != 'approved'
+            biz.status = 'approved'
+            biz.save()
+            if changed:
+                UserNotification.objects.create(user=biz.owner, title='Voucher business approved', message=f'{biz.business_name} is approved. You can now buy voucher slots.', notif_type='success', link='/vouchers/dashboard/')
         messages.success(request, f'"{biz.business_name}" approved.')
     return redirect('vouchers:admin_dashboard')
 
@@ -803,9 +818,14 @@ def admin_reject_business(request, pk):
 @staff_member_required
 def admin_approve_slot(request, pk):
     if request.method == 'POST':
-        slot = get_object_or_404(VoucherSlotPurchase, pk=pk)
-        slot.status = 'approved'
-        slot.save()
+        from jobs.models import UserNotification
+        with transaction.atomic():
+            slot = get_object_or_404(VoucherSlotPurchase.objects.select_for_update().select_related('business'), pk=pk)
+            changed = slot.status != 'approved'
+            slot.status = 'approved'
+            slot.save()
+            if changed:
+                UserNotification.objects.create(user=slot.business.owner, title='Voucher slots approved', message=f'Your request for {slot.slots_count} slots is approved. You can now create vouchers.', notif_type='success', link='/vouchers/dashboard/')
         messages.success(request, f'Slot request #{slot.pk} approved ({slot.slots_count} slots).')
     return redirect('vouchers:admin_dashboard')
 
