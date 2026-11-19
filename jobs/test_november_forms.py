@@ -19,17 +19,19 @@ class NovemberFormTests(TestCase):
         self.user = User.objects.create_user('form-author', password='example-password')
         self.client.force_login(self.user)
 
-    def test_flick_upload_saves_file_and_appears_in_feed(self):
+    def test_flick_upload_saves_file_and_waits_for_approval(self):
         data = io.BytesIO()
         Image.new('RGB', (8, 8), 'blue').save(data, format='PNG')
         response = self.client.post('/flicks/post/', {
             'title': 'Neighbourhood update', 'caption': 'New community garden',
             'image': SimpleUploadedFile('garden.png', data.getvalue(), content_type='image/png'),
         }, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
-        self.assertEqual(response.json(), {'success': True, 'url': '/flicks/'})
+        self.assertEqual(response.json(), {'success': True, 'url': '/flicks/mine/', 'status': 'pending'})
         flick = Flick.objects.get(user=self.user)
         self.assertTrue(flick.image.storage.exists(flick.image.name))
-        self.assertContains(self.client.get('/flicks/'), flick.image.url)
+        self.assertNotContains(self.client.get('/flicks/'), flick.image.url)
+        self.assertContains(self.client.get('/flicks/mine/'), flick.image.url)
+        flick.image.delete(save=False)
 
     def test_empty_flick_reports_error_instead_of_false_success(self):
         response = self.client.post('/flicks/post/', {'caption': '  '},

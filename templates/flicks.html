@@ -385,7 +385,7 @@ body { overflow: hidden !important; margin: 0 !important; padding: 0 !important;
 <!-- Fixed top bar -->
 
 <!-- Category tabs -->
-<div style="position:sticky;top:52px;z-index:190;background:#111;padding:6px 12px;display:flex;gap:8px;overflow-x:auto;scrollbar-width:none">
+<div style="position:sticky;top:52px;z-index:190;background:#111;padding:6px 12px;display:flex;gap:8px;overflow-x:auto;scrollbar-width:none">{% if request.user.is_authenticated %}<a href="{% url 'my_flicks' %}" style="flex-shrink:0;padding:5px 14px;border-radius:20px;background:#6d28d9;color:white;text-decoration:none;font-weight:700">My Flicks / Review status</a>{% endif %}
   <a href="/flicks/" style="flex-shrink:0;padding:5px 14px;border-radius:20px;font-size:12px;font-weight:700;text-decoration:none;
     {% if not active_cat %}background:#fff;color:#111{% else %}background:rgba(255,255,255,.12);color:#fff{% endif %}">All</a>
   <a href="/flicks/?cat=health" style="flex-shrink:0;padding:5px 14px;border-radius:20px;font-size:12px;font-weight:700;text-decoration:none;

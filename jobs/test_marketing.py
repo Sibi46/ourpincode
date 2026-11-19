@@ -31,10 +31,12 @@ class MarketingTests(TestCase):
 
     def test_posting_uses_shop_and_blocks_other_accounts(self):
         self.unlock()
-        self.client.post(reverse('offer_post'), {'title': 'Discount', 'business_name': 'My shop', 'category': 'other'})
+        self.client.post(reverse('offer_post'), {'title': 'Discount', 'business_name': 'My shop', 'category': 'food_pizza', 'valid_type': 'week'})
         self.assertEqual(LocalOffer.objects.get().owner, self.shop)
         self.client.post(reverse('post_flick'), {'caption': 'Shop video'})
         self.assertEqual(Flick.objects.get().user, self.shop)
+        self.assertEqual(Flick.objects.get().moderation_status, 'pending')
+        self.assertContains(self.client.get(reverse('my_flicks')), 'Shop video')
         other_video = Flick.objects.create(user=self.other, caption='Other shop')
         self.assertEqual(self.client.post(reverse('delete_flick', args=[other_video.pk])).status_code, 404)
         self.assertRedirects(self.client.get(reverse('employer_dashboard')), reverse('marketing_dashboard'))

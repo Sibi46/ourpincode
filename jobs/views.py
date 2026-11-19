@@ -939,7 +939,7 @@ def business_profile(request, company_id):
     ).order_by('-created_at')[:20]
 
     # Flicks posted by owner
-    flicks = Flick.objects.filter(user=owner).order_by('-created_at')[:12]
+    flicks = Flick.objects.filter(user=owner, moderation_status='approved').order_by('-created_at')[:12]
 
     # Gallery: ad post images + offer images
     gallery_images = []
@@ -1120,7 +1120,7 @@ def employer_dashboard(request, profile_editor=None):
     job_posted_title = request.session.pop('show_job_posted_popup', None)
 
     from .models import Flick, FlickLike
-    recent_flicks = Flick.objects.select_related('user').prefetch_related('likes')[:12]
+    recent_flicks = Flick.objects.filter(moderation_status='approved',user__is_active=True).select_related('user').prefetch_related('likes')[:12]
     liked_ids = set(FlickLike.objects.filter(user=request.user).values_list('flick_id', flat=True))
 
     # ── Gift Voucher stats ──
@@ -2228,7 +2228,7 @@ def advertiser_register(request):
         return redirect('advertiser_register_success')
 
     from .models import Flick, FlickLike
-    recent_flicks = Flick.objects.select_related('user').order_by('-created_at')[:16]
+    recent_flicks = Flick.objects.filter(moderation_status='approved',user__is_active=True).select_related('user').order_by('-created_at')[:16]
     liked_ids = set()
     if request.user.is_authenticated:
         liked_ids = set(FlickLike.objects.filter(user=request.user).values_list('flick_id', flat=True))
@@ -3159,6 +3159,17 @@ def admin_flicks(request):
     if request.method == 'POST':
         action = request.POST.get('action')
 
+        if action in ('approve_flick','reject_flick'):
+            from .flick_moderation import review_flick
+            from django.core.exceptions import ValidationError
+            try:
+                review_flick(request.user,request.POST.get('flick_id'),'approved' if action=='approve_flick' else 'rejected',request.POST.get('reason',''),request.POST.get('reviewed')=='on')
+            except (ValidationError,Flick.DoesNotExist) as error:
+                messages.error(request,' '.join(error.messages) if isinstance(error,ValidationError) else 'Flick not found.')
+            else:
+                messages.success(request,'Content review saved.')
+            return redirect('admin_flicks')
+
         if action == 'save_settings':
             settings.upi_id        = request.POST.get('upi_id', settings.upi_id).strip()
             settings.price         = request.POST.get('price', settings.price)
@@ -3198,7 +3209,13 @@ def admin_flicks(request):
             messages.success(request, f'Plan updated to "{flick.advertise_plan or "No Plan"}".')
         return redirect('admin_flicks')
 
+    from django.core.paginator import Paginator
+    review_status=request.GET.get('review_status','pending')
+    if review_status not in {'pending','approved','rejected'}:review_status='pending'
+    review_queue=Paginator(flicks.filter(moderation_status=review_status),20).get_page(request.GET.get('page'))
     return render(request, 'admin_flicks.html', {
+        'review_queue':review_queue,'review_status':review_status,
+        'pending_count':flicks.filter(moderation_status='pending').count(),
         'flicks': flicks,
         'payments': payments,
         'settings': settings,
@@ -3210,7 +3227,7 @@ def report_flick(request, pk):
     from .models import Flick, FlickReport
     if request.method != 'POST':
         return JsonResponse({'success': False})
-    flick  = get_object_or_404(Flick, pk=pk)
+    flick  = get_object_or_404(Flick, pk=pk, moderation_status='approved', user__is_active=True)
     reason = request.POST.get('reason', '').strip()
     note   = request.POST.get('note', '').strip()
     if not reason:
@@ -3716,7 +3733,7 @@ def flicks_feed(request):
     from django.utils import timezone
     today = timezone.now().date()
     cat = request.GET.get('cat', '')
-    flicks = Flick.objects.select_related('user', 'user__company').prefetch_related('likes', 'comments').extra(
+    flicks = Flick.objects.filter(moderation_status='approved',user__is_active=True).select_related('user', 'user__company').prefetch_related('likes', 'comments').extra(
         select={'is_paid_active': "CASE WHEN promoted_until >= %s THEN 1 ELSE 0 END"},
         select_params=[today],
         order_by=['-is_paid_active', '-created_at'],
@@ -3731,26 +3748,19 @@ def flicks_feed(request):
 
 @login_required
 def post_flick(request):
-    from .models import Flick
-    if request.method == 'POST':
-        title    = request.POST.get('title', '').strip()
-        caption  = request.POST.get('caption', '').strip()
-        category = request.POST.get('category', 'general')
-        video    = request.FILES.get('video')
-        image    = request.FILES.get('image')
-        ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
-        if not caption and not video and not image:
-            if ajax:
-                return JsonResponse({'success': False, 'error': 'Add a caption, image, or video.'}, status=400)
-            messages.error(request, 'Add a caption, image, or video.')
-            return redirect('post_flick')
-        Flick.objects.create(user=request.user, title=title, caption=caption,
-                             category=category, video=video, image=image)
-        if ajax:
-            return JsonResponse({'success': True, 'url': '/flicks/'})
-        messages.success(request, 'Flick posted!')
-        return redirect('flicks_feed')
-    return render(request, 'post_flick.html')
+    from .flick_moderation import FlickSubmissionForm,notify_submission
+    form=FlickSubmissionForm(request.POST if request.method=='POST' else None,request.FILES or None)
+    if request.method=='POST':
+        ajax=request.headers.get('X-Requested-With')=='XMLHttpRequest'
+        if form.is_valid():
+            with transaction.atomic():
+                flick=form.save(commit=False);flick.user=request.user;flick.moderation_status='pending';flick.save()
+                notify_submission(flick)
+            if ajax:return JsonResponse({'success':True,'url':'/flicks/mine/','status':'pending'})
+            messages.success(request,'Flick submitted for admin approval. It is not public yet.')
+            return redirect('my_flicks')
+        if ajax:return JsonResponse({'success':False,'error':' '.join(str(e) for errors in form.errors.values() for e in errors)},status=400)
+    return render(request,'post_flick.html',{'submission_form':form})
 
 
 @login_required
@@ -3758,7 +3768,7 @@ def like_flick(request, pk):
     from .models import Flick, FlickLike
     if request.method != 'POST':
         return JsonResponse({'success': False})
-    flick = get_object_or_404(Flick, pk=pk)
+    flick = get_object_or_404(Flick, pk=pk, moderation_status='approved', user__is_active=True)
     like, created = FlickLike.objects.get_or_create(flick=flick, user=request.user)
     if not created:
         like.delete()
@@ -3773,12 +3783,16 @@ def comment_flick(request, pk):
     from .models import Flick, FlickComment
     if request.method != 'POST':
         return JsonResponse({'success': False})
+    flick = get_object_or_404(Flick, pk=pk, moderation_status='approved', user__is_active=True)
     import json
-    data = json.loads(request.body)
+    try:
+        data = json.loads(request.body)
+        if not isinstance(data,dict): raise ValueError
+    except (ValueError,UnicodeDecodeError):
+        return JsonResponse({'success':False,'error':'Invalid comment.'},status=400)
     text = data.get('text', '').strip()
     if not text:
         return JsonResponse({'success': False, 'error': 'Empty comment'})
-    flick = get_object_or_404(Flick, pk=pk)
     c = FlickComment.objects.create(flick=flick, user=request.user, text=text)
     return JsonResponse({
         'success': True,

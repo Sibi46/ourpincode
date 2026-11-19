@@ -79,9 +79,9 @@ class ReportTenNovemberTests(TestCase):
         self.assertFalse(form.fields['portfolio_url'].required)
 
     def test_business_flick_links_to_real_profile_and_personal_post_remains_plain(self):
-        Flick.objects.create(user=self.user, title='Shop Update', caption='Local news')
+        Flick.objects.create(user=self.user, title='Shop Update', caption='Local news', moderation_status='approved')
         personal = User.objects.create_user('personal-poster', first_name='Personal User')
-        Flick.objects.create(user=personal, caption='Personal update')
+        Flick.objects.create(user=personal, caption='Personal update', moderation_status='approved')
         response = self.client.get('/flicks/')
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, self.company.get_absolute_url())

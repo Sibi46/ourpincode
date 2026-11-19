@@ -120,7 +120,7 @@ class ReportTwoTests(TestCase):
         self.assertContains(response, '5.0/5')
 
     def test_business_post_like_uses_existing_toggle(self):
-        flick = Flick.objects.create(user=self.owner, title='New arrivals')
+        flick = Flick.objects.create(user=self.owner, title='New arrivals', moderation_status='approved')
         self.login(self.customer)
         self.assertContains(self.client.get(self.url), 'likeBusinessPost(this,' + str(flick.pk))
         url = reverse('like_flick', args=[flick.pk])

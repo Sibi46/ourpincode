@@ -6,6 +6,7 @@ from django.conf.urls.static import static
 from jobs import views
 from jobs import business_reviews
 from jobs import account
+from jobs import flick_moderation
 from jobs import business_workspaces
 from jobs import employer_services
 from jobs import account_deletion
@@ -14,6 +15,8 @@ from django.contrib.sitemaps import views as sitemap_views
 from .seo import SITEMAPS, robots, sitemap_index
 
 urlpatterns = [
+    path('flicks/mine/', flick_moderation.my_flicks, name='my_flicks'),
+    path('flicks/media/<path:name>', flick_moderation.flick_media, name='flick_media'),
     path('businesses/add/', business_workspaces.add_business, name='add_another_business'),
     path('businesses/switch/<int:account_id>/', business_workspaces.switch_business, name='switch_business'),
     path('wallet/add-money/', employer_services.wallet_action, {'action': 'add-money'}, name='wallet_add_money'),

@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from .flick_storage import FlickMediaStorage
 
 
 class User(AbstractUser):
@@ -1101,13 +1102,18 @@ class Flick(models.Model):
     title          = models.CharField(max_length=150, blank=True)
     caption        = models.TextField(blank=True)
     category       = models.CharField(max_length=20, choices=CAT_CHOICES, default='general')
-    video          = models.FileField(upload_to='flicks/videos/', blank=True, null=True)
-    image          = models.ImageField(upload_to='flicks/images/', blank=True, null=True)
+    video          = models.FileField(upload_to='flicks/videos/', storage=FlickMediaStorage(), blank=True, null=True)
+    image          = models.ImageField(upload_to='flicks/images/', storage=FlickMediaStorage(), blank=True, null=True)
     views          = models.PositiveIntegerField(default=0)
     is_promoted    = models.BooleanField(default=False)
     advertise_plan = models.CharField(max_length=20, choices=PLAN_CHOICES, default='', blank=True)
     promoted_until = models.DateField(null=True, blank=True)
     created_at     = models.DateTimeField(auto_now_add=True)
+
+    moderation_status = models.CharField(max_length=10, choices=[('pending','Pending review'),('approved','Approved'),('rejected','Rejected')], default='pending', db_index=True)
+    reviewed_by = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name='reviewed_flicks')
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+    rejection_reason = models.TextField(blank=True)
 
     class Meta:
         ordering = ['-created_at']
@@ -1122,6 +1128,8 @@ class Flick(models.Model):
         return self.comments.count()
 
     def is_active_promoted(self):
+        if self.moderation_status != 'approved':
+            return False
         from django.utils import timezone
         if self.promoted_until and self.promoted_until >= timezone.now().date():
             return True

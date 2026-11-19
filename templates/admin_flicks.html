@@ -19,6 +19,7 @@
     {% endfor %}
   {% endif %}
 
+  {% include 'includes/flick_review_queue.html' %}
   <!-- ── Ad Settings ── -->
   <div style="background:#fff;border:1.5px solid #e5e7eb;border-radius:14px;padding:20px;margin-bottom:24px">
     <h3 style="font-size:15px;font-weight:900;color:#111;margin:0 0 16px"><i class="fas fa-cog" style="color:#0a66c2"></i> Advertise Plan Settings</h3>
@@ -128,7 +129,7 @@
           {% if flick.title %}<div style="font-size:12px;font-weight:700;color:#333;margin-bottom:2px">{{ flick.title }}</div>{% endif %}
           {% if flick.caption %}<div style="font-size:11px;color:#666;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:380px">{{ flick.caption }}</div>{% endif %}
           <div style="font-size:11px;color:#aaa;margin-top:3px">
-            {{ flick.created_at|date:"d M Y, H:i" }} &nbsp;·&nbsp; ❤️ {{ flick.like_count }} &nbsp;·&nbsp; 💬 {{ flick.comments.count }}
+            {{ flick.get_moderation_status_display }} · {{ flick.created_at|date:"d M Y, H:i" }} &nbsp;·&nbsp; ❤️ {{ flick.like_count }} &nbsp;·&nbsp; 💬 {{ flick.comments.count }}
             {% if flick.promoted_until %}&nbsp;·&nbsp; <span style="color:#7c3aed;font-weight:700">Promoted until {{ flick.promoted_until|date:"d M Y" }}</span>{% endif %}
           </div>
         </div>

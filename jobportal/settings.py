@@ -421,3 +421,6 @@ CHANNEL_LAYERS = {
 
 # Optional city enrichment; the key stays on the server.
 GEOAPIFY_API_KEY = os.environ.get('GEOAPIFY_API_KEY', '').strip()
+
+# Flick uploads are private until a human content review approves publication.
+FLICKS_PRIVATE_ROOT = Path(os.environ.get("FLICKS_PRIVATE_ROOT", BASE_DIR.parent / "flicks-private"))

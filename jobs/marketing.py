@@ -120,7 +120,7 @@ def workspace(request):
 
 class MarketingMiddleware:
     """Keep the authenticated agent in the session; delegate only named marketing views."""
-    allowed = {'offer_post', 'offer_post_success', 'my_offers', 'post_flick', 'delete_flick', 'opc_verify_redemption'} | {
+    allowed = {'offer_post', 'offer_post_success', 'my_offers', 'post_flick', 'my_flicks', 'flick_media', 'delete_flick', 'opc_verify_redemption'} | {
         'vouchers:' + name for name in ('business_dashboard', 'voucher_list', 'voucher_create', 'voucher_edit', 'voucher_publish', 'voucher_pause', 'voucher_resume', 'voucher_delete')}
 
     def __init__(self, get_response):
