@@ -1,0 +1,8 @@
+﻿{% extends 'base.html' %}
+{% block title %}{{ title }} · OUR PINCODE{% endblock %}
+{% block content %}<main style="max-width:640px;margin:30px auto;padding:20px;box-sizing:border-box;overflow-wrap:anywhere">
+<h1>{{ title }}</h1>
+{% if wallet %}<p>Wallet balance: ₹{{ wallet.balance|floatformat:2 }}</p>{% endif %}
+{% if plan %}<p><strong>₹{{ plan.price|floatformat:2 }}</strong> / {{ plan.duration_days }} days</p><p>{% if plan.job_posts %}{{ plan.job_posts }} job posts{% else %}Unlimited job posts{% endif %}</p><ul>{% for feature in plan.feature_list %}<li>{{ feature }}</li>{% endfor %}</ul>{% endif %}
+<p role="status" style="padding:16px;background:#fff8e4;border:1px solid #e8cf84;border-radius:10px">{{ notice }}</p>
+<a href="{{ return_url }}">Back to dashboard</a></main>{% endblock %}

@@ -6,12 +6,18 @@ from django.conf.urls.static import static
 from jobs import views
 from jobs import business_reviews
 from jobs import account
+from jobs import employer_services
 from jobs import account_deletion
 from jobs import postal_areas
 from django.contrib.sitemaps import views as sitemap_views
 from .seo import SITEMAPS, robots, sitemap_index
 
 urlpatterns = [
+    path('wallet/add-money/', employer_services.wallet_action, {'action': 'add-money'}, name='wallet_add_money'),
+    path('wallet/withdraw/', employer_services.wallet_action, {'action': 'withdraw'}, name='wallet_withdraw'),
+    path('subscription/buy/<int:pk>/', employer_services.subscription_plan, name='employer_subscription_plan'),
+    path('subscription/renew/', employer_services.subscription_renew, name='employer_subscription_renew'),
+    path('employer/coupons/<int:pk>/', employer_services.business_coupon, name='business_coupon_detail'),
     path('language/', set_language, name='set_language'),
     path('tuition/', include('tuition.urls')),
     path('', include('jobs.assigned_admin')),

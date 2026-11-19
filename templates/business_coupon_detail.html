@@ -1,0 +1,6 @@
+﻿{% extends 'base.html' %}
+{% block title %}Coupon {{ coupon.code }} · OUR PINCODE{% endblock %}
+{% block content %}<main style="max-width:640px;margin:30px auto;padding:20px;box-sizing:border-box;overflow-wrap:anywhere">
+<a href="/employer/dashboard/#coupons">Back to business coupons</a><h1>Coupon {{ coupon.code }}</h1>
+<dl><dt>Category</dt><dd>{{ coupon.get_category_display }}</dd><dt>Business</dt><dd>{{ coupon.batch.shop.name }}</dd><dt>Salesman</dt><dd>{{ coupon.batch.salesman }}</dd><dt>Status</dt><dd>{{ coupon.get_status_display }}</dd><dt>Distributed on</dt><dd>{{ coupon.batch.distributed_date|date:'d M Y'|default:'Not recorded' }}</dd><dt>Used on</dt><dd>{{ coupon.activated_at|date:'d M Y H:i'|default:'Not used yet' }}</dd><dt>Points awarded</dt><dd>{{ coupon.points_awarded|default_if_none:'Not awarded yet' }}</dd>{% if coupon.is_surprise_gift %}<dt>Surprise gift</dt><dd>{{ coupon.surprise_gift_name|default:'Surprise gift' }}</dd>{% endif %}</dl>
+<p>Give this coupon to a customer to activate it and spin for points.</p></main>{% endblock %}

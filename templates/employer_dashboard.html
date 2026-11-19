@@ -273,7 +273,7 @@
   <div class="ig-content">
   {% for message in messages %}<div class="account-notice" role="status" style="padding:14px;margin-bottom:16px;background:#edf8ef;border:1px solid #bddbc4;border-radius:10px">{{ message }}</div>{% endfor %}
   <div id="igToast" class="ig-toast"></div>
-    <section class="dash-section" data-sec="coupons">
+    <section class="dash-section" id="sec-coupons" data-sec="coupons">
       <h2>Business coupons</h2>
       <p>Share your Salesman Support ID with your salesman to receive coupons. Give the printed coupons to customers; they enter the code and spin to receive points.</p>
       <p>Total: {{ coupon_total }} · Available: {{ coupon_available }} · Used: {{ coupon_used }}</p>
@@ -282,10 +282,10 @@
       {% endif %}
       <div style="overflow-x:auto">
         <table style="width:100%;text-align:left">
-          <thead><tr><th>Coupon</th><th>Salesman</th><th>Status</th><th>Used on</th><th>Points</th></tr></thead>
+          <thead><tr><th>Coupon</th><th>Salesman</th><th>Status</th><th>Used on</th><th>Points</th><th>Details</th></tr></thead>
           <tbody>{% for coupon in business_coupons %}
-            <tr><td>{{ coupon.code }} - {{ coupon.get_category_display }}</td><td>{{ coupon.batch.salesman }}</td><td>{{ coupon.get_status_display }}</td><td>{{ coupon.activated_at|date:'d M Y H:i'|default:'—' }}</td><td>{{ coupon.points_awarded|default_if_none:'—' }}</td></tr>
-          {% empty %}<tr><td colspan="5">No coupons assigned to your business yet.</td></tr>{% endfor %}</tbody>
+            <tr><td>{{ coupon.code }} - {{ coupon.get_category_display }}</td><td>{{ coupon.batch.salesman }}</td><td>{{ coupon.get_status_display }}</td><td>{{ coupon.activated_at|date:'d M Y H:i'|default:'—' }}</td><td>{{ coupon.points_awarded|default_if_none:'—' }}</td><td><a href="{% url 'business_coupon_detail' coupon.pk %}">View</a></td></tr>
+          {% empty %}<tr><td colspan="6">No coupons assigned to your business yet.</td></tr>{% endfor %}</tbody>
         </table>
       </div>
       {% if business_coupons.has_previous %}<a href="?coupon_page={{ business_coupons.previous_page_number }}#coupons">Previous</a>{% endif %}
@@ -842,7 +842,7 @@
           {% endfor %}
         </div>
         {% endif %}
-        <a href="/subscription/renew/" class="dsec-btn" style="margin-top:16px">Renew Plan</a>
+        <a href="#available-subscription-plans" class="dsec-btn" style="margin-top:16px">Renew Plan</a>
       </div>
       {% else %}
       <div class="no-plan-banner">
@@ -855,7 +855,7 @@
       {% endif %}
 
       {% if available_plans %}
-      <h3 class="sub-heading" style="margin-top:36px">Available Plans</h3>
+      <h3 id="available-subscription-plans" class="sub-heading" style="margin-top:36px">Available Plans</h3>
       <div class="plans-grid">
         {% for plan in available_plans %}
         <div class="plan-card {% if plan.is_featured %}featured{% endif %}">
@@ -877,6 +877,8 @@
         </div>
         {% endfor %}
       </div>
+      {% else %}
+      <p role="status">No employer plans are published yet. Please contact support for available subscriptions.</p>
       {% endif %}
     </section>
 
@@ -1179,7 +1181,7 @@ function showSection(id, navEl) {
   const sec = document.getElementById('sec-' + id);
   if (sec) sec.classList.remove('hidden');
   const dSec = document.querySelector('.dash-section[data-sec="' + id + '"]');
-  if (dSec) dSec.style.display = '';
+  if (dSec) dSec.style.display = 'block';
   if (navEl) {
     navEl.classList.add('active');
   } else {
@@ -1209,7 +1211,7 @@ function filterApps(status) {
 // Hide all dash-sections on init, then show hash or default
 window.addEventListener('hashchange', function(){
   const section = window.location.hash.slice(1);
-  if (section === 'myprofile' || document.getElementById('sec-' + section)) showSection(section);
+  if (section === 'myprofile' || document.getElementById('sec-' + section) || document.querySelector('.dash-section[data-sec="' + section + '"]')) showSection(section);
 });
 (function() {
   document.querySelectorAll('.dash-section').forEach(s => s.style.display = 'none');

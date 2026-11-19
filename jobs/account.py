@@ -167,17 +167,17 @@ def follow_business(request, company_id):
 
 def profile_features(user):
     from .features import FEATURES
-    links = [{'name': 'My dashboard', 'url': '/dashboard/'},
-             {'name': 'Following businesses', 'url': '/businesses/?following=1&pincode='},
-             {'name': 'My accounts', 'url': '/my-accounts/'},
-             {'name': 'Refer & Earn', 'url': '/referral/'}]
-    if user.is_employer() or CompanyProfile.objects.filter(user=user).exists():
-        links += [{'name': name, 'url': '/employer/dashboard/#' + section} for name, section in [
-            ('Business dashboard', 'active-jobs'), ('Job applications', 'applications'),
-            ('Job approvals & drafts', 'approval-pending'), ('Business gallery', 'gallery'),
-            ('Business coupons', 'coupons'), ('Notifications', 'notifications'),
-            ('Wallet', 'wallet'), ('Billing', 'billing')]]
+    employer = user.is_employer() or CompanyProfile.objects.filter(user=user).exists()
+    links = [{'name': 'Following businesses', 'url': '/businesses/?following=1&pincode='},
+             {'name': 'My accounts', 'url': '/my-accounts/'}]
+    if employer:
+        # Employer services already have dedicated entries in the left sidebar.
+        duplicate_names = {'Quiz', 'Advertise your business', 'Messages', 'Offers',
+                           'Gift Vouchers', 'Coupons', 'Register Business', 'My Profile'}
     else:
-        links.append({'name': 'Jobseeker dashboard', 'url': '/jobseeker/dashboard/'})
-    links += [{'name': item['name'], 'url': item['url']} for item in FEATURES if item['name'] != 'My Profile']
+        links += [{'name': 'My dashboard', 'url': '/dashboard/'},
+                  {'name': 'Refer & Earn', 'url': '/referral/'},
+                  {'name': 'Jobseeker dashboard', 'url': '/jobseeker/dashboard/'}]
+        duplicate_names = {'My Profile'}
+    links += [{'name': item['name'], 'url': item['url']} for item in FEATURES if item['name'] not in duplicate_names]
     return links
