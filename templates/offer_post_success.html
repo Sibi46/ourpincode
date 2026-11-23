@@ -1,24 +1,26 @@
 {% extends 'base.html' %}
-{% block title %}Offer Submitted – OUR PINCODE{% endblock %}
+{% block title %}Offer Submitted - OUR PINCODE{% endblock %}
 {% block content %}
 <style>
-nav.navbar{display:none!important}
-body{background:#F8FAFC;font-family:'Inter',system-ui,sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
-.scard{background:#fff;border-radius:24px;padding:36px 28px;max-width:380px;width:100%;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,.08)}
-.scard-icon{font-size:4rem;margin-bottom:16px}
-.scard-title{font-size:22px;font-weight:900;color:#0F172A;margin-bottom:8px}
-.scard-sub{font-size:14px;color:#64748B;line-height:1.6;margin-bottom:28px}
-.scard-btn{display:block;background:linear-gradient(135deg,#FF5722,#FF9800);color:#fff;border-radius:14px;padding:14px;font-size:14px;font-weight:800;text-decoration:none;margin-bottom:10px}
-.scard-btn2{display:block;background:#F1F5F9;color:#64748B;border-radius:14px;padding:13px;font-size:14px;font-weight:700;text-decoration:none}
+.offer-success{width:100%;min-width:0;min-height:calc(100svh - 180px);display:grid;place-items:center;padding:40px 16px 96px;background:#f8fafc;box-sizing:border-box}
+.offer-success .scard{background:#fff;border-radius:24px;padding:36px 28px;max-width:380px;width:100%;min-width:0;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,.08);box-sizing:border-box;overflow-wrap:anywhere}
+.offer-success .scard-icon{font-size:4rem;margin-bottom:16px}
+.offer-success .scard-title{font-size:22px;font-weight:900;color:#0f172a;margin-bottom:8px}
+.offer-success .scard-sub{font-size:14px;color:#64748b;line-height:1.6;margin-bottom:28px}
+.offer-success .scard-btn{display:block;background:linear-gradient(135deg,#ff5722,#ff9800);color:#fff;border-radius:14px;padding:14px;font-size:14px;font-weight:800;text-decoration:none;margin-bottom:10px}
+.offer-success .scard-btn2{display:block;background:#f1f5f9;color:#64748b;border-radius:14px;padding:13px;font-size:14px;font-weight:700;text-decoration:none}
+@media(max-width:380px){.offer-success{padding:24px 16px 96px}.offer-success .scard{padding:28px 20px}}
 </style>
-<div class="scard">
-  <div class="scard-icon">🎉</div>
-  <div class="scard-title">Offer Submitted!</div>
-  <div class="scard-sub">
-    Your offer has been received and is pending review.<br>
-    We'll publish it within a few hours after approval.
-  </div>
-  <a href="/offers/post/" class="scard-btn">🔥 Post Another Offer</a>
-  <a href="/advertise/" class="scard-btn2">← View All Offers</a>
-</div>
+<main class="offer-success" aria-labelledby="offer-success-title">
+  <section class="scard">
+    <div class="scard-icon" aria-hidden="true">&#127881;</div>
+    <h1 class="scard-title" id="offer-success-title">Offer Submitted!</h1>
+    <p class="scard-sub">
+      Your offer has been received and is pending review.<br>
+      We'll publish it within a few hours after approval.
+    </p>
+    <a href="{% url 'offer_post' %}" class="scard-btn">Post Another Offer</a>
+    <a href="/advertise/" class="scard-btn2">View All Offers</a>
+  </section>
+</main>
 {% endblock %}

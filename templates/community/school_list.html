@@ -2,9 +2,9 @@
 {% block title %}School Corner – OUR PINCODE{% endblock %}
 {% block content %}
 <style>
-  nav.navbar{display:none!important}
-  body{background:#f4f6f9}
-  #scTopBar{position:sticky;top:0;z-index:200;background:#fff;border-bottom:1px solid #e5e7eb;padding:10px 16px;display:flex;align-items:center;gap:10px}
+  .school-page{width:100%;min-width:0;background:#f4f6f9}
+  .school-page *{box-sizing:border-box}
+  #scTopBar{background:#fff;border-bottom:1px solid #e5e7eb;padding:10px 16px;display:flex;align-items:center;gap:10px}
   #scTopBar a.back{color:#374151;text-decoration:none;font-size:20px}
   #scTopBar h2{font-size:16px;font-weight:900;color:#111;margin:0;flex:1}
 
@@ -12,8 +12,8 @@
   .sc-hero h1{font-size:20px;font-weight:900;margin:0 0 4px}
   .sc-hero p{font-size:12px;opacity:.85;margin:0 0 14px}
 
-  .sc-search{display:flex;gap:8px;max-width:500px;margin:0 auto}
-  .sc-search input{flex:1;padding:10px 14px;border-radius:10px;border:none;font-size:13px;outline:none}
+  .sc-search{display:grid;grid-template-columns:minmax(0,1fr) 100px auto;gap:8px;max-width:500px;margin:0 auto}
+  .sc-search input{width:100%;min-width:0;padding:10px 14px;border-radius:10px;border:none;font-size:13px;outline:none}
   .sc-search button{background:#fff;color:#0a66c2;border:none;border-radius:10px;padding:10px 14px;font-weight:800;font-size:13px;cursor:pointer}
 
   .sc-body{padding:14px 16px 90px;max-width:600px;margin:0 auto}
@@ -27,14 +27,22 @@
   .sc-card-body{display:flex;align-items:center;gap:12px;padding:12px 14px}
   .sc-logo{width:50px;height:50px;border-radius:12px;object-fit:cover;border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.12);flex-shrink:0;background:#dbeafe;display:flex;align-items:center;justify-content:center;font-size:1.4rem}
   .sc-info{flex:1;min-width:0}
-  .sc-name{font-size:14px;font-weight:900;color:#111;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .sc-meta{font-size:11px;color:#6b7280;margin-top:2px}
+  .sc-name{font-size:14px;font-weight:900;color:#111;overflow-wrap:anywhere;line-height:1.5}
+  .sc-meta{font-size:11px;color:#6b7280;margin-top:2px;overflow-wrap:anywhere}
   .sc-badge{font-size:10px;font-weight:800;padding:3px 8px;border-radius:6px;background:#dbeafe;color:#0a66c2;white-space:nowrap;flex-shrink:0}
   .sc-verified{background:#dcfce7;color:#16a34a}
+
+  @media(max-width:480px){
+    .sc-search{grid-template-columns:minmax(0,1fr) 100px}
+    .sc-search button{grid-column:1 / -1}
+    .sc-card-body{display:grid;grid-template-columns:50px minmax(0,1fr);gap:8px 12px}
+    .sc-badge{grid-column:2;justify-self:start;white-space:normal;overflow-wrap:anywhere;max-width:100%}
+  }
 
   .sc-empty{text-align:center;padding:3rem 1rem;color:#9ca3af}
 </style>
 
+<main class="school-page">
 <div id="scTopBar">
   <a href="/community/" class="back">&#8592;</a>
   <h2>🏫 School Corner</h2>
@@ -44,8 +52,8 @@
   <h1>School Corner</h1>
   <p>Find schools, follow updates & celebrate achievements</p>
   <form method="get" class="sc-search">
-    <input name="q" value="{{ q }}" placeholder="Search school name...">
-    <input name="pin" value="{{ pincode }}" placeholder="Pincode" style="width:90px;flex:none">
+    <input aria-label="School name" name="q" value="{{ q }}" placeholder="Search school name...">
+    <input aria-label="Pincode" name="pin" value="{{ pincode }}" placeholder="Pincode" inputmode="numeric">
     <button type="submit">Search</button>
   </form>
 </div>
@@ -72,7 +80,7 @@
         <div class="sc-name">{{ school.name }}</div>
         <div class="sc-meta">{{ school.get_school_type_display }} · {{ school.post_count }} posts · {{ school.follower_count }} followers{% if school.pincode %} · 📍 {{ school.pincode }}{% endif %}</div>
       </div>
-      <span class="sc-badge {% if school.is_verified %}sc-verified{% endif %}">{% if school.is_verified %}✓ Verified{% else %}{{ school.get_school_type_display|truncatewords:1 }}{% endif %}</span>
+      <span class="sc-badge {% if school.is_verified %}sc-verified{% endif %}">{% if school.is_verified %}✓ Verified{% else %}{{ school.get_school_type_display }}{% endif %}</span>
     </div>
   </a>
   {% endfor %}
@@ -85,4 +93,5 @@
   </div>
   {% endif %}
 </div>
+</main>
 {% endblock %}
