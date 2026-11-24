@@ -20,10 +20,8 @@ class JobPostingValidationForm(forms.Form):
         return value
 
     def clean_industry(self):
-        values = [item.strip() for item in self.cleaned_data['industry'].split(',') if item.strip()]
-        if len(values) > 3 or any(not any(c.isalpha() for c in item) for item in values):
-            raise forms.ValidationError('Choose up to three industry names containing letters.')
-        return ', '.join(values)
+        from .job_industries import clean_job_industries
+        return clean_job_industries(self.cleaned_data['industry'])
 
     def clean_description(self):
         value = self.cleaned_data['description']

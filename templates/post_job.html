@@ -160,10 +160,7 @@
             <p class="ind-maxwarn" id="indMaxWarn" style="display:none">
               <i class="fas fa-exclamation-circle"></i> Maximum 3 industries allowed. Deselect one to choose another.
             </p>
-            <div style="display:flex;gap:6px;margin-top:8px">
-              <input type="text" id="indCustomInput" placeholder="Type an industry name & press Enter" maxlength="40" style="flex:1;padding:7px 12px;border:1.5px solid #dde1ea;border-radius:20px;font-size:12px;outline:none;font-family:inherit" onkeydown="indAddCustom(event)">
-              <button type="button" onclick="indAddCustom({key:'Enter'})" style="padding:7px 14px;background:#0a66c2;color:#fff;border:none;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer">Add</button>
-            </div>
+            <p style="font-size:12px;color:#64748b;margin-top:8px">Select up to three industries from the options above.</p>
           </div>
 
           <!-- Hidden inputs — always submitted, written by both modes -->
@@ -664,46 +661,6 @@ function bcSelect(group, tile) {
     var otherTile = document.getElementById('bcOtherTile');
     if (otherTile) { otherTile.classList.remove('selected'); otherTile.querySelector('span').textContent = 'Other'; }
   }
-}
-
-/* ── Industry custom type & add ── */
-function indAddCustom(e) {
-  if (e.key !== 'Enter') return;
-  if (e.preventDefault) e.preventDefault();
-  const inp = document.getElementById('indCustomInput');
-  const val = inp.value.trim();
-  if (!val) return;
-  if (!/\p{L}/u.test(val)) { inp.setCustomValidity('Enter an industry name containing letters.'); inp.reportValidity(); return; }
-  inp.setCustomValidity('');
-  const selected = document.querySelectorAll('.ind-chip.selected');
-  if (selected.length >= 3) {
-    document.getElementById('indMaxWarn').style.display = 'flex';
-    return;
-  }
-  // Check if already exists as a chip
-  const existing = Array.from(document.querySelectorAll('.ind-chip')).find(chip => chip.dataset.val === val);
-  if (existing) {
-    if (!existing.classList.contains('selected')) toggleIndustry(existing);
-    inp.value = '';
-    return;
-  }
-  // Create new chip and select it
-  const chip = document.createElement('button');
-  chip.type = 'button';
-  chip.className = 'ind-chip selected';
-  chip.dataset.val = val;
-  chip.dataset.collar = 'both';
-  chip.dataset.roles = '[]';
-  chip.textContent = val;
-  chip.onclick = function(){ toggleIndustry(this); };
-  document.getElementById('indChipGrid').appendChild(chip);
-  inp.value = '';
-  // Trigger update
-  const nowSelected = document.querySelectorAll('.ind-chip.selected');
-  const vals = Array.from(nowSelected).map(c => c.dataset.val);
-  document.getElementById('f-industry').value = vals.join(',');
-  document.getElementById('indCounter').textContent = vals.length + ' / 3';
-  document.getElementById('indMaxWarn').style.display = vals.length >= 3 ? 'flex' : 'none';
 }
 
 /* ── Industry chip toggle (max 3) ── */

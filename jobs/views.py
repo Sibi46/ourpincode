@@ -824,6 +824,14 @@ def job_select_plan(request, pk):
 def edit_job(request, pk):
     job = get_object_or_404(Job, pk=pk, posted_by=request.user)
     if request.method == 'POST':
+        from .job_industries import clean_job_industries
+        from django.core.exceptions import ValidationError
+        try:
+            selected_industry=clean_job_industries(request.POST.get('industry',job.industry))
+        except ValidationError as error:
+            return render(request,'edit_job.html',{'job':job,
+                'industries':Industry.objects.filter(is_active=True).prefetch_related('roles'),
+                'industry_error':' '.join(error.messages)},status=400)
         import datetime
         p = request.POST
         last_date_str = p.get('last_date', '')
@@ -837,7 +845,7 @@ def edit_job(request, pk):
         action = p.get('action', 'publish')
         job.title             = p.get('title', job.title)
         job.collar_type       = p.get('collar_type', job.collar_type)
-        job.industry          = p.get('industry', job.industry)
+        job.industry          = selected_industry
         job.category          = p.get('category', job.category)
         job.description       = p.get('description', job.description)
         job.job_type          = p.get('job_type', job.job_type)

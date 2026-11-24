@@ -5,7 +5,6 @@
     const title = document.getElementById('f-title');
     const location = document.getElementById('f-location');
     const deadline = document.getElementById('f-deadline');
-    const customIndustry = document.getElementById('indCustomInput');
     const titleHint = document.createElement('small');
     titleHint.id = 'job-title-error';
     titleHint.setAttribute('role', 'status');
@@ -21,7 +20,6 @@
     }
     title.addEventListener('input', validateTitle);
     title.addEventListener('blur', validateTitle);
-    customIndustry.addEventListener('input', () => customIndustry.setCustomValidity(''));
     const locationHint = document.createElement('small');
     locationHint.setAttribute('role', 'status');
     locationHint.style.color = '#b42318';

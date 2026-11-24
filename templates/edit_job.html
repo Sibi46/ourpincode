@@ -13,6 +13,7 @@
 {% include "includes/site_ui.html" %}
 </head>
 <body class="pj-body">
+{% if industry_error %}<p role="alert" style="margin:16px;padding:16px;background:#fff0ee;color:#9a211d">{{ industry_error }}</p>{% endif %}
 
 <!-- NAV -->
 {% include 'includes/account_header.html' %}

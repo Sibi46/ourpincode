@@ -8,6 +8,7 @@ class November12ReportTests(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(username='nov12-owner', user_type='company', pincode='600073', city='Chennai', address='Test street')
         self.company = CompanyProfile.objects.create(user=self.user, company_name='Test Business', industry='Retail', company_size='Small')
+        Industry.objects.create(name='Technology')
         self.client.force_login(self.user, backend='django.contrib.auth.backends.ModelBackend')
 
     def data(self, **changes):

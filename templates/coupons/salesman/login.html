@@ -37,15 +37,16 @@
   <form method="post">
     {% csrf_token %}
     <div class="field">
-      <label>Username</label>
-      <input name="username" placeholder="karthik_opc" autocomplete="username" required>
+      <label for="salesman-username">Username</label>
+      <input id="salesman-username" name="username" placeholder="karthik_opc" autocomplete="username" required>
     </div>
     <div class="field">
-      <label>Password</label>
-      <input type="password" name="password" placeholder="••••••••" autocomplete="current-password" required>
+      <label for="salesman-password">Password</label>
+      <input id="salesman-password" data-password-toggle type="password" name="password" placeholder="••••••••" autocomplete="current-password" required>
     </div>
     <button type="submit" class="btn">LOGIN</button>
   </form>
 </div>
+<script src="{% static 'js/report-controls.js' %}?v=1" defer></script>
 </body>
 </html>

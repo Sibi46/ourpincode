@@ -1,6 +1,37 @@
-﻿{% extends 'base.html' %}
-{% block title %}Coupon {{ coupon.code }} · OUR PINCODE{% endblock %}
-{% block content %}<main style="max-width:640px;margin:30px auto;padding:20px;box-sizing:border-box;overflow-wrap:anywhere">
-<a href="/employer/dashboard/#coupons">Back to business coupons</a><h1>Coupon {{ coupon.code }}</h1>
-<dl><dt>Category</dt><dd>{{ coupon.get_category_display }}</dd><dt>Business</dt><dd>{{ coupon.batch.shop.name }}</dd><dt>Salesman</dt><dd>{{ coupon.batch.salesman }}</dd><dt>Status</dt><dd>{{ coupon.get_status_display }}</dd><dt>Distributed on</dt><dd>{{ coupon.batch.distributed_date|date:'d M Y'|default:'Not recorded' }}</dd><dt>Used on</dt><dd>{{ coupon.activated_at|date:'d M Y H:i'|default:'Not used yet' }}</dd><dt>Points awarded</dt><dd>{{ coupon.points_awarded|default_if_none:'Not awarded yet' }}</dd>{% if coupon.is_surprise_gift %}<dt>Surprise gift</dt><dd>{{ coupon.surprise_gift_name|default:'Surprise gift' }}</dd>{% endif %}</dl>
-<p>Give this coupon to a customer to activate it and spin for points.</p></main>{% endblock %}
+{% extends 'base.html' %}
+{% block title %}Coupon {{ coupon.code }} | OUR PINCODE{% endblock %}
+{% block extra_css %}
+<style>
+.business-coupon{max-width:760px;width:100%;margin:28px auto;padding:0 16px 100px;box-sizing:border-box;overflow-wrap:anywhere}
+.business-coupon .coupon-back{display:inline-block;margin-bottom:20px;color:#6829dc;font-size:14px;font-weight:600;text-decoration:none}
+.business-coupon .coupon-card{padding:28px;background:var(--opc-surface,#fff);border:1px solid var(--opc-line,#e2e8f0);border-radius:18px;box-shadow:0 4px 20px #291c3908}
+.business-coupon h1{font-size:26px;line-height:1.4;margin:0 0 8px}
+.business-coupon .coupon-intro{font-size:14px;line-height:1.7;color:var(--opc-muted,#64748b);margin:0 0 24px}
+.business-coupon dl{margin:0;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:0 28px}
+.business-coupon .coupon-field{min-width:0;padding:18px 0;border-top:1px solid var(--opc-line,#e2e8f0)}
+.business-coupon dt{font-size:12px;font-weight:600;line-height:1.5;color:var(--opc-muted,#64748b);margin:0 0 6px}
+.business-coupon dd{font-size:16px;font-weight:600;line-height:1.6;margin:0;color:var(--opc-text,#191919);overflow-wrap:anywhere}
+.business-coupon .coupon-note{margin:24px 0 0;padding:16px;background:var(--opc-bg,#f5f3ff);border-radius:12px;font-size:14px;line-height:1.8;color:var(--opc-text,#374151)}
+@media(max-width:520px){.business-coupon{margin:20px auto}.business-coupon .coupon-card{padding:22px 18px}.business-coupon h1{font-size:23px}.business-coupon dl{grid-template-columns:minmax(0,1fr)}}
+</style>
+{% endblock %}
+{% block content %}
+<main class="business-coupon" aria-labelledby="coupon-title">
+  <a class="coupon-back" href="/employer/dashboard/#coupons">Back to business coupons</a>
+  <section class="coupon-card">
+    <h1 id="coupon-title">Coupon {{ coupon.code }}</h1>
+    <p class="coupon-intro">Distribution and usage details for this coupon.</p>
+    <dl>
+      <div class="coupon-field"><dt>Category</dt><dd>{{ coupon.get_category_display }}</dd></div>
+      <div class="coupon-field"><dt>Status</dt><dd>{{ coupon.get_status_display }}</dd></div>
+      <div class="coupon-field"><dt>Business</dt><dd>{{ coupon.batch.shop.name }}</dd></div>
+      <div class="coupon-field"><dt>Salesman</dt><dd>{{ coupon.batch.salesman }}</dd></div>
+      <div class="coupon-field"><dt>Distributed on</dt><dd>{{ coupon.batch.distributed_date|date:'d M Y'|default:'Not recorded' }}</dd></div>
+      <div class="coupon-field"><dt>Used on</dt><dd>{{ coupon.activated_at|date:'d M Y H:i'|default:'Not used yet' }}</dd></div>
+      <div class="coupon-field"><dt>Points awarded</dt><dd>{{ coupon.points_awarded|default_if_none:'Not awarded yet' }}</dd></div>
+      {% if coupon.is_surprise_gift %}<div class="coupon-field"><dt>Surprise gift</dt><dd>{{ coupon.surprise_gift_name|default:'Surprise gift' }}</dd></div>{% endif %}
+    </dl>
+    <p class="coupon-note">Give this coupon to a customer to activate it and spin for points.</p>
+  </section>
+</main>
+{% endblock %}
