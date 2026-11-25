@@ -634,3 +634,21 @@ a { text-decoration: none; color: inherit; }
   .chat-img { max-width: 200px; }
 }
 .msg-page .sidebar-search{background:#0f172a;flex-wrap:wrap}.msg-page .sidebar-search input{min-width:0;width:0;flex:1;color:#f8fafc!important;background:#0f172a!important;caret-color:#fff;padding:10px;border:1px solid #64748b;border-radius:8px}.msg-page .sidebar-search input::placeholder{color:#cbd5e1!important}.msg-page .sidebar-search button{border:0;border-radius:8px;background:#2563eb;color:#fff;padding:10px;cursor:pointer}.conv-search-status{color:#334155;background:#fff;font-size:12px;margin:0;padding:0 16px}.conv-search-status:empty{display:none}
+
+/* Bound profile photos and let the chat fit below the actual account header. */
+body.msg-page{display:flex;flex-direction:column;height:100dvh;min-height:0;padding-bottom:0;overflow:hidden}
+.msg-page>.account-header{flex-shrink:0;position:relative}
+.msg-page .msg-shell{flex:1;min-height:0;min-width:0;height:auto;margin-bottom:calc(72px + env(safe-area-inset-bottom));grid-template-columns:minmax(220px,320px) minmax(0,1fr)}
+.msg-page .msg-main,.msg-page .msg-sidebar{min-width:0;min-height:0}
+.msg-page .chat-header-avatar{position:relative;width:44px;height:44px;flex:0 0 44px}
+.msg-page .chat-header-avatar>img,.msg-page .chat-header-avatar>.av-letter{display:block;width:44px;height:44px;max-width:44px;object-fit:cover;border-radius:50%}
+.msg-page .chat-header-info{min-width:0;overflow-wrap:anywhere}
+.msg-page .chat-header-actions{display:flex;flex-shrink:0}
+.msg-page .chat-header{padding:10px 12px;gap:10px}
+.msg-page .chat-area{min-height:0}
+@media(max-width:768px){
+ .msg-page .msg-shell{grid-template-columns:minmax(0,1fr)}
+ .msg-page .msg-main{position:static;inset:auto;width:100%;height:100%}
+ .msg-page .chat-header-info strong{font-size:14px;line-height:1.4}
+ .msg-page .chat-header-actions{flex-wrap:wrap;max-width:76px}
+}

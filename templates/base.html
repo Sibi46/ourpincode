@@ -37,7 +37,7 @@
       </div>
       <div class="toast-msg">{{ msg }}</div>
     </div>
-    <button class="toast-close" onclick="dismissToast(this.closest('.toast'))"><i class="fas fa-times"></i></button>
+    <button class="toast-close" aria-label="Dismiss notification" onclick="dismissToast(this.closest('.toast'))"><i class="fas fa-times"></i></button>
     <div class="toast-progress"></div>
   </div>
   {% endfor %}
@@ -57,6 +57,7 @@
 .toast-warning .toast-icon{color:#d97706}
 .toast-info    .toast-icon{color:#0a66c2}
 .toast-body{flex:1;min-width:0}
+.toast{touch-action:pan-y}
 .toast-title{font-size:13px;font-weight:800;color:#111;margin-bottom:3px}
 .toast-msg{font-size:13px;color:#444;line-height:1.5}
 .toast-close{background:none;border:none;color:#bbb;cursor:pointer;font-size:14px;padding:0;flex-shrink:0;margin-top:1px;transition:.2s}
@@ -75,7 +76,7 @@
 .bn-offer-burst{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;background:#ef4444;color:#fff;font-size:6px;font-weight:900;clip-path:polygon(50% 0%,54% 7%,61% 2%,63% 10%,71% 6%,71% 14%,79% 12%,77% 20%,86% 20%,82% 27%,91% 29%,85% 35%,93% 39%,86% 44%,93% 50%,86% 56%,93% 61%,85% 65%,91% 71%,82% 73%,86% 80%,77% 80%,79% 88%,71% 86%,71% 94%,63% 90%,61% 98%,54% 93%,50% 100%,46% 93%,39% 98%,37% 90%,29% 94%,29% 86%,21% 88%,23% 80%,14% 80%,18% 73%,9% 71%,15% 65%,7% 61%,14% 56%,7% 50%,14% 44%,7% 39%,15% 35%,9% 29%,18% 27%,14% 20%,23% 20%,21% 12%,29% 14%,29% 6%,37% 10%,39% 2%,46% 7%);line-height:1}
 </style>
 <script>
-function dismissToast(el){}
+function dismissToast(el){if(el)el.remove();}
 function toggleBellDrop(e){
   e.stopPropagation();
   var d=document.getElementById('bellDrop');
@@ -529,6 +530,7 @@ body{padding-bottom:100px}.bottom-nav{padding-bottom:calc(4px + env(safe-area-in
 .npd-divider{height:1px;background:#f0f0f0;margin:4px 0}
 </style>
 <script src="{% static 'js/main.js' %}?v=3"></script>
+<script src="{% static 'js/toast-controls.js' %}?v=1" defer></script>
 <script>
 function closeProfileMenu(restoreFocus){
   var drop=document.getElementById('profileDrop'),btn=document.querySelector('.nav-avatar-btn');

@@ -704,7 +704,7 @@ function wishBirthday(name){
         </div>
       {% endfor %}
     {% else %}
-      <div style="text-align:center;padding:48px 20px">
+      <div id="flickEmpty" style="text-align:center;padding:48px 20px">
         <div style="font-size:3rem;margin-bottom:12px">📷</div>
         <div style="font-size:15px;font-weight:800;color:#0F172A;margin-bottom:6px">Your gallery is empty</div>
         <div style="font-size:13px;color:#94A3B8;line-height:1.6">Add photos and videos above to build your family timeline.</div>
@@ -1105,6 +1105,8 @@ function setFamFlickProg(pct){
   document.getElementById('famFlickPct').textContent=pct+'%';
 }
 function famFlickDoUpload(){
+  if(famFlickDoUpload.busy)return;
+  famFlickDoUpload.busy=true;
   document.getElementById('famFlickModal').style.display='none';
   var photoInput=document.getElementById('flickPhotoInput');
   var videoInput=document.getElementById('flickVideoInput');
@@ -1130,13 +1132,16 @@ function famFlickDoUpload(){
     }
   };
   xhr.onerror=function(){overlay.style.display='none';alert('Network error. Please try again.');};
+  xhr.timeout=300000;
+  xhr.ontimeout=xhr.onerror;
+  xhr.onloadend=function(){famFlickDoUpload.busy=false;};
   xhr.onload=function(){
-    setFamFlickProg(100);
-    document.getElementById('famFlickProgMsg').textContent='Done! ✓';
-    setTimeout(function(){overlay.style.display='none';},500);
-    if(xhr.status<400){
-      var d=JSON.parse(xhr.responseText);
-      if(!d.ok){alert(d.error||'Error');return;}
+    var d;
+    try{d=JSON.parse(xhr.responseText);}catch(error){overlay.style.display='none';alert('Upload failed. Please sign in again if your session expired, then retry.');return;}
+    if(xhr.status>=200&&xhr.status<300&&d.ok){
+      setFamFlickProg(100);
+      document.getElementById('famFlickProgMsg').textContent='Upload complete';
+      setTimeout(function(){overlay.style.display='none';},500);
       /* Format display date */
       var rawDate=d.event_date||'';
       var dateLabel='';
@@ -1150,22 +1155,28 @@ function famFlickDoUpload(){
       /* Build the new timeline item */
       var item=document.createElement('div');
       item.className='gl-item';
-      var cell='<div class="gl-cell" id="glcell-'+d.pk+'">';
+      var cell=document.createElement('div');
+      cell.className='gl-cell';cell.id='glcell-'+d.pk;
+      var media=document.createElement(d.is_video?'video':'img');
+      media.src=d.url;
       if(d.is_video){
-        cell+='<video src="'+d.url+'" playsinline muted onclick="this.paused?this.play():this.pause()"></video>'
-             +'<div class="gl-play-badge">▶</div>';
-      } else {
-        cell+='<img src="'+d.url+'" onclick="openImg(\''+d.url+'\',\'📸\')" alt="">';
+        media.playsInline=true;media.muted=true;
+        media.onclick=function(){this.paused?this.play():this.pause();};
+      }else{
+        media.alt=d.caption||'Family photo';
+        media.onclick=function(){openImg(d.url,'Family photo');};
       }
-      if(d.caption) cell+='<div class="gl-caption">'+d.caption+'</div>';
-      cell+='</div>';
-      cell+='<div class="gl-date-tag">'+(dateLabel||'Just now')+'</div>';
-      cell+='<button class="gl-share-btn" onclick="flickShare(\''+d.url+'\',\''+(d.caption||'Family memory')+'\','+d.pk+')">🔗 Share</button>';
-      item.innerHTML=cell;
+      cell.appendChild(media);
+      if(d.is_video){var badge=document.createElement('div');badge.className='gl-play-badge';badge.textContent='Play';cell.appendChild(badge);}
+      if(d.caption){var caption=document.createElement('div');caption.className='gl-caption';caption.textContent=d.caption;cell.appendChild(caption);}
+      item.appendChild(cell);
+      var dateTag=document.createElement('div');dateTag.className='gl-date-tag';dateTag.textContent=dateLabel||'Just now';item.appendChild(dateTag);
+      var share=document.createElement('button');share.type='button';share.className='gl-share-btn';share.textContent='Share';
+      share.onclick=function(){flickShare(d.url,d.caption||'Family memory',d.pk);};item.appendChild(share);
       /* Prepend to timeline — find or create a "Just added" section */
       var tl=document.getElementById('flickTimeline');
-      var emptyMsg=tl.querySelector('[style*="gallery is empty"]');
-      if(emptyMsg) emptyMsg.parentElement.remove();
+      var emptyMsg=document.getElementById('flickEmpty');
+      if(emptyMsg) emptyMsg.remove();
       var firstGrid=tl.querySelector('.gl-grid');
       if(firstGrid){
         firstGrid.insertAdjacentElement('afterbegin',item);
@@ -1181,7 +1192,7 @@ function famFlickDoUpload(){
       document.getElementById('flickCaption').value='';
       document.getElementById('flickEventDate').value='';
       document.getElementById('flickPreviewWrap').style.display='none';
-    } else { alert('Upload failed. Please try again.'); }
+    } else { overlay.style.display='none';alert(d.error||'Upload failed. Please try again.'); }
   };
   xhr.send(fd);
 }
@@ -1324,8 +1335,6 @@ function postSave(){
     </div>
   </div>
 </div>
-{% endblock %}
-
 <!-- Family Flick circular upload progress overlay -->
 <div id="famFlickOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:99999;align-items:center;justify-content:center;flex-direction:column">
   <svg width="110" height="110" viewBox="0 0 110 110">
@@ -1362,6 +1371,8 @@ function postSave(){
     </div>
   </div>
 </div>
+
+{% endblock %}
 
 {% block site_bottom_nav %}
 <style>

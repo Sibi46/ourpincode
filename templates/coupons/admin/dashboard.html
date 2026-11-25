@@ -59,7 +59,7 @@
       {% for c in recent_activations %}
       <tr>
         <td><span style="font-family:monospace;font-weight:700;color:#4f46e5">{{ c.code }}</span></td>
-        <td>{{ c.activated_by.get_full_name|default:c.activated_by.username }}</td>
+        <td>{% if c.activated_by %}{{ c.activated_by.get_full_name|default:c.activated_by.username }}{% else %}Account unavailable{% endif %}</td>
         <td>{{ c.batch.shop.name }}</td>
         <td>{{ c.batch.salesman }}</td>
         <td><span class="opc-badge opc-badge-gold">⭐ {{ c.points_awarded }}</span></td>
