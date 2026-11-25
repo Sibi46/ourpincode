@@ -38,6 +38,21 @@ class LocationPreferencesForm(forms.Form):
         return data
 
 
+def business_profile_progress(user, company):
+    # An optional website must never be needed to unlock job posting.
+    # Preserve the existing threshold while treating its former 10% as complete.
+    score = 10 if company is not None else 0
+    for value, weight in [
+        (company.company_name if company else '', 10), (user.pincode, 20),
+        (user.city, 15), (user.address, 15),
+        (company.industry if company else '', 20),
+        (company.company_size if company else '', 10),
+    ]:
+        if value:
+            score += weight
+    return score
+
+
 class BusinessDetailsForm(forms.ModelForm):
     review_reward_percent = forms.IntegerField(required=False, min_value=0, max_value=50)
 
@@ -45,7 +60,7 @@ class BusinessDetailsForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields['website'].required = False
         self.fields['website'].label = 'Website (optional)'
-        self.fields['website'].help_text = 'Leave blank if your business does not have a website.'
+        self.fields['website'].help_text = 'Leave blank if your business does not have a website. It is not needed for profile completion or job posting.'
         from .business_categories import business_category_names
         names = business_category_names(self.initial.get('industry', ''))
         self.fields['industry'] = forms.ChoiceField(required=False, label='Business category',

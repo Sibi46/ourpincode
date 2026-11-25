@@ -689,14 +689,8 @@ def post_job(request):
             prof = user.company
         except Exception:
             prof = None
-        score = 0
-        if prof and prof.company_name: score += 10
-        if user.pincode:               score += 20
-        if user.city:                  score += 15
-        if user.address:               score += 15
-        if prof and prof.industry:     score += 20
-        if prof and prof.company_size: score += 10
-        if prof and prof.website:      score += 10
+        from .account import business_profile_progress
+        score = business_profile_progress(user,prof)
         if score < 70:
             return redirect('employer_dashboard')
 
@@ -712,7 +706,7 @@ def post_job(request):
         p = request.POST.copy()
         for field, value in validation.cleaned_data.items():
             if field != 'last_date':
-                p[field] = value
+                p[field] = '' if value is None else str(value)
         last_date = validation.cleaned_data['last_date']
 
         action = p.get('action', 'publish')
@@ -1107,18 +1101,8 @@ def employer_dashboard(request, profile_editor=None):
         profile = None
 
     # ── Profile completion ──
-    def _pct(u, p):
-        score = 0
-        if p and p.company_name: score += 10
-        if u.pincode:             score += 20
-        if u.city:                score += 15
-        if u.address:             score += 15
-        if p and p.industry:      score += 20
-        if p and p.company_size:  score += 10
-        if p and p.website:       score += 10
-        return score
-
-    profile_pct = _pct(user, profile)
+    from .account import business_profile_progress
+    profile_pct = business_profile_progress(user,profile)
     profile_incomplete = profile_pct < 70
 
     show_referral_popup = request.session.pop('show_referral_popup', False)

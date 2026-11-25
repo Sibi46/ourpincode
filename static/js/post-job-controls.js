@@ -2,6 +2,35 @@
   function start() {
     const form = document.getElementById('jobForm');
     if (!form) return;
+    const summary = document.createElement('p');
+    summary.id = 'job-validation-error';
+    summary.setAttribute('role', 'alert');
+    summary.style.cssText = 'padding:14px;margin:12px 0;background:#fff0ee;color:#9a211d;border-radius:10px';
+    summary.hidden = true;
+    form.prepend(summary);
+    let revealing = false, reporting = false;
+    form.addEventListener('invalid', event => {
+      if (reporting) return;
+      event.preventDefault();
+      if (revealing) return;
+      revealing = true;
+      const field = event.target;
+      const panel = field.closest('.pj-step-panel');
+      if (panel) goStep(Number(panel.id.replace('panel-', '')));
+      if (field.id === 'salMin' || field.id === 'salMax') document.getElementById('salAmountRow').style.display = 'block';
+      summary.textContent = field.validationMessage || 'Please correct the highlighted field.';
+      summary.hidden = false;
+      requestAnimationFrame(() => {
+        field.focus();
+        reporting = true;
+        field.reportValidity();
+        reporting = false;
+        revealing = false;
+      });
+    }, true);
+    form.addEventListener('input', event => {
+      if (event.target.validity && event.target.validity.valid) summary.hidden = true;
+    });
     const title = document.getElementById('f-title');
     const location = document.getElementById('f-location');
     const deadline = document.getElementById('f-deadline');
@@ -66,8 +95,8 @@
       const data = JSON.parse(posted.textContent);
       if (['blue', 'white'].includes(data.collar_type)) selectCollar(data.collar_type);
       (data.industry || '').split(',').map(value => value.trim()).filter(Boolean).forEach(value => {
-        const input = document.getElementById('indCustomInput'); input.value = value;
-        indAddCustom({key: 'Enter', preventDefault() {}});
+        const chip = [...document.querySelectorAll('.ind-chip')].find(el => el.dataset.val.toLowerCase() === value.toLowerCase());
+        if (chip && !chip.classList.contains('selected')) toggleIndustry(chip);
       });
       Object.entries(data).forEach(([name, value]) => {
         if (['csrfmiddlewaretoken', 'industry', 'skills', '_skills_display'].includes(name)) return;
@@ -77,6 +106,9 @@
           else field.value = value;
         }
       });
+      const salaryType = [...document.querySelectorAll('.sal-pill')].find(button => button.dataset.val === data.salary_type);
+      if (salaryType) salPickType(data.salary_type, salaryType);
+      validateSalRange();
       if (data.skills && window.restoreJobSkills) window.restoreJobSkills(data.skills);
       if (data.category) {
         const role = document.getElementById('f-role');

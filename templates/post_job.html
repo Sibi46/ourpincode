@@ -808,6 +808,10 @@ function goStep(n) {
 }
 
 function nextStep(from, to) {
+  const panel = document.getElementById('panel-' + from);
+  const invalid = Array.from(panel.querySelectorAll('input,select,textarea')).find(field => field.willValidate && !field.validity.valid);
+  if (invalid) { invalid.reportValidity(); return; }
+
   if (from === 2) {
     const title = document.getElementById('f-title');
     const ind   = document.getElementById('f-industry');
@@ -1171,12 +1175,14 @@ function validateSalRange() {
   var min = parseFloat(document.getElementById('salMin').value);
   var max = parseFloat(document.getElementById('salMax').value);
   var err = document.getElementById('salRangeErr');
-  if (min && max && min > max) {
+  if (Number.isFinite(min) && Number.isFinite(max) && min > max) {
     err.style.display = 'block';
+    document.getElementById('salMax').setCustomValidity('Maximum salary must be at least the minimum salary.');
     document.getElementById('salMax').style.borderColor = '#c62828';
     return false;
   }
   err.style.display = 'none';
+  document.getElementById('salMax').setCustomValidity('');
   document.getElementById('salMax').style.borderColor = '';
   return true;
 }
@@ -1184,6 +1190,9 @@ function validateSalRange() {
 /* ── Submit with action ── */
 function submitForm(action) {
   if (!validateSalRange()) {
+    goStep(2);
+    document.getElementById('salMax').focus();
+    document.getElementById('salMax').reportValidity();
     document.getElementById('salAmountRow').scrollIntoView({behavior:'smooth', block:'center'});
     return false;
   }
@@ -1218,7 +1227,7 @@ document.addEventListener('DOMContentLoaded',function(){
 });
 </script>
 <script src="/static/js/ac_roles.js?v=1"></script>
-<script src="/static/js/post-job-controls.js?v=2" defer></script>
+<script src="/static/js/post-job-controls.js?v=4" defer></script>
 </body>
 </html>
 
