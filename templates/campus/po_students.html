@@ -5,7 +5,7 @@
 <div class="cp-body">
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
     <div style="font-size:18px;font-weight:800;color:#0F172A">Students</div>
-    <a href="/campus/po/student/add/" class="cp-btn cp-btn-primary">+ Add</a>
+    <a href="{% url 'campus_po_student_add' %}" class="cp-btn cp-btn-primary">+ Add</a>
   </div>
 
   {% if students %}
@@ -25,7 +25,7 @@
   <div style="text-align:center;padding:40px 20px;color:#94A3B8">
     <div style="font-size:3rem;margin-bottom:10px">👨‍🎓</div>
     <div style="font-size:14px;font-weight:600">No students added</div>
-    <a href="/campus/po/student/add/" class="cp-btn cp-btn-primary" style="margin-top:16px;display:inline-flex">+ Add Student</a>
+    <a href="{% url 'campus_po_student_add' %}" class="cp-btn cp-btn-primary" style="margin-top:16px;display:inline-flex">+ Add Student</a>
   </div>
   {% endif %}
 </div>

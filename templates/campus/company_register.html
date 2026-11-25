@@ -1,28 +1,31 @@
 ﻿{% extends 'campus/base_campus.html' %}
 {% block title %}Company Registration – Campus{% endblock %}
 {% block content %}
+{% load static %}
+<script src="{% static 'js/form-validation.js' %}?v=4" defer></script>
 {% include 'includes/account_header.html' %}
 <div class="cp-body">
   <div class="cp-sec">Register as Company</div>
   {% if messages %}{% for m in messages %}<div class="cp-error">{{ m }}</div>{% endfor %}{% endif %}
+  {% if registration_form.errors %}<div class="cp-error" role="alert">{% for field in registration_form %}{% for error in field.errors %}<p>{{ field.label }}: {{ error }}</p>{% endfor %}{% endfor %}</div>{% endif %}
   <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
     <div class="cp-card">
       <div class="cp-card-head"><div class="cp-card-title">Company Details</div></div>
       <div style="padding:16px">
-        <div class="cp-field"><label class="cp-label">Company Name *</label><input name="company_name" class="cp-input" required placeholder="Company name"></div>
-        <div class="cp-field"><label class="cp-label">Industry *</label><input name="industry" class="cp-input" required placeholder="e.g. IT, Manufacturing, Healthcare"></div>
-        <div class="cp-field"><label class="cp-label">About Company</label><textarea name="description" class="cp-input" placeholder="Brief description..."></textarea></div>
+        <div class="cp-field"><label class="cp-label">Company Name *</label><input name="company_name" class="cp-input" required placeholder="Company name" value="{{ posted_data.company_name|default:'' }}"></div>
+        <div class="cp-field"><label class="cp-label">Industry *</label><input name="industry" class="cp-input" required placeholder="e.g. IT, Manufacturing, Healthcare" value="{{ posted_data.industry|default:'' }}"></div>
+        <div class="cp-field"><label class="cp-label">About Company</label><textarea name="description" class="cp-input" placeholder="Brief description...">{{ posted_data.description|default:'' }}</textarea></div>
         <div class="cp-row">
-          <div class="cp-field"><label class="cp-label">Phone *</label><input name="phone" class="cp-input" required placeholder="Contact phone"></div>
-          <div class="cp-field"><label class="cp-label">Email *</label><input name="email" class="cp-input" type="email" required placeholder="Contact email"></div>
+          <div class="cp-field"><label class="cp-label">Phone *</label><input name="phone" class="cp-input" required placeholder="Contact phone" value="{{ posted_data.phone|default:'' }}"></div>
+          <div class="cp-field"><label class="cp-label">Email *</label><input name="email" class="cp-input" type="email" required placeholder="Contact email" value="{{ posted_data.email|default:'' }}"></div>
         </div>
-        <div class="cp-field"><label class="cp-label">Contact Person</label><input name="contact_person" class="cp-input" placeholder="HR / Manager name"></div>
-        <div class="cp-field"><label class="cp-label">Website</label><input name="website" class="cp-input" type="url" placeholder="https://..."></div>
-        <div class="cp-field"><label class="cp-label">Address</label><textarea name="address" class="cp-input" placeholder="Company address"></textarea></div>
+        <div class="cp-field"><label class="cp-label">Contact Person</label><input data-person-name name="contact_person" class="cp-input" placeholder="HR / Manager name" value="{{ posted_data.contact_person|default:'' }}"></div>
+        <div class="cp-field"><label for="company-website" class="cp-label">Website (optional)</label><input id="company-website" name="website" class="cp-input" type="url" placeholder="https://..." value="{{ posted_data.website|default:'' }}"></div>
+        <div class="cp-field"><label class="cp-label">Address</label><textarea name="address" class="cp-input" placeholder="Company address">{{ posted_data.address|default:'' }}</textarea></div>
         <div class="cp-row">
-          <div class="cp-field"><label class="cp-label">Pincode *</label><input name="pincode" class="cp-input" required maxlength="6" placeholder="Pincode"></div>
-          <div class="cp-field"><label class="cp-label">Logo</label><input name="logo" class="cp-input" type="file" accept="image/*"></div>
+          <div class="cp-field"><label class="cp-label">Pincode *</label><input name="pincode" class="cp-input" required maxlength="6" placeholder="Pincode" value="{{ posted_data.pincode|default:'' }}"></div>
+          <div class="cp-field"><label for="company-logo" class="cp-label">Logo (optional)</label><input id="company-logo" name="logo" class="cp-input" type="file" accept="image/*"></div>
         </div>
       </div>
     </div>
@@ -32,7 +35,7 @@
       <div class="cp-card-head"><div class="cp-card-title">Create Login</div></div>
       <div style="padding:16px">
         <div class="cp-row">
-          <div class="cp-field"><label class="cp-label">Phone *</label><input name="reg_phone" class="cp-input" required placeholder="Mobile number"></div>
+          <div class="cp-field"><label class="cp-label">Phone *</label><input name="reg_phone" class="cp-input" required placeholder="Mobile number" value="{{ posted_data.reg_phone|default:'' }}"></div>
           <div class="cp-field"><label class="cp-label">Password *</label><input name="password" class="cp-input" type="password" required minlength="6" placeholder="Min 6 chars"></div>
         </div>
       </div>

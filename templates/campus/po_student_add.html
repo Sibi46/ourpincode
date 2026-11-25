@@ -5,6 +5,7 @@
 <div class="cp-body">
   <div class="cp-sec">Add Student</div>
   {% if messages %}{% for m in messages %}<div class="cp-error">{{ m }}</div>{% endfor %}{% endif %}
+  {% if error %}<p class="cp-error" role="alert">{{ error }}</p>{% endif %}
   {% if credentials %}
   <div class="cp-card" style="margin-bottom:20px">
     <div class="cp-card-head"><div class="cp-card-title">⚠️ Student Login Credentials</div></div>
@@ -18,8 +19,8 @@
           <div style="font-size:22px;font-weight:800;color:#4F46E5;letter-spacing:.1em;background:#EEF2FF;border-radius:10px;padding:10px;text-align:center;margin-top:4px">{{ credentials.password }}</div>
         </div>
       </div>
-      <a href="/campus/po/student/add/" class="cp-btn cp-btn-ghost cp-btn-full" style="margin-top:12px">Add Another Student</a>
-      <a href="/campus/po/students/" class="cp-btn cp-btn-primary cp-btn-full" style="margin-top:8px">View All Students</a>
+      <a href="{% url 'campus_po_student_add' %}" class="cp-btn cp-btn-ghost cp-btn-full" style="margin-top:12px">Add Another Student</a>
+      <a href="{% url 'campus_po_students' %}" class="cp-btn cp-btn-primary cp-btn-full" style="margin-top:8px">View All Students</a>
     </div>
   </div>
   {% else %}
@@ -27,13 +28,13 @@
     {% csrf_token %}
     <div class="cp-card">
       <div style="padding:16px">
-        <div class="cp-field"><label class="cp-label">Full Name *</label><input name="name" class="cp-input" required placeholder="Student full name"></div>
+        <div class="cp-field"><label class="cp-label">Full Name *</label><input name="full_name" class="cp-input" required placeholder="Student full name"></div>
         <div class="cp-row">
           <div class="cp-field"><label class="cp-label">Phone *</label><input name="phone" class="cp-input" required placeholder="Mobile"></div>
           <div class="cp-field"><label class="cp-label">Roll Number *</label><input name="roll_number" class="cp-input" required placeholder="Roll No"></div>
         </div>
         <div class="cp-field"><label class="cp-label">Department *</label>
-          <select name="department" class="cp-input" required>
+          <select name="department_id" class="cp-input" required>
             <option value="">Select department</option>
             {% for d in departments %}<option value="{{ d.pk }}">{{ d.name }}</option>{% endfor %}
           </select>

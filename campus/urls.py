@@ -2,6 +2,10 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
+    # Preserve links from older dashboard pages and bookmarks.
+    path('po/department/add/', views.po_department_add, name='campus_po_department_add_legacy'),
+    path('po/student/add/', views.po_student_add, name='campus_po_student_add_legacy'),
+    path('po/hod/add/', views.po_hod_add, name='campus_po_hod_add_legacy'),
     # ── OTP ──────────────────────────────────────────────────
     path('otp/send/',                     views.campus_send_otp,          name='campus_send_otp'),
     path('otp/verify/',                   views.campus_verify_otp,        name='campus_verify_otp'),

@@ -1,38 +1,41 @@
 ﻿{% extends 'campus/base_campus.html' %}
 {% block title %}Register Institution – Campus{% endblock %}
 {% block content %}
+{% load static %}
+<script src="{% static 'js/form-validation.js' %}?v=4" defer></script>
 {% include 'includes/account_header.html' %}
 <div class="cp-body">
   <div class="cp-sec">Register Your Institution</div>
   {% if messages %}{% for m in messages %}<div class="cp-error">{{ m }}</div>{% endfor %}{% endif %}
+  {% if registration_form.errors %}<div class="cp-error" role="alert">{% for field in registration_form %}{% for error in field.errors %}<p>{{ field.label }}: {{ error }}</p>{% endfor %}{% endfor %}</div>{% endif %}
   <form method="post" enctype="multipart/form-data" id="regForm">
     {% csrf_token %}
     <div class="cp-card">
       <div class="cp-card-head"><div class="cp-card-title">Basic Info</div></div>
       <div style="padding:16px">
-        <div class="cp-field"><label class="cp-label">Institution Name *</label><input name="name" class="cp-input" required placeholder="e.g. ABC Engineering College"></div>
+        <div class="cp-field"><label class="cp-label">Institution Name *</label><input data-no-numbers name="name" class="cp-input" required placeholder="e.g. ABC Engineering College" value="{{ posted_data.name|default:'' }}"></div>
         <div class="cp-field">
           <label class="cp-label">College Type * <span style="font-size:10px;color:#94A3B8;font-weight:500;text-transform:none">(select all that apply)</span></label>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px" id="typeGrid">
             {% for val, label in type_choices %}
             <label style="display:flex;align-items:center;gap:8px;padding:10px 12px;border:1.5px solid #E0E7FF;border-radius:12px;cursor:pointer;background:#fff;transition:all .15s" class="type-check-row">
-              <input type="checkbox" name="institution_type" value="{{ val }}" style="width:16px;height:16px;accent-color:#4F46E5;flex-shrink:0" onchange="updateTypeStyle(this)">
+              <input type="checkbox" name="institution_type" value="{{ val }}" {% if val in selected_types %}checked{% endif %} style="width:16px;height:16px;accent-color:#4F46E5;flex-shrink:0" onchange="updateTypeStyle(this)">
               <span style="font-size:13px;font-weight:600;color:#374151">{{ label }}</span>
             </label>
             {% endfor %}
           </div>
           <div id="typeError" style="display:none;font-size:11px;color:#EF4444;margin-top:6px">Please select at least one type.</div>
         </div>
-        <div class="cp-field"><label class="cp-label">Affiliation / University</label><input name="affiliation" class="cp-input" placeholder="e.g. Anna University"></div>
+        <div class="cp-field"><label class="cp-label">Affiliation / University</label><input data-no-numbers name="affiliation" class="cp-input" placeholder="e.g. Anna University" value="{{ posted_data.affiliation|default:'' }}"></div>
         <div class="cp-row">
-          <div class="cp-field"><label class="cp-label">Pincode *</label><input name="pincode" class="cp-input" required maxlength="6" placeholder="6-digit pincode"></div>
-          <div class="cp-field"><label class="cp-label">City *</label><input name="city" class="cp-input" required placeholder="City"></div>
+          <div class="cp-field"><label class="cp-label">Pincode *</label><input name="pincode" class="cp-input" required maxlength="6" placeholder="6-digit pincode" value="{{ posted_data.pincode|default:'' }}"></div>
+          <div class="cp-field"><label class="cp-label">City *</label><input data-no-numbers name="city" class="cp-input" required placeholder="City" value="{{ posted_data.city|default:'' }}"></div>
         </div>
         <div class="cp-row">
-          <div class="cp-field"><label class="cp-label">District</label><input name="district" class="cp-input" placeholder="District"></div>
-          <div class="cp-field"><label class="cp-label">State</label><input name="state" class="cp-input" placeholder="State"></div>
+          <div class="cp-field"><label class="cp-label">District</label><input data-no-numbers name="district" class="cp-input" placeholder="District" value="{{ posted_data.district|default:'' }}"></div>
+          <div class="cp-field"><label class="cp-label">State</label><input data-no-numbers name="state" class="cp-input" placeholder="State" value="{{ posted_data.state|default:'' }}"></div>
         </div>
-        <div class="cp-field"><label class="cp-label">Full Address</label><textarea name="address" class="cp-input" placeholder="Street, area..."></textarea></div>
+        <div class="cp-field"><label class="cp-label">Full Address</label><textarea name="address" class="cp-input" placeholder="Street, area...">{{ posted_data.address|default:'' }}</textarea></div>
       </div>
     </div>
 
@@ -44,7 +47,7 @@
         <div class="cp-field">
           <label class="cp-label">Institution Phone * <span id="phoneVerifiedBadge" style="display:none;background:#D1FAE5;color:#065F46;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;margin-left:6px">✓ Verified</span></label>
           <div style="display:flex;gap:8px;align-items:center">
-            <input id="instPhone" name="phone" class="cp-input" required placeholder="10-digit mobile/phone" maxlength="10" style="flex:1" oninput="resetVerify()">
+            <input id="instPhone" name="phone" class="cp-input" required placeholder="10-digit mobile/phone" maxlength="10" style="flex:1" oninput="resetVerify()" value="{{ posted_data.phone|default:'' }}">
             <button type="button" id="sendOtpBtn" onclick="sendOtp()" style="white-space:nowrap;padding:12px 16px;background:#4F46E5;color:#fff;border:none;border-radius:12px;font-size:13px;font-weight:700;cursor:pointer;flex-shrink:0">Send OTP</button>
           </div>
         </div>
@@ -61,8 +64,8 @@
         </div>
 
         <div class="cp-row">
-          <div class="cp-field"><label class="cp-label">Email</label><input name="email" class="cp-input" type="email" placeholder="Email"></div>
-          <div class="cp-field"><label class="cp-label">Website</label><input name="website" class="cp-input" type="url" placeholder="https://..."></div>
+          <div class="cp-field"><label class="cp-label">Email</label><input name="email" class="cp-input" type="email" placeholder="Email" value="{{ posted_data.email|default:'' }}"></div>
+          <div class="cp-field"><label for="institution-website" class="cp-label">Website (optional)</label><input id="institution-website" name="website" class="cp-input" type="url" placeholder="https://..." value="{{ posted_data.website|default:'' }}"></div>
         </div>
         <div class="cp-field"><label class="cp-label">Logo (optional)</label><input name="logo" class="cp-input" type="file" accept="image/*"></div>
       </div>
@@ -72,13 +75,13 @@
       <div class="cp-card-head"><div class="cp-card-title">Placement Officer Details</div></div>
       <div style="padding:16px">
         <p style="font-size:12px;color:#64748B;margin-bottom:12px">Your details as the Placement Officer for this institution.</p>
-        <div class="cp-field"><label class="cp-label">Full Name *</label><input name="po_name" class="cp-input" required placeholder="Full name"></div>
-        <div class="cp-field"><label class="cp-label">Designation</label><input name="po_designation" class="cp-input" placeholder="e.g. Placement Officer"></div>
-        <div class="cp-field"><label class="cp-label">Email</label><input name="po_email" class="cp-input" type="email" placeholder="Email"></div>
+        <div class="cp-field"><label class="cp-label">Full Name *</label><input data-person-name name="po_name" class="cp-input" required placeholder="Full name" value="{{ posted_data.po_name|default:'' }}"></div>
+        <div class="cp-field"><label class="cp-label">Designation</label><input name="po_designation" class="cp-input" placeholder="e.g. Placement Officer" value="{{ posted_data.po_designation|default:'' }}"></div>
+        <div class="cp-field"><label class="cp-label">Email</label><input name="po_email" class="cp-input" type="email" placeholder="Email" value="{{ posted_data.po_email|default:'' }}"></div>
         <div style="font-size:11px;font-weight:700;color:#374151;margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em">Mobile Numbers</div>
         <div class="cp-row">
-          <div class="cp-field"><label class="cp-label">Primary Mobile *</label><input name="po_phone" class="cp-input" required placeholder="10-digit mobile" maxlength="10"></div>
-          <div class="cp-field"><label class="cp-label">Secondary Mobile</label><input name="po_phone2" class="cp-input" placeholder="Alternate number" maxlength="10"></div>
+          <div class="cp-field"><label class="cp-label">Primary Mobile *</label><input name="po_phone" class="cp-input" required placeholder="10-digit mobile" maxlength="10" value="{{ posted_data.po_phone|default:'' }}"></div>
+          <div class="cp-field"><label class="cp-label">Secondary Mobile</label><input name="po_phone2" class="cp-input" placeholder="Alternate number" maxlength="10" value="{{ posted_data.po_phone2|default:'' }}"></div>
         </div>
       </div>
     </div>
@@ -88,7 +91,8 @@
 </div>
 
 <script>
-var phoneVerified = false;
+var phoneVerified = {% if phone_verified %}true{% else %}false{% endif %};
+if(phoneVerified){document.getElementById('phoneVerifiedBadge').style.display='inline';document.getElementById('sendOtpBtn').disabled=true;}
 
 function resetVerify(){
   phoneVerified = false;

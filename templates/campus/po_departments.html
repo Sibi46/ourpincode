@@ -5,7 +5,7 @@
 <div class="cp-body">
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
     <div style="font-size:18px;font-weight:800;color:#0F172A">Departments</div>
-    <a href="/campus/po/department/add/" class="cp-btn cp-btn-primary">+ Add</a>
+    <a href="{% url 'campus_po_department_add' %}" class="cp-btn cp-btn-primary">+ Add</a>
   </div>
   {% if messages %}{% for m in messages %}<div class="cp-error">{{ m }}</div>{% endfor %}{% endif %}
 
@@ -16,9 +16,9 @@
       <div class="cp-list-icon">🏛️</div>
       <div class="cp-list-info">
         <div class="cp-list-title">{{ dept.name }} <span style="font-size:11px;color:#94A3B8">({{ dept.code }})</span></div>
-        <div class="cp-list-sub">{{ dept.courses }} · HOD: {% if dept.hod_set.first %}{{ dept.hod_set.first.user.get_full_name }}{% else %}Not assigned{% endif %}</div>
+        <div class="cp-list-sub">{{ dept.courses }} · HOD: {% if dept.hods.first %}{{ dept.hods.first.user.get_full_name }}{% else %}Not assigned{% endif %}</div>
       </div>
-      <a href="/campus/po/hod/add/?dept={{ dept.pk }}" class="cp-btn cp-btn-ghost" style="font-size:11px;padding:6px 10px">Add HOD</a>
+      <a href="{% url 'campus_po_hod_add' %}?dept={{ dept.pk }}" class="cp-btn cp-btn-ghost" style="font-size:11px;padding:6px 10px">Add HOD</a>
     </div>
     {% endfor %}
   </div>
@@ -27,7 +27,7 @@
     <div style="font-size:3rem;margin-bottom:10px">🏛️</div>
     <div style="font-size:14px;font-weight:600">No departments yet</div>
     <div style="font-size:12px;margin-top:4px">Add departments to organize students and opportunities</div>
-    <a href="/campus/po/department/add/" class="cp-btn cp-btn-primary" style="margin-top:16px;display:inline-flex">+ Add Department</a>
+    <a href="{% url 'campus_po_department_add' %}" class="cp-btn cp-btn-primary" style="margin-top:16px;display:inline-flex">+ Add Department</a>
   </div>
   {% endif %}
 </div>

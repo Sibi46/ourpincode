@@ -183,31 +183,51 @@ def campus_verify_otp(request):
     return JsonResponse({'success': False, 'error': 'Wrong OTP. Try again.'})
 
 
+@login_required
+@transaction.atomic
 def institution_register(request):
+    if get_po(request.user):
+        return redirect('campus_po_dashboard')
+    from .forms import InstitutionRegistrationForm
+    form=InstitutionRegistrationForm(request.POST if request.method=='POST' else None)
+    def show_form(status=200):
+        return render(request,'campus/institution_register.html',{
+            'type_choices':Institution.TYPE_CHOICES,'registration_form':form,
+            'posted_data':request.POST if request.method=='POST' else {},
+            'selected_types':request.POST.getlist('institution_type'),
+            'phone_verified':bool(request.session.get('campus_otp_verified') and
+                request.session.get('campus_otp_phone')==request.POST.get('phone','').strip()),
+        },status=status)
     if request.method == 'POST':
+        if not form.is_valid():
+            return show_form(400)
         phone = request.POST.get('phone', '').strip()
         otp_verified = request.session.get('campus_otp_verified') and request.session.get('campus_otp_phone') == phone
         if not otp_verified:
             messages.error(request, 'Please verify the institution phone number with OTP before submitting.')
-            return render(request, 'campus/institution_register.html', {'type_choices': Institution.TYPE_CHOICES, 'otp_error': True})
+            return show_form()
         inst = Institution.objects.create(
-            name             = request.POST.get('name', '').strip(),
+            name             = form.cleaned_data['name'],
             institution_type = ','.join(request.POST.getlist('institution_type')) or 'other',
-            affiliation      = request.POST.get('affiliation', '').strip(),
+            affiliation      = form.cleaned_data['affiliation'],
             address          = request.POST.get('address', '').strip(),
             pincode          = request.POST.get('pincode', '').strip(),
-            city             = request.POST.get('city', '').strip(),
-            district         = request.POST.get('district', '').strip(),
-            state            = request.POST.get('state', '').strip(),
+            city             = form.cleaned_data['city'],
+            district         = form.cleaned_data['district'],
+            state            = form.cleaned_data['state'],
             phone            = phone,
             phone_verified   = True,
             email            = request.POST.get('email', '').strip(),
-            website          = request.POST.get('website', '').strip(),
+            website          = form.cleaned_data['website'],
             status           = 'pending',
         )
         if 'logo' in request.FILES:
             inst.logo = request.FILES['logo']
             inst.save()
+        parts=form.cleaned_data['po_name'].split(' ',1)
+        request.user.first_name=parts[0]
+        request.user.last_name=parts[1] if len(parts)>1 else ''
+        request.user.save(update_fields=['first_name','last_name'])
         PlacementOfficer.objects.create(
             user        = request.user,
             institution = inst,
@@ -221,9 +241,7 @@ def institution_register(request):
         audit(request.user, 'institution_register', 'Institution', inst.pk, inst.name, request)
         messages.success(request, f'"{inst.name}" registered successfully! Awaiting admin verification.')
         return redirect('campus_po_dashboard')
-    return render(request, 'campus/institution_register.html', {
-        'type_choices': Institution.TYPE_CHOICES,
-    })
+    return show_form()
 
 
 # ── PLACEMENT OFFICER ─────────────────────────────────────────────────────────
@@ -683,18 +701,22 @@ def application_detail(request, pk):
 def company_register(request):
     if hasattr(request.user, 'campus_company'):
         return redirect('campus_company_dashboard')
+    from .forms import CampusCompanyRegistrationForm
+    form=CampusCompanyRegistrationForm(request.POST if request.method=='POST' else None)
     error = None
     if request.method == 'POST':
+        if not form.is_valid():
+            return render(request,'campus/company_register.html',{'registration_form':form,'posted_data':request.POST},status=400)
         company = CampusCompany.objects.create(
             user           = request.user,
             company_name   = request.POST.get('company_name', '').strip(),
             industry       = request.POST.get('industry', '').strip(),
             description    = request.POST.get('description', '').strip(),
-            contact_person = request.POST.get('contact_person', '').strip(),
+            contact_person = form.cleaned_data['contact_person'],
             designation    = request.POST.get('designation', '').strip(),
             phone          = request.POST.get('phone', '').strip(),
             email          = request.POST.get('email', '').strip(),
-            website        = request.POST.get('website', '').strip(),
+            website        = form.cleaned_data['website'],
             address        = request.POST.get('address', '').strip(),
             pincode        = request.POST.get('pincode', '').strip(),
             status         = 'pending',
@@ -705,7 +727,7 @@ def company_register(request):
         audit(request.user, 'company_register', 'CampusCompany', company.pk, company.company_name, request)
         messages.success(request, 'Company registered! Awaiting verification.')
         return redirect('campus_company_dashboard')
-    return render(request, 'campus/company_register.html', {'error': error})
+    return render(request, 'campus/company_register.html', {'error': error,'registration_form':form})
 
 
 @login_required

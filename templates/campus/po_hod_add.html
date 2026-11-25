@@ -5,6 +5,7 @@
 <div class="cp-body">
   <div class="cp-sec">Add HOD</div>
   {% if messages %}{% for m in messages %}<div class="cp-error">{{ m }}</div>{% endfor %}{% endif %}
+  {% if error %}<p class="cp-error" role="alert">{{ error }}</p>{% endif %}
   {% if credentials %}
   <div class="cp-card" style="margin-bottom:20px">
     <div class="cp-card-head"><div class="cp-card-title">⚠️ HOD Login Credentials</div></div>
@@ -26,12 +27,12 @@
     <div class="cp-card">
       <div style="padding:16px">
         <div class="cp-field"><label class="cp-label">Department *</label>
-          <select name="department" class="cp-input" required>
+          <select name="department_id" class="cp-input" required>
             <option value="">Select department</option>
             {% for d in departments %}<option value="{{ d.pk }}" {% if request.GET.dept == d.pk|stringformat:"s" %}selected{% endif %}>{{ d.name }}</option>{% endfor %}
           </select>
         </div>
-        <div class="cp-field"><label class="cp-label">HOD Full Name *</label><input name="name" class="cp-input" required placeholder="Full name"></div>
+        <div class="cp-field"><label class="cp-label">HOD Full Name *</label><input name="full_name" class="cp-input" required placeholder="Full name"></div>
         <div class="cp-row">
           <div class="cp-field"><label class="cp-label">Phone *</label><input name="phone" class="cp-input" required placeholder="Mobile"></div>
           <div class="cp-field"><label class="cp-label">Email</label><input name="email" class="cp-input" type="email" placeholder="Email"></div>

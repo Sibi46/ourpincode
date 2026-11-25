@@ -24,11 +24,11 @@
   <!-- QUICK ACTIONS -->
   <div class="cp-sec">Quick Actions</div>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px">
-    <a href="/campus/po/departments/" class="cp-card" style="padding:16px;text-decoration:none;display:block;text-align:center">
+    <a href="{% url 'campus_po_departments' %}" class="cp-card" style="padding:16px;text-decoration:none;display:block;text-align:center">
       <div style="font-size:2rem;margin-bottom:6px">🏛️</div>
       <div style="font-size:13px;font-weight:700;color:#0F172A">Departments</div>
     </a>
-    <a href="/campus/po/students/" class="cp-card" style="padding:16px;text-decoration:none;display:block;text-align:center">
+    <a href="{% url 'campus_po_students' %}" class="cp-card" style="padding:16px;text-decoration:none;display:block;text-align:center">
       <div style="font-size:2rem;margin-bottom:6px">👨‍🎓</div>
       <div style="font-size:13px;font-weight:700;color:#0F172A">Students</div>
     </a>

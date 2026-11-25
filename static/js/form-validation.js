@@ -1,5 +1,20 @@
 (() => {
   function start() {
+    document.querySelectorAll('[data-no-numbers]').forEach(input => {
+      const validate = () => input.setCustomValidity(input.value.trim() && (/\p{N}/u.test(input.value) || !/\p{L}/u.test(input.value))
+        ? 'Enter a name containing letters without numbers.' : '');
+      const hint = document.createElement('small');
+      hint.setAttribute('role', 'status');
+      hint.style.cssText = 'display:block;color:#b42318;margin-top:6px';
+      input.insertAdjacentElement('afterend', hint);
+      input.addEventListener('input', () => {
+        const original = input.value;
+        input.value = original.replace(/\p{N}/gu, '');
+        hint.textContent = original !== input.value ? 'Numbers are not allowed in this field.' : '';
+        validate();
+      });
+      validate();
+    });
     document.querySelectorAll('[data-person-name],[data-profile-name]').forEach(input => {
       const validate = () => input.setCustomValidity(input.value && !/^[\p{L}\p{M} ]+$/u.test(input.value)
         ? 'Use letters and spaces only.' : '');
