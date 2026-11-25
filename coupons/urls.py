@@ -1,7 +1,9 @@
 from django.urls import path
-from . import views
+from . import views, deletion
 
 urlpatterns = [
+    path('admin/salesmen/<int:pk>/delete/', deletion.delete_record, {'kind':'salesman'}, name='opc_admin_salesman_delete'),
+    path('admin/coupons/<int:pk>/delete/', deletion.delete_record, {'kind':'coupon'}, name='opc_admin_coupon_delete'),
     path('admin/lucky-draws/', views.admin_lucky_draws, name='opc_admin_lucky_draws'),
     # ── Admin ─────────────────────────────────────────────────────────────────
     path('admin/',                              views.admin_dashboard,          name='opc_admin_dashboard'),

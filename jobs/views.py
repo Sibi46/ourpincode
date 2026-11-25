@@ -1158,7 +1158,7 @@ def employer_dashboard(request, profile_editor=None):
 
     from coupons.models import Coupon
     from django.core.paginator import Paginator
-    business_coupons = Coupon.objects.filter(batch__shop__business=user).select_related(
+    business_coupons = Coupon.objects.filter(batch__shop__business=user,deleted_at__isnull=True).select_related(
         'batch__salesman__user').order_by('-number')
     coupon_page = Paginator(business_coupons, 25).get_page(request.GET.get('coupon_page'))
 

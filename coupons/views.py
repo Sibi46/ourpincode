@@ -20,6 +20,7 @@ from .models import (
 
 from jobs.models import ShopProfile
 from .forms import CouponActivationForm
+from .deletion import can_delete_records
 
 User = get_user_model()
 
@@ -27,12 +28,13 @@ User = get_user_model()
 # ── helpers ──────────────────────────────────────────────────────────────────
 
 def _is_opc_admin(user):
-    return user.is_authenticated and (user.is_staff or user.is_superuser)
+    return user.is_authenticated and (user.is_staff or user.is_superuser or user.admin_role == 'super_admin')
 
 
 def _is_salesman(user):
     return (user.is_authenticated and user.is_active
-            and hasattr(user, 'salesman_profile') and user.salesman_profile.is_active)
+            and hasattr(user, 'salesman_profile') and user.salesman_profile.is_active
+            and user.salesman_profile.deleted_at is None)
 
 
 def opc_admin_required(view_fn):
@@ -149,7 +151,7 @@ def _spin_result(category=''):
 @opc_admin_required
 def admin_dashboard(request):
     ctx = {
-        'total_salesmen': Salesman.objects.count(),
+        'total_salesmen': Salesman.objects.filter(deleted_at__isnull=True).count(),
         'total_shops': Shop.objects.count(),
         'total_coupons_given': CouponBatch.objects.aggregate(t=Sum('quantity'))['t'] or 0,
         'total_activated': Coupon.objects.filter(status='activated').count(),
@@ -163,11 +165,11 @@ def admin_dashboard(request):
 
 @opc_admin_required
 def admin_salesmen(request):
-    salesmen = Salesman.objects.select_related('user').annotate(
+    salesmen = Salesman.objects.filter(deleted_at__isnull=True).select_related('user').annotate(
         shop_count=Count('shops', distinct=True),
         coupon_count=Sum('batches__quantity'),
     )
-    return render(request, 'coupons/admin/salesmen.html', {'salesmen': salesmen})
+    return render(request, 'coupons/admin/salesmen.html', {'salesmen': salesmen, 'can_delete_records':can_delete_records(request.user)})
 
 
 @opc_admin_required
@@ -196,7 +198,7 @@ def admin_salesman_create(request):
 
 @opc_admin_required
 def admin_salesman_detail(request, pk):
-    salesman = get_object_or_404(Salesman, pk=pk)
+    salesman = get_object_or_404(Salesman, pk=pk, deleted_at__isnull=True)
     if request.method == 'POST':
         action = request.POST.get('action')
         if action == 'toggle':
@@ -223,7 +225,7 @@ def admin_salesman_detail(request, pk):
         return redirect('opc_admin_salesman_detail', pk=pk)
     shops = salesman.shops.prefetch_related('batches').all()
     return render(request, 'coupons/admin/salesman_detail.html', {
-        'salesman': salesman, 'shops': shops
+        'salesman': salesman, 'shops': shops, 'can_delete_records':can_delete_records(request.user)
     })
 
 
@@ -242,7 +244,7 @@ def admin_shops(request):
 def admin_coupons(request):
     q = request.GET.get('q', '')
     status_f = request.GET.get('status', '')
-    coupons = Coupon.objects.select_related(
+    coupons = Coupon.objects.filter(deleted_at__isnull=True).select_related(
         'batch__shop__salesman__user', 'activated_by'
     ).order_by('number')
     if q:
@@ -250,7 +252,8 @@ def admin_coupons(request):
     if status_f:
         coupons = coupons.filter(status=status_f)
     return render(request, 'coupons/admin/coupons.html', {
-        'coupons': coupons[:200], 'q': q, 'status_f': status_f
+        'coupons': coupons[:200], 'q': q, 'status_f': status_f,
+        'can_delete_records':can_delete_records(request.user)
     })
 
 
@@ -646,13 +649,13 @@ def customer_activate_coupon(request):
                     'activation_form': activation_form,
                 })
             coupon = Coupon.objects.filter(
-                number=activation_form.cleaned_data['number'],
+                number=activation_form.cleaned_data['number'], deleted_at__isnull=True,
                 batch__category=activation_form.cleaned_data['category'],
             ).select_related('batch__shop').first()
         else:
             # Keep accepting previously printed full codes without changing them.
             code = request.POST.get('code', '').strip()
-            coupon = Coupon.objects.filter(code__iexact=code).select_related('batch__shop').first()
+            coupon = Coupon.objects.filter(code__iexact=code,deleted_at__isnull=True).select_related('batch__shop').first()
         if not coupon:
             messages.error(request, '❌ Coupon not found. Check the number and try again.')
             return redirect('opc_activate_coupon')
@@ -673,7 +676,7 @@ def customer_spin_wheel(request):
     coupon_pk = request.session.get('pending_coupon')
     if not coupon_pk:
         return redirect('opc_activate_coupon')
-    coupon = get_object_or_404(Coupon, pk=coupon_pk)
+    coupon = get_object_or_404(Coupon, pk=coupon_pk,deleted_at__isnull=True)
     if coupon.status != 'available':
         del request.session['pending_coupon']
         messages.error(request, 'Coupon already used.')
@@ -692,7 +695,7 @@ def customer_spin_api(request):
         return JsonResponse({'error': 'No pending coupon'}, status=400)
     with transaction.atomic():
         coupon = Coupon.objects.select_for_update().filter(
-            pk=coupon_pk, status='available'
+            pk=coupon_pk, status='available', deleted_at__isnull=True
         ).first()
         if not coupon:
             return JsonResponse({'error': 'Coupon no longer available'}, status=400)

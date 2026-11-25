@@ -1,0 +1,29 @@
+{% extends "coupons/base.html" %}
+{% block title %}Delete {{ kind|title }} | OUR PINCODE{% endblock %}
+{% block opc_content %}
+<main class="opc-page" style="max-width:720px;padding-bottom:100px">
+  <a href="{% url return_name %}">Back to {{ kind|title }} list</a>
+  <section class="opc-card" style="margin-top:20px;overflow-wrap:anywhere">
+    <h1 class="opc-page-title">Delete {{ kind|title }}</h1>
+    <p style="font-size:18px;font-weight:700;margin:16px 0">{{ record }}</p>
+    {% if kind == 'salesman' %}
+    <p style="line-height:1.8;margin:16px 0">This salesman will be removed from the Salesmen list and will lose access to the salesman portal. Their general user account remains available for other services.</p>
+    <p style="line-height:1.8;margin:16px 0">Existing shop links, {{ state.batches }} distribution batch{{ state.batches|pluralize }} and {{ state.coupons }} coupon{{ state.coupons|pluralize }} remain in history. Distributed coupons remain valid. Delete individual coupons separately if required.</p>
+    {% else %}
+    <p style="line-height:1.8;margin:16px 0">This coupon will be removed from coupon lists and cannot be activated or spun again.</p>
+    <p style="line-height:1.8;margin:16px 0">Points already awarded, redemption and lucky-draw history are preserved. The coupon number stays reserved and cannot be issued again.</p>
+    {% endif %}
+    <p style="line-height:1.8;margin:16px 0">This action removes the record from normal use. An internal record is retained for audit and customer reward history.</p>
+    {% if error %}<p role="alert" style="padding:14px;background:#fff0ee;color:#b42318;margin:16px 0">{{ error }}</p>{% endif %}
+    <form method="post">{% csrf_token %}
+      <input type="hidden" name="review_token" value="{{ review_token }}">
+      <label for="delete-confirmation" style="display:block;font-weight:700;margin:16px 0 8px">Type DELETE to confirm</label>
+      <input class="opc-input" id="delete-confirmation" name="confirmation" required pattern="DELETE" autocomplete="off" style="max-width:100%;width:100%">
+      <div style="display:flex;flex-wrap:wrap;gap:12px;margin-top:20px">
+        <button type="submit" class="opc-btn" style="background:#b42318;color:#fff">Delete {{ kind|title }}</button>
+        <a href="{% url return_name %}" class="opc-btn opc-btn-ghost">Cancel</a>
+      </div>
+    </form>
+  </section>
+</main>
+{% endblock %}

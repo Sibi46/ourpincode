@@ -48,5 +48,5 @@ def subscription_renew(request):
 def business_coupon(request, pk):
     from coupons.models import Coupon
     coupon = get_object_or_404(Coupon.objects.select_related('batch__shop', 'batch__salesman__user'),
-                              pk=pk, batch__shop__business=request.user)
+                              pk=pk, batch__shop__business=request.user, deleted_at__isnull=True)
     return render(request, 'business_coupon_detail.html', {'coupon': coupon})

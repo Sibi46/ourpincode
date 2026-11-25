@@ -16,7 +16,7 @@
     <a href="/coupons/admin/customers/">Customers</a>
     <a href="/coupons/admin/redemptions/">Redemptions</a>
   </div>
-  <div class="opc-card" style="padding:0;overflow:hidden">
+  <div class="opc-card" style="padding:0;overflow-x:auto">
     <table class="opc-table">
       <thead><tr><th>Salesman</th><th>Username</th><th>Shops</th><th>Coupons Given</th><th>Status</th><th></th></tr></thead>
       <tbody>
@@ -27,7 +27,7 @@
         <td><span class="opc-badge opc-badge-purple">{{ sm.shop_count|default:0 }} shops</span></td>
         <td><span class="opc-badge opc-badge-gold">{{ sm.coupon_count|default:0 }} coupons</span></td>
         <td>{% if sm.is_active %}<span class="opc-badge opc-badge-green">Active</span>{% else %}<span class="opc-badge opc-badge-red">Inactive</span>{% endif %}</td>
-        <td><a href="/coupons/admin/salesmen/{{ sm.pk }}/" class="opc-btn opc-btn-ghost" style="padding:6px 12px;font-size:12px">View</a></td>
+        <td><a href="/coupons/admin/salesmen/{{ sm.pk }}/" class="opc-btn opc-btn-ghost" style="padding:6px 12px;font-size:12px">View</a>{% if can_delete_records %} <a class="opc-btn opc-btn-ghost" style="color:#b42318;padding:6px 12px;font-size:12px" href="{% url 'opc_admin_salesman_delete' sm.pk %}">Delete</a>{% endif %}</td>
       </tr>
       {% empty %}
       <tr><td colspan="6"><div class="opc-empty">No salesmen yet</div></td></tr>

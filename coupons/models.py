@@ -16,6 +16,7 @@ class Salesman(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='salesman_profile')
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True,
                                    related_name='created_salesmen')
+    deleted_at = models.DateTimeField(null=True, blank=True, db_index=True)
     is_active = models.BooleanField(default=True)
     notes = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -111,6 +112,7 @@ class Coupon(models.Model):
         (STATUS_CANCELLED, 'Cancelled'),
     ]
 
+    deleted_at = models.DateTimeField(null=True, blank=True, db_index=True)
     code = models.CharField(max_length=20, unique=True)  # OPC-000001
     number = models.PositiveIntegerField(unique=True)
     batch = models.ForeignKey(CouponBatch, on_delete=models.CASCADE, related_name='coupons')

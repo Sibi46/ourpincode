@@ -20,6 +20,7 @@
   {% endif %}
 
   {% if coupon %}
+{% if coupon.deleted_at %}<p role="status" style="padding:16px;background:#fff0ee;color:#b42318">Deleted on {{ coupon.deleted_at|date:"d M Y H:i" }}. This record is retained for audit; it cannot be activated.</p>{% endif %}
   <div class="opc-card">
     <div style="font-size:24px;font-family:monospace;font-weight:900;color:#4f46e5;margin-bottom:16px;letter-spacing:.05em">{{ coupon.code }} - {{ coupon.get_category_display }}</div>
 

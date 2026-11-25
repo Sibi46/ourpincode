@@ -22,9 +22,9 @@
     <a href="/coupons/admin/coupons/" class="active">Coupons</a>
     <a href="/coupons/admin/coupon-audit/">Audit</a>
   </div>
-  <div class="opc-card" style="padding:0;overflow:hidden">
+  <div class="opc-card" style="padding:0;overflow-x:auto">
     <table class="opc-table">
-      <thead><tr><th>Code</th><th>Shop</th><th>Salesman</th><th>Status</th><th>Customer</th><th>Points</th><th>Date</th></tr></thead>
+      <thead><tr><th>Code</th><th>Shop</th><th>Salesman</th><th>Status</th><th>Customer</th><th>Points</th><th>Date</th>{% if can_delete_records %}<th>Action</th>{% endif %}</tr></thead>
       <tbody>
       {% for c in coupons %}
       <tr>
@@ -39,6 +39,7 @@
         <td>{% if c.activated_by %}{{ c.activated_by.get_full_name|default:c.activated_by.username }}{% else %}—{% endif %}</td>
         <td>{% if c.points_awarded %}<span class="opc-badge opc-badge-gold">⭐ {{ c.points_awarded }}</span>{% else %}—{% endif %}</td>
         <td style="font-size:11px;color:#94a3b8">{% if c.activated_at %}{{ c.activated_at|date:"d M Y" }}{% else %}—{% endif %}</td>
+        {% if can_delete_records %}<td><a class="opc-btn opc-btn-ghost" style="color:#b42318" href="{% url 'opc_admin_coupon_delete' c.pk %}">Delete</a></td>{% endif %}
       </tr>
       {% empty %}
       <tr><td colspan="7"><div class="opc-empty">No coupons found</div></td></tr>
