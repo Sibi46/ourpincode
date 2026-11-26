@@ -1,4 +1,5 @@
 {% extends "coupons/base.html" %}
+{% load static %}
 {% block title %}OPC Admin — New Salesman{% endblock %}
 {% block opc_content %}
 <div class="opc-page" style="max-width:500px">
@@ -19,8 +20,8 @@
         <input class="opc-input" name="username" placeholder="e.g. karthik_opc" required>
       </div>
       <div class="opc-field">
-        <label class="opc-label">Password</label>
-        <input class="opc-input" type="password" name="password" placeholder="OPC@1234" required>
+        <label class="opc-label" for="new-salesman-password">Password</label>
+        <input id="new-salesman-password" data-password-toggle class="opc-input" type="password" name="password" autocomplete="new-password" placeholder="OPC@1234" required>
       </div>
       <div class="opc-field">
         <label class="opc-label">Notes (optional)</label>
@@ -30,4 +31,5 @@
     </form>
   </div>
 </div>
+<script src="{% static 'js/report-controls.js' %}?v=1" defer></script>
 {% endblock %}
