@@ -2,6 +2,7 @@ from django.shortcuts import redirect
 
 # Pages anyone can visit without logging in
 PUBLIC_PREFIXES = [
+    '/coming-soon/',  # Public feature notices linked from the homepage
     '/admin-panel/login/',       # credential entry; the view checks admin membership
     '/language/',
     '/admin-workspace/login/',
