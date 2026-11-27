@@ -95,7 +95,7 @@ class EventForm(forms.ModelForm):
                 self.add_error('quiz_closes_on', 'Closing date must follow the opening date.')
             if data.get('starts_at') and closes_on > data['starts_at'].date():
                 self.add_error('quiz_closes_on', 'Close the quiz by the event date.')
-        if data.get('published') and (not self.instance.pk or self.instance.questions.count() < 3):
+        if data.get('published') and (not self.instance.pk or self.instance.questions.filter(deleted_at__isnull=True).count() < 3):
             self.add_error('published', 'Save a draft and add at least three questions before publishing.')
         return data
 
@@ -129,13 +129,15 @@ class GiftForm(forms.ModelForm):
 @transaction.atomic
 def allocate(event, user):
     event = PincodeDay.objects.select_for_update().get(pk=event.pk)
+    if event.deleted_at:
+        raise ValidationError('This quiz was deleted. Your earned points are saved.')
     participant, _ = DayParticipant.objects.get_or_create(event=event, user=user)
     participant = DayParticipant.objects.select_for_update().get(pk=participant.pk)
     day = today()
     existing = list(participant.answers.filter(day=day).select_related('question').order_by('slot'))
     # Once a daily set has been issued, refreshing never changes its questions.
     if not existing:
-        questions = list(event.questions.exclude(pk__in=participant.answers.values('question_id')).order_by('?')[:3])
+        questions = list(event.questions.filter(deleted_at__isnull=True).exclude(pk__in=participant.answers.values('question_id')).order_by('?')[:3])
         if len(questions) == 3:
             for slot, question in enumerate(questions, 1):
                 existing.append(DayAnswer.objects.create(participant=participant, question=question, day=day, slot=slot))
@@ -146,7 +148,7 @@ def allocate(event, user):
 def record_answer(event_id, user, answer_id, choice):
     # Event lock serializes answers against winner finalization and event closure.
     event = PincodeDay.objects.select_for_update().get(pk=event_id)
-    if not event.published or event.finalized_at or not event.quiz_opens_on <= today() <= event.quiz_closes_on:
+    if event.deleted_at or not event.published or event.finalized_at or not event.quiz_opens_on <= today() <= event.quiz_closes_on:
         raise ValidationError('This daily quiz is closed.')
     if choice not in 'ABCD' or len(choice) != 1:
         raise ValidationError('Choose one of the four answers.')
@@ -165,9 +167,9 @@ def record_answer(event_id, user, answer_id, choice):
 
 @login_required
 def landing(request):
-    event = PincodeDay.objects.filter(published=True, finalized_at__isnull=True,
+    event = PincodeDay.objects.filter(published=True, deleted_at__isnull=True, finalized_at__isnull=True,
         quiz_opens_on__lte=today(), quiz_closes_on__gte=today()).order_by('-quiz_opens_on', '-pk').first()
-    if event:
+    if event and request.GET.get('history')!='1':
         return redirect('day_daily', pk=event.pk)
     results = user_results(request.user)
     results['history'] = Paginator(results['history'], 20).get_page(request.GET.get('page'))
@@ -182,12 +184,12 @@ def event_page(request, pk):
     participant = event.participants.filter(user=request.user).first() if request.user.is_authenticated else None
     leaders = list(ranking(event)[:50])
     return render(request, 'quiz/day_event.html', {'event': event, 'participant': participant, 'leaders': leaders,
-        'gifts': event.gifts.select_related('winner__user'), 'can_play': not event.finalized_at and event.quiz_opens_on <= today() <= event.quiz_closes_on})
+        'gifts': event.gifts.select_related('winner__user'), 'can_play': not event.deleted_at and event.published and not event.finalized_at and event.quiz_opens_on <= today() <= event.quiz_closes_on})
 
 
 @login_required
 def daily(request, pk):
-    event = get_object_or_404(PincodeDay, pk=pk, published=True)
+    event = get_object_or_404(PincodeDay, pk=pk, published=True, deleted_at__isnull=True)
     if event.finalized_at or not event.quiz_opens_on <= today() <= event.quiz_closes_on:
         messages.info(request, 'This quiz is closed. Your earned points are saved.')
         return redirect('day_landing')
@@ -199,7 +201,11 @@ def daily(request, pk):
         except (ValueError, ValidationError, DayParticipant.DoesNotExist) as exc:
             messages.error(request, str(exc))
         return redirect('day_daily', pk=pk)
-    participant, answers = allocate(event, request.user)
+    try:
+        participant, answers = allocate(event, request.user)
+    except ValidationError as error:
+        messages.info(request,str(error))
+        return redirect('day_landing')
     question = next((answer for answer in answers if not answer.answered_at), None)
     options = [(key, getattr(question.question, 'option_' + key.lower())) for key in 'ABCD'] if question else []
     results = user_results(request.user, event)
@@ -218,7 +224,7 @@ def daily(request, pk):
 @login_required
 @require_POST
 def attend(request, pk):
-    event = get_object_or_404(PincodeDay, pk=pk, published=True)
+    event = get_object_or_404(PincodeDay, pk=pk, published=True, deleted_at__isnull=True)
     if timezone.now() > event.ends_at:
         messages.error(request, 'Attendance registration has closed.')
     else:
@@ -234,7 +240,9 @@ def administration(request, pk=None):
     if not manager(request.user):
         raise PermissionDenied
     event = get_object_or_404(PincodeDay, pk=pk) if pk else (
-        None if request.GET.get('new') == '1' else PincodeDay.objects.order_by('-quiz_opens_on', '-pk').first())
+        None if request.GET.get('new') == '1' else PincodeDay.objects.filter(deleted_at__isnull=True).order_by('-quiz_opens_on', '-pk').first())
+    if event and event.deleted_at and request.method=='POST':
+        raise PermissionDenied('Deleted events are read-only.')
     if request.method == 'GET' and pk is None and event:
         return redirect('day_admin_event', pk=event.pk)
     action = request.POST.get('action') if request.method == 'POST' else None
@@ -246,6 +254,8 @@ def administration(request, pk=None):
         with transaction.atomic():
             if event:
                 event = PincodeDay.objects.select_for_update().get(pk=event.pk)
+                if event.deleted_at:
+                    raise PermissionDenied('Deleted events are read-only.')
             if action == 'create_admin':
                 if request.user.admin_role != 'super_admin':
                     raise PermissionDenied
@@ -323,7 +333,8 @@ def administration(request, pk=None):
                     messages.success(request, 'Winners finalized from the leaderboard.')
             elif event and event.finalized_at and action == 'delivered':
                 event.gifts.filter(pk=request.POST.get('gift_id'), winner__isnull=False).update(delivered=True)
-    questions = event.questions.annotate(
+    include_deleted=request.GET.get('include_deleted')=='1'
+    questions = event.questions.filter(**({} if include_deleted else {'deleted_at__isnull':True})).annotate(
         answered_count=Count('dayanswer', filter=Q(dayanswer__answered_at__isnull=False)),
         correct_count=Count('dayanswer', filter=Q(dayanswer__answered_at__isnull=False, dayanswer__points=5)),
         wrong_count=Count('dayanswer', filter=Q(dayanswer__answered_at__isnull=False, dayanswer__points=1)),
@@ -341,7 +352,10 @@ def administration(request, pk=None):
         answered_count=Count('answers', filter=Q(answers__answered_at__isnull=False)),
         correct_count=Count('answers', filter=Q(answers__answered_at__isnull=False, answers__points=5)),
         wrong_count=Count('answers', filter=Q(answers__answered_at__isnull=False, answers__points=1))) if event else []
-    return render(request, 'quiz/day_admin.html', {'event': event, 'events': PincodeDay.objects.annotate(question_count=Count('questions')).all(),
+    return render(request, 'quiz/day_admin.html', {'event': event, 'events': PincodeDay.objects.filter(deleted_at__isnull=True).annotate(question_count=Count('questions',filter=Q(questions__deleted_at__isnull=True))),
+        'deleted_events': PincodeDay.objects.filter(deleted_at__isnull=False),
+        'question_count':event.questions.filter(deleted_at__isnull=True).count() if event else 0,
+        'include_deleted':include_deleted,
         'event_form': event_form, 'question_form': question_form, 'gift_form': gift_form,
         'promotion_form': promotion_form,
         'admins': PromotionAdmin.objects.select_related('user'), 'super_admin': request.user.admin_role == 'super_admin',

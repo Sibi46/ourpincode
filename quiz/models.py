@@ -69,6 +69,7 @@ class PromotionAdmin(models.Model):
 
 
 class PincodeDay(models.Model):
+    deleted_at = models.DateTimeField(null=True, blank=True, db_index=True)
     title = models.CharField(max_length=200, default='PincodeDay')
     description = models.TextField(blank=True)
     agenda = models.TextField(blank=True)
@@ -88,6 +89,7 @@ class PincodeDay(models.Model):
 
 
 class DayQuestion(models.Model):
+    deleted_at = models.DateTimeField(null=True, blank=True, db_index=True)
     event = models.ForeignKey(PincodeDay, on_delete=models.CASCADE, related_name='questions')
     text = models.CharField(max_length=500)
     option_a = models.CharField(max_length=300)

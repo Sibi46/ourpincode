@@ -1,8 +1,10 @@
 from django.urls import path
-from . import views
+from . import views, deletion
 from . import pincodeday as day
 
 urlpatterns = [
+    path('promotion-admin/<int:pk>/delete/', deletion.remove, name='day_delete_event'),
+    path('promotion-admin/<int:pk>/questions/<int:question_pk>/delete/', deletion.remove, name='day_delete_question'),
     path('pincodeday/', day.landing, name='day_landing'),
     path('promotion-admin/', day.administration, name='day_admin'),
     path('promotion-admin/<int:pk>/', day.administration, name='day_admin_event'),
