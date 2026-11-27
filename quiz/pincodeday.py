@@ -95,8 +95,8 @@ class EventForm(forms.ModelForm):
                 self.add_error('quiz_closes_on', 'Closing date must follow the opening date.')
             if data.get('starts_at') and closes_on > data['starts_at'].date():
                 self.add_error('quiz_closes_on', 'Close the quiz by the event date.')
-        if data.get('published') and (not self.instance.pk or self.instance.questions.filter(deleted_at__isnull=True).count() < 3):
-            self.add_error('published', 'Save a draft and add at least three questions before publishing.')
+        if data.get('published') and (not self.instance.pk or not self.instance.questions.filter(deleted_at__isnull=True).exists()):
+            self.add_error('published', 'Save a draft and add at least one question before publishing.')
         return data
 
 
@@ -135,12 +135,11 @@ def allocate(event, user):
     participant = DayParticipant.objects.select_for_update().get(pk=participant.pk)
     day = today()
     existing = list(participant.answers.filter(day=day).select_related('question').order_by('slot'))
-    # Once a daily set has been issued, refreshing never changes its questions.
-    if not existing:
-        questions = list(event.questions.filter(deleted_at__isnull=True).exclude(pk__in=participant.answers.values('question_id')).order_by('?')[:3])
-        if len(questions) == 3:
-            for slot, question in enumerate(questions, 1):
-                existing.append(DayAnswer.objects.create(participant=participant, question=question, day=day, slot=slot))
+    # Preserve issued questions; fill only unused daily slots as questions arrive.
+    if len(existing) < 3:
+        questions = list(event.questions.filter(deleted_at__isnull=True).exclude(pk__in=participant.answers.values('question_id')).order_by('?')[:3-len(existing)])
+        for slot, question in enumerate(questions, len(existing)+1):
+            existing.append(DayAnswer.objects.create(participant=participant, question=question, day=day, slot=slot))
     return participant, existing
 
 

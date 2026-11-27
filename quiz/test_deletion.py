@@ -131,7 +131,7 @@ class QuizDeletionTests(TestCase):
         self.assertEqual(self.client.post(self.url(),{'review_token':token,'confirmation':'DELETE'}).status_code,409)
 
     def test_deleted_questions_do_not_count_towards_publication_minimum(self):
-        for question in self.questions[:7]:self.delete(question)
+        for question in self.questions:self.delete(question)
         form=EventForm({'title':self.event.title,'starts_at':self.event.starts_at,'ends_at':self.event.ends_at,
             'quiz_opens_on':self.event.quiz_opens_on,'quiz_closes_on':self.event.quiz_closes_on,'published':True},instance=self.event)
         self.assertFalse(form.is_valid());self.assertIn('published',form.errors)

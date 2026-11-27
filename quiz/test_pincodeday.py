@@ -12,6 +12,28 @@ from .pincodeday import allocate, record_answer, today, EventForm, GiftForm, Que
 
 
 class PincodeDayTests(TestCase):
+    def test_single_question_visible_and_daily_slots_fill_without_repeating(self):
+        self.event.questions.all().delete()
+        question = DayQuestion.objects.create(event=self.event, text='First?', option_a='Yes', option_b='No', option_c='Maybe', option_d='Never', correct_answer='A')
+        self.client.force_login(self.user)
+        url = reverse('day_daily', args=[self.event.pk])
+        self.assertContains(self.client.get(url), 'First?')
+        participant, answers = allocate(self.event, self.user)
+        self.assertEqual(len(answers), 1)
+        record_answer(self.event.pk, self.user, answers[0].pk, 'A')
+        response = self.client.get(url)
+        self.assertNotContains(response, "Today's quiz is complete")
+        for i in range(4):
+            DayQuestion.objects.create(event=self.event, text=f'Added {i}?', option_a='Yes', option_b='No', option_c='Maybe', option_d='Never', correct_answer='A')
+        _, expanded = allocate(self.event, self.user)
+        self.assertEqual(len(expanded), 3)
+        self.assertEqual(expanded[0].pk, answers[0].pk)
+        self.assertEqual(expanded[0].question_id, question.pk)
+        self.assertEqual(len({a.question_id for a in expanded}), 3)
+        self.assertEqual([a.pk for a in expanded], [a.pk for a in allocate(self.event, self.user)[1]])
+        participant.refresh_from_db()
+        self.assertEqual(participant.points, 5)
+
     def setUp(self):
         User = get_user_model()
         self.user = User.objects.create_user(username='player', password='test-password')
