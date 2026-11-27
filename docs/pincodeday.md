@@ -40,9 +40,9 @@ Setup
    route promotion accounts into this workspace. They can create events,
    questions, gifts and reports but cannot create other admins, appoint users,
    or access Super Admin or Django staff controls.
-2. Open the December 20, 2026 draft created by migration 0004. Set the venue,
+2. Open the January 29, 2027 PincodeDay event (rescheduled by migration 0006). Set the venue,
    description, agenda, event times and quiz dates. Times use Asia/Kolkata.
-   The draft initially uses 10 AM–6 PM with scoring through December 19;
+   The draft initially uses 10 AM–6 PM with scoring through January 28, 2027;
    these times are editable defaults, not a published schedule.
 3. Add the four-option questions and correct answers. Publishing requires at
    least three questions. To support N daily plays per participant, add at least

@@ -246,8 +246,8 @@ def administration(request, pk=None):
     if request.method == 'GET' and pk is None and event:
         return redirect('day_admin_event', pk=event.pk)
     action = request.POST.get('action') if request.method == 'POST' else None
-    event_form = EventForm(instance=event, initial={'starts_at': datetime(2026, 12, 20, 10), 'ends_at': datetime(2026, 12, 20, 18),
-        'quiz_opens_on': today(), 'quiz_closes_on': date(2026, 12, 19)} if event is None else None)
+    event_form = EventForm(instance=event, initial={'starts_at': datetime(2027, 1, 29, 10), 'ends_at': datetime(2027, 1, 29, 18),
+        'quiz_opens_on': today(), 'quiz_closes_on': date(2027, 1, 28)} if event is None else None)
     question_form, gift_form = QuestionForm(), GiftForm()
     promotion_form = PromotionAccountForm()
     if action:
