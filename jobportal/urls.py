@@ -1,3 +1,4 @@
+from django.views.generic import TemplateView
 from django.contrib import admin
 from django.urls import path, include
 from django.views.i18n import set_language
@@ -15,6 +16,12 @@ from django.contrib.sitemaps import views as sitemap_views
 from .seo import SITEMAPS, robots, sitemap_index
 
 urlpatterns = [
+    path("coming-soon/tuition/", TemplateView.as_view(template_name="coming_soon.html", extra_context={"feature": "Tuition"})),
+    path("coming-soon/school/", TemplateView.as_view(template_name="coming_soon.html", extra_context={"feature": "School"})),
+    path("coming-soon/campus/", TemplateView.as_view(template_name="coming_soon.html", extra_context={"feature": "Campus"})),
+    path("coming-soon/news/", TemplateView.as_view(template_name="coming_soon.html", extra_context={"feature": "News"})),
+    path("coming-soon/health/", TemplateView.as_view(template_name="coming_soon.html", extra_context={"feature": "Health"})),
+
     path('flicks/mine/', flick_moderation.my_flicks, name='my_flicks'),
     path('flicks/media/<path:name>', flick_moderation.flick_media, name='flick_media'),
     path('businesses/add/', business_workspaces.add_business, name='add_another_business'),
